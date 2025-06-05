@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.css": ". REACT_APP_REPO_URL=https://github.com/Jeff-Aporta/camaleon-ui/static/css/main.693be885.css",
-    "main.js": ". REACT_APP_REPO_URL=https://github.com/Jeff-Aporta/camaleon-ui/static/js/main.8e6606f5.js",
-    "index.html": ". REACT_APP_REPO_URL=https://github.com/Jeff-Aporta/camaleon-ui/index.html",
-    "main.693be885.css.map": ". REACT_APP_REPO_URL=https://github.com/Jeff-Aporta/camaleon-ui/static/css/main.693be885.css.map",
-    "main.8e6606f5.js.map": ". REACT_APP_REPO_URL=https://github.com/Jeff-Aporta/camaleon-ui/static/js/main.8e6606f5.js.map"
+    "main.css": "./static/css/main.693be885.css",
+    "main.js": "./static/js/main.8e6606f5.js",
+    "index.html": "./index.html",
+    "main.693be885.css.map": "./static/css/main.693be885.css.map",
+    "main.8e6606f5.js.map": "./static/js/main.8e6606f5.js.map"
   },
   "entrypoints": [
     "static/css/main.693be885.css",
