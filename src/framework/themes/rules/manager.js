@@ -1,0 +1,375 @@
+import { fluidCSS } from "../../fluidCSS/index.js";
+import { JS2CSS } from "../../fluidCSS/JS2CSS/index.js";
+
+import { Color } from "./colors.js";
+
+import { createTheme, responsiveFontSizes } from "@mui/material";
+
+import { customizeScrollbar } from "./scrollbar.js";
+
+export { Color };
+
+Object.entries({
+  toWhite: function (t = 0) {
+    return this.mix(Color("white"), t);
+  },
+  toBlack: function (t = 0) {
+    return this.mix(Color("black"), t);
+  },
+  toGray: function (t = 0) {
+    return this.mix(Color("gray"), t);
+  },
+  invert: function (t = 1) {
+    const rgb = this.rgb()
+      .array()
+      .map((c) => parseInt(255 - c));
+    const invert = Color(`rgb(${rgb.join(",")})`);
+    return this.mix(invert, t);
+  },
+  invertnohue: function (t = 1) {
+    const invert = this.invert().rotate(180);
+    return this.mix(invert, t);
+  },
+  hslarray: function () {
+    return [
+      this.hue(), // H (0–360)
+      this.saturationl(), // S (0–100)
+      this.lightness(), // L (0–100)
+    ];
+  },
+  hsvarray: function () {
+    return [
+      this.hue(), // H (0–360)
+      this.saturationl(), // S (0–100)
+      this.value(), // V (0–100)
+    ];
+  },
+}).forEach(([key, value]) => {
+  Color.prototype[key] ??= value;
+});
+
+let _name_ = (() => {
+  if (typeof localStorage === "undefined") {
+    return "cyan";
+  }
+  const tema_almacenado = localStorage.getItem("theme-name");
+  return tema_almacenado ?? "cyan";
+})();
+
+let _luminance_ = (() => {
+  const systemLuminance = ["light", "dark"][
+    +!!window.matchMedia("(prefers-color-scheme: dark)").matches
+  ];
+  const stored = localStorage.getItem("theme-luminance");
+  return stored ?? systemLuminance;
+})();
+
+export function getAllThemesRegistered() {
+  const k = Object.keys(MUIDefaultValues).filter(
+    (k) => !["loadScrollsbar"].includes(k)
+  );
+  return k.map((k) => MUIDefaultValues[k]);
+}
+
+/**
+ * Registro interno de paletas de colores disponibles.
+ */
+export const MUIDefaultValues = {
+  loadScrollsbar: {},
+};
+
+/**
+ * Carga y aplica la paleta seleccionada.
+ * @param {object} options Opciones de paleta.
+ */
+export const paletteLoader = {
+  MUIDefaultValues,
+  customizeScrollbar,
+  getThemeLuminance,
+  getThemeName,
+  isDark,
+  childs,
+  createThemePalette: ({ palette, background, darkmode }) => {
+    const customize_components = customizeComponents({
+      palette,
+      components: palette.componentsMUI({ darkmode }),
+      darkmode,
+    });
+    const colors = muiColors(palette, darkmode);
+    return createTheme({
+      ...customize_components,
+      palette: {
+        mode: darkmode ? "dark" : "light",
+        background,
+        ...colors,
+      },
+    });
+  },
+};
+
+/**
+ * Obtiene los colores MUI de una paleta.
+ * @param {object} palette Paleta de colores.
+ * @param {boolean} darkMode Indica modo oscuro.
+ * @returns {object} Colores formateados.
+ */
+export function muiColors(palette, darkMode) {
+  const colors = palette.colors(darkMode);
+  const retorno = Object.entries(colors).reduce((acc, [key, value]) => {
+    acc[key] = {
+      main: value.color.hex(),
+      contrastText: value.text.hex(),
+    };
+    return acc;
+  }, {});
+  return retorno;
+}
+
+/**
+ * Indica si el modo actual es oscuro.
+ * @returns {boolean}
+ */
+export function isDark() {
+  return _luminance_ === "dark";
+}
+
+export function getColorsTheme(darkmode) {
+  return getSelectedPalette().colors(darkmode ?? isDark());
+}
+
+/**
+ * Aplica la configuración de tema.
+ */
+export function applyTheme() {
+  const themeSelected = getPaletteConfig();
+  themeSelected.willLoad(isDark());
+}
+
+/**
+ * Establece la luminancia del tema (light/dark).
+ * @param {string} luminance El nivel de luminancia.
+ */
+export function setThemeLuminance(luminance) {
+  _luminance_ = luminance ?? "dark";
+  if (typeof localStorage !== "undefined") {
+    localStorage.setItem("theme-luminance", luminance);
+  }
+  applyTheme();
+}
+
+/**
+ * Devuelve la luminancia del tema actual.
+ * @returns {string}
+ */
+export function getThemeLuminance() {
+  return _luminance_;
+}
+
+export function isPanda() {
+  return !!getPaletteConfig().panda;
+}
+
+export function getThemePandaComplement() {
+  if (!isPanda()) {
+    return getTheme();
+  }
+  return getThemeInvert();
+}
+
+export function getThemeInvert() {
+  return getTheme({ darkmode: !isDark() });
+}
+
+export function getTheme(props) {
+  return responsiveFontSizes(getSelectedPalette(props));
+}
+
+/**
+ * Devuelve la configuración de paleta actual.
+ * @returns {object}
+ */
+export function getPaletteConfig(name = _name_) {
+  let retorno = MUIDefaultValues[name];
+  if (!retorno) {
+    return MUIDefaultValues["cyan"];
+  }
+  return retorno;
+}
+
+export function isRegistered(name) {
+  return getAllThemesRegistered().some((x) => {
+    return x.name.includes(name);
+  })
+    ? name
+    : undefined;
+}
+
+/**
+ * Devuelve la paleta seleccionada según modo.
+ * @returns {object}
+ */
+export function getSelectedPalette({
+  name = _name_,
+  darkmode = isDark(),
+} = {}) {
+  return getPaletteConfig(name)[["light", "dark"][+darkmode]];
+}
+
+export function customizeComponents({ palette, darkmode }) {
+  return {
+    typography: palette.typography() ?? {
+      fontSize: 14,
+      button: {
+        textTransform: "none",
+      },
+    },
+    components: mapMui(palette),
+  };
+
+  function mapMui(palette) {
+    const componentes = palette.componentsMUI({ darkmode });
+    const retorno = Object.entries(componentes).reduce(
+      (retorno, [component, contexts]) => {
+        retorno[`Mui${component}`] = {
+          styleOverrides:
+            typeof contexts === "string"
+              ? contexts
+              : Object.entries(contexts).reduce((curr, [context, css]) => {
+                  const s = Object.keys(palette.colors(isDark()))
+                    .concat([
+                      "primary",
+                      "secondary",
+                      "error",
+                      "warning",
+                      "info",
+                      "success",
+                    ])
+                    .includes(context);
+                  if (s) {
+                    curr[`contained${firstUppercase(context)}`] = css;
+                  } else {
+                    curr[context] = css;
+                  }
+                  return curr;
+
+                  function firstUppercase(str) {
+                    const retorno = str.charAt(0).toUpperCase() + str.slice(1);
+                    return retorno;
+                  }
+                }, {}),
+        };
+        return retorno;
+      },
+      {}
+    );
+    return retorno;
+  }
+}
+
+export function childs(component, css) {
+  return Object.entries(css).reduce((acc, [context, value]) => {
+    acc[`&.Mui${component}-${context}`] = value;
+    return acc;
+  }, {});
+}
+
+/**
+ * Indica si los componentes están tematizados.
+ * @returns {boolean}
+ */
+export function isThemed() {
+  return controlComponents().themized;
+}
+
+export function typographyTheme() {
+  const typo = getSelectedPalette().typography;
+  return {
+    ...typo,
+    widthAproxString,
+  };
+  function widthAproxString(string, { fontSize } = {}) {
+    return string.length * ((fontSize ?? typo.fontSize) * 0.55);
+  }
+}
+
+export function controlComponents() {
+  const retorno = getPaletteConfig().control_components(isDark());
+  return retorno;
+}
+
+export function href(href) {
+  const control = controlComponents();
+  if (control.href) {
+    return control.href(href);
+  }
+  return href;
+}
+
+/**
+ * Genera variables CSS HSL para una propiedad de color.
+ * @param {string} name Nombre de la variable (sin prefijo "--").
+ * @param {Color} colorInst Instancia Color.
+ * @returns {{ [key: string]: string }} Objeto con propiedades CSS.
+ */
+export function generateCSSVariables(name, colorInst) {
+  const hsl = colorInst.hsl().object();
+  return {
+    [`--${name}`]: colorInst.hex(),
+    [`--${name}-h`]: `${hsl.h}deg`,
+    [`--${name}-s`]: `${hsl.s}%`,
+    [`--${name}-l`]: `${hsl.l}%`,
+  };
+}
+
+export function registerColors(colors) {
+  // Exponer colores globalmente
+  window.themeColors ??= {};
+  Object.assign(window, colors);
+  Object.assign(window.themeColors, colors);
+  return window.themeColors;
+}
+
+export function readyThemeManager() {
+  applyTheme();
+}
+
+/**
+ * Establece el nombre del tema actual.
+ * @param {string} name Nombre del tema.
+ */
+export function setThemeName(name) {
+  _name_ = name ?? "cyan";
+  if (typeof localStorage !== "undefined") {
+    localStorage.setItem("theme-name", name);
+  }
+  applyTheme();
+}
+
+/**
+ * Devuelve el nombre del tema actual.
+ * @returns {string}
+ */
+export function getThemeName() {
+  return _name_;
+}
+
+(() => {
+  try {
+    Object.assign(window, {
+      isDark,
+      getThemeName,
+      setThemeName,
+      getThemeLuminance,
+      setThemeLuminance,
+      getTheme,
+      getColorsTheme,
+      getPaletteConfig,
+      getSelectedPalette,
+      JS2CSS,
+      fluidCSS,
+      Color,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+})();
