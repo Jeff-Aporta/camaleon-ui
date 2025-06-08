@@ -1,3 +1,4 @@
+import React from "react";
 import { Paper } from "@mui/material";
 import { fluidCSS } from "../../../fluidCSS/index.js";
 
