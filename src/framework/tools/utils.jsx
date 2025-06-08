@@ -18,7 +18,6 @@ export function getLightFilter() {
   }else{
     retorno = a[1 - +panda];
   }
-  console.log(retorno)
   return retorno;
 }
 

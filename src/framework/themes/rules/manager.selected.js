@@ -11,14 +11,11 @@ export function getColorBackground(theme) {
   }
   const { palette } = theme;
   let cursor = palette;
-  console.log("palette", cursor);
   if (cursor) {
     if (cursor.background) {
       cursor = cursor.background;
-      console.log("background", cursor);
       if (cursor.default) {
         cursor = cursor.default;
-        console.log("default", cursor);
         return cursor;
       }
     }
