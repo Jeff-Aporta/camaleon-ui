@@ -10,13 +10,15 @@ export class base {
   serie(operador, name, props) {
     const struct = this.props2string(props, 0);
     const key = [struct, operador].join("-");
-    const existe = diccionario.hasOwnProperty(key);
+    const existe = diccionario[key];
 
     const mascara_serie = Math.random()
       .toString(36)
       .replace("0.", name + "-");
 
-    diccionario[key] ??= mascara_serie;
+    if (!diccionario[key]) {
+      diccionario[key] = mascara_serie;
+    }
 
     this.retorno.push(diccionario[key]);
 
@@ -32,16 +34,16 @@ export class base {
   }
 
   props2string(props, indice_estado) {
-    return JS2CSS.parseCSS(this.#recursiveIndexSelector(props, indice_estado));
+    return JS2CSS.parseCSS(this.recursiveIndexSelector(props, indice_estado));
   }
 
-  #recursiveIndexSelector(obj, index, deep = 0) {
+  recursiveIndexSelector(obj, index, deep = 0) {
     let r = Object.entries(obj).map(([key, val]) => {
       if (Array.isArray(val)) {
         return [key, val[index]];
       }
       if (typeof val == "object") {
-        return [key, this.#recursiveIndexSelector(val, index, deep + 1)];
+        return [key, this.recursiveIndexSelector(val, index, deep + 1)];
       }
       return [key, [val][index]];
     });

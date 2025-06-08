@@ -1,5 +1,5 @@
 import { getAllThemesRegistered } from "../rules/manager.js";
-
+import { Color } from "../rules/colors.js";
 import { JS2CSS } from "../../fluidCSS/index.js";
 
 export const baseColor = window.cyan;
@@ -16,19 +16,21 @@ export const zIndex = (() => {
   };
 })();
 
-export const mapFilterTheme = {
-  ...getAllThemesRegistered().reduce((acc, themeRegister) => {
-    acc[themeRegister.name[0]] = (rotation) => {
-      const colors = window.themeColors[themeRegister.name_color];
-      return rotation(colors);
-    };
-    return acc;
-  }, {}),
-  blackNwhite: () => "grayscale(1)",
-};
+export const mapFilterTheme = {};
 
 export function init() {
   Object.assign(window, { mapFilterTheme, zIndex, baseColor });
+
+  Object.assign(mapFilterTheme, {
+    ...getAllThemesRegistered().reduce((acc, themeRegister) => {
+      acc[themeRegister.name[0]] = (rotation) => {
+        const name_color = window.themeColors[themeRegister.name_color];
+        return rotation(name_color, Color("red"));
+      };
+      return acc;
+    }, {}),
+    blackNwhite: () => "grayscale(1)",
+  });
 
   JS2CSS.insertStyle({
     id: "theme-constants",

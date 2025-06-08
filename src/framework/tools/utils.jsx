@@ -3,33 +3,31 @@ import { toast } from "react-hot-toast";
 import { Typography, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
-import { getThemeName, Color, isDark } from "../index.js";
-/**
- * Devuelve el filtro CSS en modo claro (sin cambios si el tema es oscuro).
- * @returns {{"*": string} | {}} Filtro CSS.
- */
+import { getThemeName, Color, isDark, getPaletteConfig } from "../index.js";
+
 export function getLightFilter() {
-  if (isDark()) {
-    return {};
-  }
-  return {
+  const rl = {
     "*": "invert() hue-rotate(180deg)",
   };
+  const rb = {};
+  const { panda } = getPaletteConfig();
+  const a = [rb, rl];
+  let retorno;
+  if (isDark()) {
+    retorno = a[+panda];
+  }else{
+    retorno = a[1 - +panda];
+  }
+  console.log(retorno)
+  return retorno;
 }
 
-/**
- * Discrimina y aplica filtros de color según tema y reglas adicionales.
- * @param {Object} extraRules - Reglas de filtro extra por tema o wildcard.
- * @param {Object.<string, Function>} themeFilterMap - Mapa de tema a funciones de filtro.
- * @param {Color} baseColor - Color base para cálculo de rotación.
- * @returns {{filter: string}} Objeto con propiedad 'filter' CSS.
- */
 export function colorFilterDiscriminator(
   extraRules = {},
-  themeFilterMap = window.mapFilterTheme ?? {}
+  mapFilterTheme = global.nullish(window.mapFilterTheme, {})
 ) {
   const themeName = getThemeName();
-  const p = themeFilterMap[themeName];
+  const p = mapFilterTheme[themeName];
   return {
     filter: (() => {
       const rotationFilter = (() => {
@@ -56,12 +54,11 @@ export function colorFilterDiscriminator(
   };
 }
 
-export function fdhue(color, baseColor = window.baseColor ?? Color("white")) {
+export function fdhue(color, baseColor) {
   if (typeof color == "string") {
     color = Color(color);
   }
   const diff = color.hue() - baseColor.hue();
-  console.log(color.hue(), baseColor.hue(), diff);
   return `hue-rotate(${parseInt(diff)}deg)`;
 }
 

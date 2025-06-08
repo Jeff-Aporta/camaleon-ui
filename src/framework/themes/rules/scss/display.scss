@@ -2,75 +2,63 @@
 // 1. Display Utilities
 // ---------------------------------------------
 @each $value in (flex, inline-flex, none, block, inline-block) {
-  .d-#{$value} {
+  .d-#{$value},
+  .d-#{$value}-col,
+  .#{$value} {
     display: $value !important;
   }
   .d-#{$value}-col {
-    display: $value !important;
     flex-direction: column !important;
   }
 }
 
-@each $value in (row, column) {
-  .flex-#{$value} {
-    flex-direction: $value !important;
-  }
+.row-direction {
+  flex-direction: row !important;
 }
 
-.d-center {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
+.col-direction {
+  flex-direction: column !important;
 }
 
-.d-end-center {
-  display: flex !important;
-  justify-content: flex-end !important;
-  align-items: center !important;
+.flex-row {
+  @extend .flex;
+  @extend .row-direction;
 }
 
-.d-end {
-  display: flex !important;
-  justify-content: end !important;
-  align-items: end !important;
-}
-
-.d-end-wrap {
-  @extend .d-end;
-  flex-wrap: wrap;
-}
-
-.d-space-between-center {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-}
-
-.direction-row-reverse {
-  flex-direction: row-reverse !important;
+.flex-col {
+  @extend .flex;
+  @extend .col-direction;
 }
 
 .wrap {
   flex-wrap: wrap !important;
 }
 
-.d-inline-block {
-  display: inline-block !important;
+.wflex {
+  @extend .flex;
+  @extend .wrap;
 }
 
-.d-inline-flex {
-  display: inline-flex !important;
+.wflex-row {
+  @extend .flex-row;
+  @extend .wrap;
 }
 
-.d-center-col {
-  display: flex !important;
+.wflex-col {
+  @extend .flex-col;
+  @extend .wrap;
+}
+
+.d-center {
+  @extend .flex;
   justify-content: center !important;
   align-items: center !important;
-  flex-direction: column !important;
 }
 
-.d-none {
-  display: none;
+.d-end {
+  @extend .flex;
+  justify-content: end !important;
+  align-items: end !important;
 }
 
 @each $value in (center, space-between, space-evenly, space-around, end, start)
@@ -80,8 +68,24 @@
   }
 }
 
+.space-between {
+  @extend .jc-space-between;
+}
+
+.space-evenly {
+  @extend .jc-space-evenly;
+}
+
+.space-around {
+  @extend .jc-space-around;
+}
+
 @each $value in (center, end, start, stretch) {
   .ai-#{$value} {
     align-items: $value !important;
   }
+}
+
+.stretch {
+  @extend .ai-stretch;
 }

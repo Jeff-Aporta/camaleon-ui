@@ -1,9 +1,13 @@
 import React from "react";
 import { Main } from "@theme/main.jsx";
-import { DivM, PaperP } from "@framework";
-import { isDark, controlComponents, href } from "@framework";
-import { fluidCSS } from "@framework";
-import { ImageLocal } from "@recurrent";
+import {
+  isDark,
+  controlComponents,
+  href,
+  DivM,
+  PaperP,
+  fluidCSS,
+} from "@framework";
 
 import {
   Box,
@@ -39,9 +43,12 @@ import Technology from "./components/Technology";
 import Community from "./components/Community";
 import OpenSoftware from "./components/OpenSoftware";
 
-export default WelcomePage;
+window.view = {
+  icon: "primaryl4",
+  textaccent: "primaryl3",
+};
 
-function WelcomePage() {
+export default function () {
   return (
     <Main bgtype="default" h_init={"0px"}>
       <Hero />

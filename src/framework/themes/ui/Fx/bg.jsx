@@ -14,6 +14,11 @@ import {
   holeCircleGradient,
 } from "./paint.css.js";
 
+import {
+  getAdjacentPrimaryColor,
+  getContrast,
+} from "../../rules/manager.selected.js";
+
 import { JS2CSS } from "../../../fluidCSS/JS2CSS/index.js";
 
 export function newBackground({
@@ -26,10 +31,10 @@ export function newBackground({
 }) {
   JS2CSS.insertStyle({
     id: "back-texture",
-    ".back-texture": b(),
+    ".back-texture": backtexture_styles(),
   });
 
-  function b() {
+  function backtexture_styles() {
     const { background, ...rest } = back_texture_css({
       colorFilterDiscriminator,
       getLightFilter,
@@ -42,7 +47,7 @@ export function newBackground({
     });
     return {
       ...style({
-        defaultbg: colorFilterDiscriminator(getLightFilter()),
+        // defaultbg: colorFilterDiscriminator(getLightFilter()),
         colorFilterDiscriminator,
         getLightFilter,
       }),
@@ -56,12 +61,16 @@ export function newBackground({
  * Aplica el fondo por defecto con texturas, degradados y formas.
  */
 export function applyDefaultBackground({
-  color_anillo = "rgba(255,255,255, 0.03)",
-  color_circulo = "rgba(186, 85, 211, 0.1)",
-  colorBase = Color("rgb(86, 0, 199)"),
+  color_anillo = "rgba(128, 128, 128, 0.2)",
   radio_anillo = 35,
   ...rest
 } = {}) {
+  const [colorBase, colorBase2, colorBase3] = getAdjacentPrimaryColor({
+    a: 20,
+    n: 3,
+  });
+  const contrast = getContrast();
+  const color_circulo = `rgba(${contrast.rgb().array().join(",")},0.1)`;
   let radio_agujero = (() => {
     const grosor = 7;
     return radio_anillo - grosor;
@@ -70,6 +79,8 @@ export function applyDefaultBackground({
   radio_agujero = `max(${radio_agujero}dvw, 200px)`;
 
   const arrayColorBase = colorBase.rgb().array();
+  const arrayColorBase2 = colorBase2.rgb().array();
+  const arrayColorBase3 = colorBase3.rgb().array();
 
   return newBackground({
     ...rest,
@@ -85,8 +96,8 @@ export function applyDefaultBackground({
           colors: [
             "transparent 70%",
             `rgba(${arrayColorBase.join(",")},0.2)`,
-            `rgba(${arrayColorBase.join(",")},0.2) 98%`,
-            `rgba(${arrayColorBase.join(",")},0.3) calc(100% - 20px)`,
+            `rgba(${arrayColorBase2.join(",")},0.2) 98%`,
+            `rgba(${arrayColorBase3.join(",")},0.3) calc(100% - 20px)`,
           ],
         }),
         ringGradient({
@@ -170,7 +181,7 @@ export function applyPortalBackground(options = {}) {
           { a: 220, r: 30, ri: 8 },
         ].map(({ a, r, ri }) =>
           ringGradient({
-            color: "rgba(20,255,255,0.25)",
+            color: "hsla(180, 100.00%, 53.90%, 0.25)",
             holeRadius: ri + "px",
             radius: ri + 4 + `px`,
             x: `calc(${toViewportPercent(r)} * cos(${a}deg) + 50%)`,
@@ -180,17 +191,17 @@ export function applyPortalBackground(options = {}) {
         linearGradient({
           angle: "45deg",
           colors: [
-            "rgba(255,0,255,0.3)",
-            "rgba(150,0,255,0.3)",
+            "hsla(120, 100.00%, 50.00%, 0.5)",
+            "hsla(130, 100.00%, 90.00%, 0.30)",
             `transparent ${toViewportPercent(40)}`,
             `transparent ${toViewportPercent(60)}`,
-            "rgba(0, 0, 0, 0.3)",
-            "rgba(0, 0, 0, 0.5)",
-            "rgba(0, 0, 0, 0.7)",
-            "rgba(0, 0, 0, 0.3)",
-            "rgba(0,100,255,0.1)",
-            "rgba(0,20,255,0.4)",
-            "rgba(0,0,255,0.2)",
+            "hsla(0, 0.00%, 0.00%, 0.30)",
+            "hsla(0, 0.00%, 0.00%, 0.50)",
+            "hsla(0, 0.00%, 0.00%, 0.70)",
+            "hsla(0, 0.00%, 0.00%, 0.30)",
+            "hsla(220, 100.00%, 70%, 0.10)",
+            "hsla(230, 100.00%, 80%, 0.40)",
+            "hsla(240, 100.00%, 90%, 0.20)",
           ],
         }),
         holeCircleGradient({
@@ -200,14 +211,14 @@ export function applyPortalBackground(options = {}) {
           y: "center",
         }),
         ringGradient({
-          color: "rgba(255, 0, 255, 0.05)",
+          color: "hsla(170, 100.00%, 50.00%, 0.05)",
           holeRadius: toViewportPercent(33),
           radius: `calc(${toViewportPercent(33)} + 20px)`,
           x: "center",
           y: "center",
         }),
         ringGradient({
-          color: "rgba(255, 255, 255, 0.08)",
+          color: "hsla(0, 0.00%, 100.00%, 0.08)",
           holeRadius: toViewportPercent(50),
           radius: toViewportPercent(51),
           x: "center",

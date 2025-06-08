@@ -50,17 +50,15 @@ const copyScss = "node scripts/copy-scss.js";
 const buildPackage = `${transpile} && ${replaceJsx} && ${copyScss}`;
 const versionBump =
   "npm version patch --no-git-tag-version --no-git-commit-hooks";
-const gitAddCommitPush =
-  `git add package.json package-lock.json && git commit -m \\"Publica la versión ${packageJson.version}\\" && git push`;
+const gitAddCommitPush = `git add package.json package-lock.json && git commit -m \\"Publica la versión $(node -p \\"require('./package.json').version\\")\\" && git push`;
 
-const envvars = (public_, repo_url) =>
-  `cross-env-shell \\\"PUBLIC_URL=${public_} REACT_APP_REPO_URL=\\\"${repo_url}\\\"\\\"`;
+const envvars = (public_) => `cross-env-shell PUBLIC_URL=${public_}`;
 const publishPackage = `${buildPackage} && npm publish --access public && ${versionBump} && ${gitAddCommitPush}`;
-const buildGhRepo = `${envvars(".", repository_url)} react-app-rewired build`;
+const buildGhRepo = `${envvars(".")} react-app-rewired build`;
 const deployGhPages = `${buildGhRepo} && gh-pages -d build`;
 const deployGh = `${deployGhPages} && ${publishPackage}`;
 const deployBranch = (branch) =>
-  `${envvars("/", repository_url)} npm run build && gh-pages -d build -b ${branch}`;
+  `${envvars("/")} npm run build && gh-pages -d build -b ${branch}`;
 const deployProd = deployBranch("build-prod");
 const deploys = `${deployGh} && ${deployProd}`;
 

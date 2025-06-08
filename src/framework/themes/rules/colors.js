@@ -37,7 +37,7 @@ Object.assign(Color.prototype, {
   },
 });
 
-export function getPrimaryColors() {
+export function getprimarylolors() {
   return {
     red: Color("rgb(200, 0, 0)"),
     green: Color("rgb(0, 200, 0)"),
@@ -50,7 +50,7 @@ export function getPrimaryColors() {
     skyGreen: Color("rgb(15, 146, 216)"),
     lemonGreen: Color("rgb(132, 233, 16)"),
     militaryGreen: Color("rgb(26, 128, 0)"),
-    aquaBlue: Color("rgb(33, 200, 200)"),
+    aquaBlue: Color("rgb(30, 168, 202)"),
     purple: Color("rgb(128, 0, 128)"),
     springGreen: Color("rgb(19, 200, 132)"),
     white: Color("rgb(255, 255, 255)"),
@@ -59,7 +59,6 @@ export function getPrimaryColors() {
     gray: Color("rgb(128, 128, 128)"),
     orange: Color("rgb(200, 128, 0)"),
     pink: Color("rgb(255, 128, 200)"),
-    teal: Color("rgb(23, 145, 145)"),
     navy: Color("rgb(0, 52, 163)"),
     brown: Color("rgb(143, 52, 0)"),
     violet: Color("rgb(128, 43, 200)"),
@@ -99,7 +98,7 @@ export function getSecondaryColors(primary) {
 }
 
 export function getAllColors() {
-  const primaries = getPrimaryColors();
+  const primaries = getprimarylolors();
   return {
     ...primaries,
     ...getSecondaryColors(primaries),

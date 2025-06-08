@@ -6,8 +6,12 @@ import { Color } from "./colors.js";
 import { createTheme, responsiveFontSizes } from "@mui/material";
 
 import { customizeScrollbar } from "./scrollbar.js";
+import { getSelectedPalette } from "./manager.selected.js";
+
+
 
 export { Color };
+
 
 Object.entries({
   toWhite: function (t = 0) {
@@ -45,7 +49,10 @@ Object.entries({
     ];
   },
 }).forEach(([key, value]) => {
-  Color.prototype[key] ??= value;
+  if (Color.prototype[key]) {
+    return;
+  }
+  Color.prototype[key] = value;
 });
 
 let _name_ = (() => {
@@ -53,7 +60,7 @@ let _name_ = (() => {
     return "cyan";
   }
   const tema_almacenado = localStorage.getItem("theme-name");
-  return tema_almacenado ?? "cyan";
+  return global.nullish(tema_almacenado, "cyan");
 })();
 
 let _luminance_ = (() => {
@@ -61,7 +68,7 @@ let _luminance_ = (() => {
     +!!window.matchMedia("(prefers-color-scheme: dark)").matches
   ];
   const stored = localStorage.getItem("theme-luminance");
-  return stored ?? systemLuminance;
+  return global.nullish(stored, systemLuminance);
 })();
 
 export function getAllThemesRegistered() {
@@ -134,7 +141,10 @@ export function isDark() {
 }
 
 export function getColorsTheme(darkmode) {
-  return getSelectedPalette().colors(darkmode ?? isDark());
+  return global.nullish(
+    getSelectedPalette().colors(global.nullish(darkmode, isDark())),
+    {}
+  );
 }
 
 /**
@@ -150,7 +160,7 @@ export function applyTheme() {
  * @param {string} luminance El nivel de luminancia.
  */
 export function setThemeLuminance(luminance) {
-  _luminance_ = luminance ?? "dark";
+  _luminance_ = global.nullish(luminance, "dark");
   if (typeof localStorage !== "undefined") {
     localStorage.setItem("theme-luminance", luminance);
   }
@@ -163,25 +173,6 @@ export function setThemeLuminance(luminance) {
  */
 export function getThemeLuminance() {
   return _luminance_;
-}
-
-export function isPanda() {
-  return !!getPaletteConfig().panda;
-}
-
-export function getThemePandaComplement() {
-  if (!isPanda()) {
-    return getTheme();
-  }
-  return getThemeInvert();
-}
-
-export function getThemeInvert() {
-  return getTheme({ darkmode: !isDark() });
-}
-
-export function getTheme(props) {
-  return responsiveFontSizes(getSelectedPalette(props));
 }
 
 /**
@@ -204,25 +195,14 @@ export function isRegistered(name) {
     : undefined;
 }
 
-/**
- * Devuelve la paleta seleccionada según modo.
- * @returns {object}
- */
-export function getSelectedPalette({
-  name = _name_,
-  darkmode = isDark(),
-} = {}) {
-  return getPaletteConfig(name)[["light", "dark"][+darkmode]];
-}
-
 export function customizeComponents({ palette, darkmode }) {
   return {
-    typography: palette.typography() ?? {
+    typography: global.nullish(palette.typography(), {
       fontSize: 14,
       button: {
         textTransform: "none",
       },
-    },
+    }),
     components: mapMui(palette),
   };
 
@@ -273,57 +253,11 @@ export function childs(component, css) {
   }, {});
 }
 
-/**
- * Indica si los componentes están tematizados.
- * @returns {boolean}
- */
-export function isThemed() {
-  return controlComponents().themized;
-}
-
-export function typographyTheme() {
-  const typo = getSelectedPalette().typography;
-  return {
-    ...typo,
-    widthAproxString,
-  };
-  function widthAproxString(string, { fontSize } = {}) {
-    return string.length * ((fontSize ?? typo.fontSize) * 0.55);
-  }
-}
-
-export function controlComponents() {
-  const retorno = getPaletteConfig().control_components(isDark());
-  return retorno;
-}
-
-export function href(href) {
-  const control = controlComponents();
-  if (control.href) {
-    return control.href(href);
-  }
-  return href;
-}
-
-/**
- * Genera variables CSS HSL para una propiedad de color.
- * @param {string} name Nombre de la variable (sin prefijo "--").
- * @param {Color} colorInst Instancia Color.
- * @returns {{ [key: string]: string }} Objeto con propiedades CSS.
- */
-export function generateCSSVariables(name, colorInst) {
-  const hsl = colorInst.hsl().object();
-  return {
-    [`--${name}`]: colorInst.hex(),
-    [`--${name}-h`]: `${hsl.h}deg`,
-    [`--${name}-s`]: `${hsl.s}%`,
-    [`--${name}-l`]: `${hsl.l}%`,
-  };
-}
-
 export function registerColors(colors) {
   // Exponer colores globalmente
-  window.themeColors ??= {};
+  if (!window.themeColors) {
+    window.themeColors = {};
+  }
   Object.assign(window, colors);
   Object.assign(window.themeColors, colors);
   return window.themeColors;
@@ -338,7 +272,7 @@ export function readyThemeManager() {
  * @param {string} name Nombre del tema.
  */
 export function setThemeName(name) {
-  _name_ = name ?? "cyan";
+  _name_ = global.nullish(name, "cyan");
   if (typeof localStorage !== "undefined") {
     localStorage.setItem("theme-name", name);
   }
@@ -361,7 +295,6 @@ export function getThemeName() {
       setThemeName,
       getThemeLuminance,
       setThemeLuminance,
-      getTheme,
       getColorsTheme,
       getPaletteConfig,
       getSelectedPalette,

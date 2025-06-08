@@ -44,14 +44,14 @@ class layer_html extends base {
   }
 
   withTouchscreen(props) {
-    return this.#cursor(
+    return this.cursor(
       "(hover: none) and (pointer: coarse)",
       "touchscreen",
       props
     );
   }
   inDesktop(props) {
-    return this.#cursor(
+    return this.cursor(
       "(hover: hover) and (pointer: fine)",
       "desktop-cursor",
       props
@@ -74,15 +74,17 @@ class layer_html extends base {
     });
   }
 
-  #cursor(operador, name, props) {
+  cursor(operador, name, props) {
     const struct = this.props2string(props, 0);
     const key = [struct, operador].join("-");
-    const existe = diccionario.hasOwnProperty(key);
+    const existe = diccionario[key];
     const mascara_cursor = Math.random()
       .toString(36)
       .replace("0.", name + "-");
 
-    diccionario[key] ??= mascara_cursor;
+    if (!existe) {
+      diccionario[key] = mascara_cursor;
+    }
     this.retorno.push(diccionario[key]);
 
     if (existe) {

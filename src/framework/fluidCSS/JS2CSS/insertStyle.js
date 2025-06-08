@@ -7,7 +7,7 @@ export function insertStyle({ style, id, clases = [], ...rest }) {
   if (!style) {
     if (id) {
       style =
-        document.querySelector(`style#${id}`) ??
+        document.querySelector(`style#${id}`) ||
         document.createElement("style");
       style.id = id;
     } else {

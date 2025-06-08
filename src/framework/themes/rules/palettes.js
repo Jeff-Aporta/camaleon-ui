@@ -1,5 +1,6 @@
 import { isDark } from "./manager.js";
 import { Color } from "./colors.js";
+import { clamp, map } from "../../tools/index.js";
 
 export const registerThemes_PaletteGeneral = {};
 
@@ -11,7 +12,9 @@ export const registerThemes_PaletteGeneral = {};
 export class PaletteGeneral {
   constructor(packLoadPalette) {
     Object.assign(this, packLoadPalette);
-    this.name ??= [Math.random().toString(36).slice(2)];
+    if (!this.name) {
+      this.name = [Math.random().toString(36).slice(2)];
+    }
     this.name.forEach((name) => {
       registerThemes_PaletteGeneral[name] = this;
     });
@@ -28,10 +31,10 @@ export class PaletteGeneral {
   }
 
   getbg(darkmode) {
-    if (darkmode ?? isDark()) {
-      return this.bg_dark ?? "black";
+    if (global.nullish(darkmode, isDark())) {
+      return global.nullish(this.bg_dark, "black");
     }
-    return this.bg_light ?? "white";
+    return global.nullish(this.bg_light, "white");
   }
 
   /**
@@ -60,7 +63,10 @@ export class PaletteGeneral {
           props = prepareProps(props);
         }
 
-        return simple(props) ?? complex(props);
+        return global.nullish(
+          () => simple(props),
+          () => complex(props)
+        );
 
         function complex({ view = "/", params = {} }) {
           const root = simple(view);
@@ -136,7 +142,7 @@ export class PaletteGeneral {
         color: Color("#29A529"),
         text: blanco,
       },
-      ...Object.entries(window.themeColors ?? {}).reduce(
+      ...Object.entries(global.nullish(window.themeColors, {})).reduce(
         (acc, [key, value]) => {
           acc[key] = {
             color: value,
@@ -158,20 +164,25 @@ export class PaletteGeneral {
 export class PaletteMonochrome extends PaletteGeneral {
   constructor({
     whiten = {
-      default: () => 0.7,
-      paper: () => 0.9,
+      default: () => 0.9,
+      paper: () => 0.95,
     },
     blacken = {
-      default: () => 0.9,
-      paper: () => 0.85,
+      default: () => 0.85,
+      paper: () => 0.7,
     },
     ...rest
   } = {}) {
     super(rest);
-
-    this.panda ??= false;
-    this.bg_light ??= this.main_bright_color.toWhite(whiten.default());
-    this.bg_dark ??= this.main_color.toBlack(blacken.default());
+    if (!this.panda) {
+      this.panda = false;
+    }
+    if (!this.bg_light) {
+      this.bg_light = this.main_bright_color.toWhite(whiten.default());
+    }
+    if (!this.bg_dark) {
+      this.bg_dark = this.main_color.toBlack(blacken.default());
+    }
 
     this.light = this.createThemePalette({
       darkmode: false,
@@ -201,14 +212,19 @@ export class PaletteMonochrome extends PaletteGeneral {
 
   getbg(darkmode) {
     const { bg_light, bg_dark } = this.getbg_pair();
-    if (darkmode ?? isDark()) {
-      return bg_dark.hex() ?? "#000000";
+    const bgs = [
+      global.nullish(bg_light.hex(), "#FFFFFF"),
+      global.nullish(bg_dark.hex(), "#000000"),
+    ];
+    let state = global.nullish(darkmode, isDark());
+    if (this.panda) {
+      state = !state;
     }
-    return bg_light.hex() ?? "#FFFFFF";
+    return bgs[+state];
   }
 
   getbg_complement(darkmode) {
-    darkmode ??= isDark();
+    darkmode = global.nullish(darkmode, isDark());
     return this.getbg(!darkmode);
   }
 
@@ -258,7 +274,7 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
     const colors = {
       ...constants_color,
       ...this.colors(darkmode),
-      ...(window.themeColors ?? {}),
+      ...global.nullish(window.themeColors, {}),
     };
 
     /**
@@ -297,6 +313,75 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
     };
   }
 
+  adjacentFactor() {
+    let tono = this.main_color.hue();
+    let factor = tono < 180 ? 1 : -1;
+    if (tono > 240) {
+      factor = 1;
+    }
+    const complement = tono > 180 ? map(tono, 180, 360, -180, 0) : tono;
+    const hueGreen = 120;
+    const hueOrange = 30;
+    const hueYellow = 60;
+    const hueCyan = 180;
+    const hueMagenta = 300;
+    const tolerance = 29;
+    const diffYellow = Math.abs(hueYellow - tono);
+    const diffCyan = Math.abs(hueCyan - tono);
+    const diffMagenta = Math.abs(hueMagenta - tono);
+    const diffOrange = Math.abs(hueOrange - tono);
+    const diffRed = Math.abs(complement);
+    const diffGreen = Math.abs(hueGreen - tono);
+    if (diffRed <= tolerance) {
+      factor *= map(diffRed / tolerance, 0, 1, 0.05, 1);
+    }
+    if (diffGreen <= tolerance) {
+      factor *= map(diffGreen / tolerance, 0, 1, 0.05, 1);
+    }
+    if (diffOrange <= tolerance) {
+      factor *= diffOrange / tolerance;
+    }
+    if (diffYellow <= tolerance) {
+      factor *= diffYellow / tolerance;
+    }
+    if (diffCyan <= tolerance) {
+      factor *= diffCyan / tolerance;
+    }
+    if (diffMagenta <= tolerance) {
+      factor *= map(diffMagenta / tolerance, 0, 1, 0.3, 1);
+    }
+    return factor;
+  }
+
+  getAdjacentPrimaryColor({ a = 15, n = 1, light = true } = {}) {
+    const factor = this.adjacentFactor() * (light ? 1 : -1);
+    const colorPrimary = this.getPrimaryColor();
+    return Array.from({ length: n }, (_, n) => {
+      const colorRotate = colorPrimary.rotate((n + 1) * a * factor); // adjacent
+      return colorRotate;
+    });
+  }
+
+  getPrimaryColor() {
+    return this.main_color.saturate(0.3);
+  }
+
+  getTriadeColors(primary) {
+    if (!primary) {
+      primary = this.getPrimaryColor();
+    }
+    const primary2 = primary.rotate(120); // right triade
+    const primary3 = primary.rotate(240); // left triade
+    return [primary, primary2, primary3];
+  }
+
+  getContrast(primary) {
+    if (!primary) {
+      primary = this.getPrimaryColor();
+    }
+    return primary.rotate(180);
+  }
+
   /**
    * Devuelve los colores para la paleta.
    * @param {boolean} darkmode - Indica si se está en modo oscuro.
@@ -308,19 +393,49 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
     const color_contrast = colors_contrast[+darkmode];
     const color_uncontrast = colors_contrast[1 - darkmode];
 
-    let primary = this.main_color;
+    const primary = this.getPrimaryColor();
+
+    const [, primary2, primary3] = this.getTriadeColors(primary);
+
+    const contrast = this.getContrast(primary); // complementary
+
+    const [
+      [primaryl1, primaryl2, primaryl3, primaryl4],
+      [primaryd1, primaryd2, primaryd3, primaryd4],
+    ] = [
+      this.getAdjacentPrimaryColor({ n: 4 }), // adjacents lights
+      this.getAdjacentPrimaryColor({ n: 4, light: false }), // adjacents darks
+    ];
     const secondary = primary.toGray(0.5);
+
+    function genObjMui(props) {
+      const retorno = {};
+      Object.entries(props).forEach(([k, v]) => {
+        retorno[k] = {
+          color: v,
+          text: color_contrast,
+        };
+      });
+      return retorno;
+    }
 
     return {
       ...super.colors(darkmode),
-      primary: {
-        color: primary,
-        text: color_contrast,
-      },
-      secondary: {
-        color: secondary,
-        text: color_contrast,
-      },
+      ...genObjMui({
+        primary,
+        contrast,
+        primary2,
+        primary3,
+        primaryl1,
+        primaryl2,
+        primaryl3,
+        primaryl4,
+        primaryd1,
+        primaryd2,
+        primaryd3,
+        primaryd4,
+        secondary,
+      }),
     };
   }
 
@@ -384,9 +499,36 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
       },
       Button: {
         ...Button,
-        ...["primary", "secondary", "error", "warning", "info", "success"]
+        ...[
+          "primary",
+          "primaryi",
+          "primary2",
+          "primary3",
+          "primaryl1",
+          "primaryl2",
+          "primaryl3",
+          "primaryd1",
+          "primaryd2",
+          "primaryd3",
+          "secondary",
+          "secondaryi",
+          "secondary2",
+          "secondary3",
+          "secondaryc1",
+          "secondaryc2",
+          "secondaryc3",
+          "secondarync1",
+          "secondarync2",
+          "secondarync3",
+          "error",
+          "warning",
+          "info",
+          "success",
+        ]
           .map((state) => {
-            Button[state] ??= {};
+            if (!Button[state]) {
+              Button[state] = {};
+            }
             let color = Color("white");
             const bg = this.getbgstate(darkmode, state);
             if (bg && Color(bg).isLight()) {

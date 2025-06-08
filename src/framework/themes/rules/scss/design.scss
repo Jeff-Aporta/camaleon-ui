@@ -1,5 +1,14 @@
+.fit-w {
+  width: fit-content;
+}
+
 .design {
   position: relative !important;
+
+  &.full-w {
+    max-width: 100%;
+    width: 100%;
+  }
 
   .layer {
     position: absolute !important;
@@ -89,23 +98,21 @@
       @extend .center-y;
     }
 
-    &.fill {
-      @extend .max-w;
-      @extend .max-h;
-    }
-
-    &.max-w {
+    &.full-w {
       max-width: 100%;
       width: 100%;
-      @extend .left;
-      @extend .right;
     }
 
-    &.max-h {
+    &.full-h {
       max-height: 100%;
       height: 100%;
-      @extend .top;
-      @extend .bottom;
+    }
+
+    &.fill {
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
     }
 
     &.center-centralized {

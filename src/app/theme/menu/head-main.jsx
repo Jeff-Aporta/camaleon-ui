@@ -79,8 +79,11 @@ export function HeadMain({ updateTheme = () => 0 }) {
   });
 
   return (
-    <PaperF className="menu-top d-space-between-center pad-10px" hm={false}>
-      <div className="d-flex">
+    <PaperF
+      className="menu-top flex space-between ai-center pad-10px"
+      hm={false}
+    >
+      <div className="flex">
         <MenuDrawer />
         <LogoHome />
       </div>
@@ -329,7 +332,7 @@ function LogoHome() {
             fontFamily: "lemonmilk-rg",
             fontSize: "45%",
           }}
-          color="primary"
+          color="primaryl3"
           sx={{ display: { xs: "none", sm: "block" } }}
         >
           Gestión Digital y Automatización

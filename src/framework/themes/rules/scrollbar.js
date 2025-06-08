@@ -1,13 +1,13 @@
 import { JS2CSS } from "../../fluidCSS/JS2CSS/index.js";
 import { isMobile } from "../../tools/tools.js";
-import { getPrimaryColors } from "./colors.js";
+import { getprimarylolors } from "./colors.js";
 
 /**
  * Configura los colores de la barra de desplazamiento.
  * @param {object} options - Opciones para configurar la barra de desplazamiento.
  */
 export function scrollbarColors({ customizeScrollbar, MUIDefaultValues }) {
-  const primaries = getPrimaryColors();
+  const primaries = getprimarylolors();
   Object.assign(
     MUIDefaultValues.loadScrollsbar,
     (() => {

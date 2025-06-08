@@ -34,3 +34,12 @@
   opacity: calc(1 - var(--mouseLeftPressed));
   transition: opacity 0.2s;
 }
+
+.z-overfx,
+.rz-overfx {
+  z-index: var(--z-index-mouse-fx-minover);
+}
+
+.rz-overfx {
+  @extend .relative;
+}

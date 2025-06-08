@@ -55,7 +55,7 @@ export function RoutingManagement(props) {
   function componentsMap(customRoutes, componentsContext) {
     return {
       ...loadRoot(componentsContext),
-      ...(customRoutes ?? {}),
+      ...global.nullish(customRoutes, {}),
     };
   }
 
@@ -65,7 +65,7 @@ export function RoutingManagement(props) {
     startIgnore = [],
     routeCheck = () => ({}), // Función verificadora de errores en ruta
     routeError = () => {}, // tratamiento de error
-    componentError = () => <></>, // Componente a mostrar si hubo error
+    componentError = () => <React.Fragment></React.Fragment>, // Componente a mostrar si hubo error
   }) {
     const view_id = driverParams.get("view-id");
     const routes = componentsMap(customRoutes, componentsContext);
@@ -81,9 +81,9 @@ export function RoutingManagement(props) {
             (_, n) => params[`node${n + 1}`]
           )
     ).filter(Boolean);
-    
+
     querypath = nodes.join("/");
-    
+
     const check = routeCheck({
       querypath,
     });
@@ -101,7 +101,10 @@ export function RoutingManagement(props) {
     assignedpath = inferirIntension(querypath, cleanedNodes, routes);
     assignedpath = evaluate404(assignedpath, routes);
 
-    return evaluateFn(assignedpath, routes) ?? routes[assignedpath];
+    return global.nullish(
+      evaluateFn(assignedpath, routes),
+      routes[assignedpath]
+    );
   }
 
   return (

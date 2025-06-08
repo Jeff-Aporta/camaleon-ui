@@ -1,6 +1,5 @@
 import React from "react";
-import { AppThemeProvider, Complement } from "@framework";
-import { DivM } from "@framework";
+import {DivM, Complement } from "@framework";
 import {
   Box,
   Card,
@@ -18,13 +17,15 @@ import { ImageLocal } from "@recurrent";
 import { fluidCSS } from "@framework";
 import { fdhue, Color, getSelectedPalette } from "@framework";
 
+import { Main } from "@theme/main.jsx";
+
 export default function login() {
   return (
-    <AppThemeProvider bgtype="portal">
+    <Main bgtype="portal">
       <DivM m_max={40} className="d-center min-h-80vh">
         <LoginSignupPage />
       </DivM>
-    </AppThemeProvider>
+    </Main>
   );
 }
 

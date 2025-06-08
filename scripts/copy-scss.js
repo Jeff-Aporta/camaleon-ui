@@ -6,22 +6,37 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Función para copiar un archivo desde src hacia dist
-export function copyScss(src, dist) {
-  const srcFile = path.resolve(__dirname, src);
-  const distDir = path.resolve(__dirname, dist);
-  if (!fs.existsSync(distDir)) {
-    fs.mkdirSync(distDir, { recursive: true });
+export function copyFile(src, dest) {
+  const srcPath = path.resolve(__dirname, src);
+  const destPath = path.resolve(__dirname, dest);
+  const destDir = path.dirname(destPath);
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
   }
-  const destFile = path.join(distDir, path.basename(src));
   try {
-    fs.copyFileSync(srcFile, destFile);
-    console.log(`${path.basename(src)} copiado en ${dist} exitosamente.`);
+    fs.copyFileSync(srcPath, destPath);
+    console.log(`${path.basename(srcPath)} copiado en ${path.relative(__dirname, destPath)} exitosamente.`);
   } catch (err) {
-    console.error(`Error copiando ${path.basename(src)}:`, err);
+    console.error(`Error copiando ${path.basename(srcPath)}:`, err);
     process.exit(1);
   }
 }
 
-// Uso por defecto para fx.scss
-copyScss('../src/framework/themes/fx.scss', '../dist/themes');
+export function copyFolder(src, dest) {
+  const srcDir = path.resolve(__dirname, src);
+  const destDir = path.resolve(__dirname, dest);
+  if (!fs.existsSync(destDir)) {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
+  fs.readdirSync(srcDir).forEach((item) => {
+    const srcItem = path.join(srcDir, item);
+    const destItem = path.join(destDir, item);
+    if (fs.lstatSync(srcItem).isDirectory()) {
+      copyFolder(srcItem, destItem);
+    } else {
+      copyFile(srcItem, destItem);
+    }
+  });
+}
+
+copyFolder('../src/framework/themes/rules/scss', '../dist/themes/rules/scss');

@@ -1,4 +1,4 @@
-import { JS2CSS } from "@framework";
+import { JS2CSS } from "../fluidCSS/JS2CSS/index.js";
 import { clamp, map } from "../tools/math/math.js";
 import { Vector } from "../tools/math/math.vector.js";
 import {

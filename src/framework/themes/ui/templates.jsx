@@ -10,19 +10,23 @@ import { init } from "./constants.js";
 
 import {
   setThemeName,
-  getTheme,
   getThemeName,
   getThemeLuminance,
   setThemeLuminance,
   MUIDefaultValues,
-  getSelectedPalette,
   isDark,
-  getThemePandaComplement,
 } from "../rules/manager.js";
+
+import {
+  getTheme,
+  getThemePandaComplement,
+  getSelectedPalette,
+  getColorBackground,
+} from "../rules/manager.selected.js";
 
 import { CursorLight } from "./Fx/index.js";
 
-import { burnBGFluid } from "./back-texture";
+import { burnBGFluid } from "./Fx/back-texture.jsx";
 
 import { JS2CSS } from "../../fluidCSS/JS2CSS/index.js";
 
@@ -30,6 +34,9 @@ import { fluidCSS } from "../../fluidCSS/index.js";
 
 import { assignedPath } from "../router.jsx";
 
+import { initThemeCamaleon } from "../rules/loader.jsx";
+
+initThemeCamaleon();
 init();
 
 const themeSwitch_listener = [];
@@ -83,9 +90,31 @@ export class Notifier extends React.Component {
             toastOptions={{
               style: {
                 borderRadius: "5px",
-                background: palette?.background?.default,
-                color: palette?.text?.primary,
-                border: "1px solid " + (palette?.divider ?? "gray"),
+                background: getColorBackground(theme),
+                color: (() => {
+                  let cursor = palette;
+                  if (cursor) {
+                    if (cursor.text) {
+                      cursor = cursor.text;
+                      if (cursor.primary) {
+                        return cursor.primary;
+                      }
+                    }
+                  }
+                })(),
+                border:
+                  "1px solid " +
+                  global.nullish(
+                    (() => {
+                      let cursor = palette;
+                      if (cursor) {
+                        if (cursor.divider) {
+                          return cursor.divider;
+                        }
+                      }
+                    })(),
+                    "gray"
+                  ),
                 boxShadow: "5px 5px 5px 0px rgba(0, 0, 0, 0.1)",
                 animation: "fadeIn 1s ease, fadeOut 0.3s ease 9.7s forwards",
               },
@@ -160,7 +189,7 @@ export function AppThemeProvider({
             bgtype,
             theme_name,
             theme_luminance,
-          }).end("expand", "back-texture", "dyn-filter", "z-index-1")}
+          }).end("expand", "back-texture", "z-index-1")}
         />
         <div className="min-h-80vh">
           <Header updateTheme={updateThemeLuminance} />

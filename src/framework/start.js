@@ -1,0 +1,43 @@
+export const nullish = (value, ...rest) => {
+  if (value === null || value === undefined) {
+    return rest.find((r) => {
+      if (typeof r === "function") {
+        r = r();
+      }
+      if (r !== null && r !== undefined) {
+        return r;
+      }
+    });
+  }
+  if (typeof value === "function") {
+    value = value();
+  }
+  if (value !== null && value !== undefined) {
+    return value;
+  }
+  if (rest.length > 0) {
+    return nullish(...rest);
+  }
+};
+
+export const nullishNoF = (value, ...rest) => {
+  if (value === null || value === undefined) {
+    return rest.find((r) => {
+      if (r !== null && r !== undefined) {
+        return r;
+      }
+    });
+  }
+  return value;
+};
+
+export function init() {
+  Object.assign(global, {
+    nullish,
+    nullishNoF,
+  }); 
+  Object.assign(window, {
+    nullish,
+    nullishNoF,
+  });
+}

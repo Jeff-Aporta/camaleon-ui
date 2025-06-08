@@ -13,7 +13,7 @@ export const sizes = {
 }
 
 export const determinarAliasDeTamaño = (value) => {
-  if (sizes.hasOwnProperty(value)) {
+  if (sizes[value]) {
     return sizes[value];
   }
   return value;

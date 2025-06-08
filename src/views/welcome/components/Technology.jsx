@@ -12,15 +12,15 @@ import { ItemPromo } from "./$comun";
 export default function Technology() {
   const items = [
     {
-      icon: (sz) => <CloudIcon fontSize={sz} color="primary" />,
+      icon: (sz) => <CloudIcon fontSize={sz} color={window.view.icon} />,
       label: "Servicios en la nube",
     },
     {
-      icon: (sz) => <AiIcon fontSize={sz} color="primary" />,
+      icon: (sz) => <AiIcon fontSize={sz} color={window.view.icon} />,
       label: "Inteligencia Artificial",
     },
     {
-      icon: (sz) => <StorageIcon fontSize={sz} color="primary" />,
+      icon: (sz) => <StorageIcon fontSize={sz} color={window.view.icon} />,
       label: "APIs robustas",
     },
   ];

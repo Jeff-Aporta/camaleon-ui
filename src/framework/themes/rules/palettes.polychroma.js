@@ -30,7 +30,10 @@ export class Polychroma extends PaletteBaseMonochrome {
     return {
       ...themeComponents,
       href: (props) => {
-        const hrefManagement = window.hrefManagement ?? ((x) => x);
+        const hrefManagement = global.nullishNoF(
+          window.hrefManagement,
+          (x) => x
+        );
         return themeHref(hrefManagement(props));
       },
       enfasis_input,
@@ -64,14 +67,20 @@ function inferPropsThemePolychroma({
   bright_color = {},
 }) {
   const keyColor = Object.keys(color)[0];
-  const keyContrast = Object.keys(contrast)[0] ?? keyColor + "Accent";
+  const keyContrast = global.nullish(
+    Object.keys(contrast)[0],
+    keyColor + "Accent"
+  );
   const keyScroll = Object.keys(scroll)[0];
-  const keyBrightColor = Object.keys(bright_color)[0] ?? keyColor + "Light";
+  const keyBrightColor = global.nullish(
+    Object.keys(bright_color)[0],
+    keyColor + "Light"
+  );
   return {
     name,
     label,
     panda,
-    scrollname: keyScroll ?? keyColor,
+    scrollname: global.nullish(keyScroll, keyColor),
     main_color: window.themeColors[keyColor],
     name_color: keyColor,
     constrast_color: window.themeColors[keyContrast],
@@ -142,7 +151,10 @@ export function initializeThemesPolychroma() {
   const especial = {
     tomato: {
       label: "Tomate",
-      whiten: { default: () => 0.7, paper: () => 0.9 },
+      whiten: { 
+        default: () => 0.85, 
+        paper: () => 0.93 
+      },
       blacken: {
         default: () => 0.8,
         paper: () => 0.6,
@@ -165,9 +177,6 @@ export function initializeThemesPolychroma() {
     },
     pink: {
       label: "Rosa",
-    },
-    teal: {
-      label: "Turquesa",
     },
     navy: {
       label: "Marino",
@@ -207,6 +216,14 @@ export function initializeThemesPolychroma() {
     },
     yellow: {
       label: "Amarillo",
+      whiten: { 
+        default: () => 0.85, 
+        paper: () => 0.93 
+      },
+      blacken: {
+        default: () => 0.8,
+        paper: () => 0.7,
+      },
     },
     gray: {
       label: "Gris",
@@ -251,6 +268,5 @@ export function initializeThemeColors(otherColors = {}) {
   Object.entries(registerThemes_PaletteGeneral).forEach(([key, value]) => {
     paletteLoader.MUIDefaultValues[key] = value;
   });
-
   scrollbarColors(paletteLoader);
 }

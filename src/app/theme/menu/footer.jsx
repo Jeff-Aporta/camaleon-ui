@@ -37,7 +37,6 @@ export function Footer({ updateThemeName }) {
 }
 
 function SelectThemeName({ themeName, updateThemeName }) {
-  console.log(getAllThemesRegistered());
   return (
     <FormControl style={{ width: "150px" }}>
       <InputLabel id="label-select-theme-name">Nombre tema</InputLabel>

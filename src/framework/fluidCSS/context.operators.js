@@ -3,12 +3,12 @@ import { diccionario, estructuras, determinarAliasDeTamaño } from "./vars.js";
 
 class operator_btw extends layer_aliases {
  btwX(...args) {
-   return this.#btw("btwX", "width", ...args);
+   return this.btw("btwX", "width", ...args);
  }
  btwY(...args) {
-   return this.#btw("btwY", "height", ...args);
+   return this.btw("btwY", "height", ...args);
  }
- #btw(name, side, ...args) {
+ btw(name, side, ...args) {
    let [limitsInside, props] = (() => {
      if (args.length == 2) {
        return args;
@@ -44,11 +44,13 @@ class operator_btw extends layer_aliases {
      cota_superior,
      JSON.stringify(props),
    ].join("-");
-   const existe = diccionario.hasOwnProperty(key);
+   const existe = diccionario[key];
    const mascara_btw = Math.random()
      .toString(36)
      .replace("0.", name + "-");
-   diccionario[key] ??= mascara_btw;
+     if (!existe) {
+       diccionario[key] = mascara_btw;
+     }
    this.retorno.push(diccionario[key]);
    if (existe) {
      return this; // Ya existe la propiedad
@@ -111,15 +113,17 @@ class operator_btw extends layer_aliases {
 }
 
 class operator_if extends operator_btw {
- #if({ limitBreak, op_true, op_false, side, props, name }) {
+ if({ limitBreak, op_true, op_false, side, props, name }) {
    const _THIS_ = this;
    limitBreak = determinarAliasDeTamaño(limitBreak);
    const key = [name, limitBreak, JSON.stringify(props)].join("-");
-   const existe = diccionario.hasOwnProperty(key);
+   const existe = diccionario[key];
    const mascara_if = Math.random()
      .toString(36)
      .replace("0.", name + "-");
-   diccionario[key] ??= mascara_if;
+   if (!existe) {
+     diccionario[key] = mascara_if;
+   }
    this.retorno.push(diccionario[key]);
    if (existe) {
      return this; // Ya existe la propiedad
@@ -146,7 +150,7 @@ class operator_if extends operator_btw {
    }
  }
  ltX(limitBreak, props) {
-   return this.#if({
+   return this.if({
      limitBreak,
      props,
      name: "ltX",
@@ -156,7 +160,7 @@ class operator_if extends operator_btw {
    });
  }
  ltY(limitBreak, props) {
-   return this.#if({
+   return this.if({
      limitBreak,
      props,
      name: "ltY",
@@ -166,7 +170,7 @@ class operator_if extends operator_btw {
    });
  }
  gtX(limitBreak, props) {
-   return this.#if({
+   return this.if({
      limitBreak,
      props,
      name: "gtX",
@@ -176,7 +180,7 @@ class operator_if extends operator_btw {
    });
  }
  gtY(limitBreak, props) {
-   return this.#if({
+   return this.if({
      limitBreak,
      props,
      name: "gtY",
@@ -191,24 +195,24 @@ class operator_lerp extends operator_if {
  lerpnX(...args){
    const name = "lerpnX";
    const unidad = "var(--n-windowWidth)";
-   return this.#lerp(name, unidad, ...args);
+   return this.lerp(name, unidad, ...args);
  }
  lerpnY(...args){
    const name = "lerpnY";
    const unidad = "var(--n-windowHeight)";
-   return this.#lerp(name, unidad, ...args);
+   return this.lerp(name, unidad, ...args);
  }
  lerpX(...args) {
    const name = "lerpX";
    const unidad = "100dvw";
-   return this.#lerp(name, unidad, ...args);
+   return this.lerp(name, unidad, ...args);
  }
  lerpY(...args) {
    const name = "lerpY";
    const unidad = "100dvh";
-   return this.#lerp(name, unidad, ...args);
+   return this.lerp(name, unidad, ...args);
  }
- #lerp(name, unidad, ...args) {
+ lerp(name, unidad, ...args) {
    const abierto = "o";
    const cerrado = "e";
 
@@ -266,11 +270,13 @@ class operator_lerp extends operator_if {
    })();
 
    const key = name + `-${start}-${end}-${JSON.stringify(props)}`;
-   const existe = diccionario.hasOwnProperty(key);
+   const existe = diccionario[key];
    const mascara_lerp = Math.random()
      .toString(36)
      .replace("0.", name + "-");
-   diccionario[key] ??= mascara_lerp;
+   if (!existe) {
+     diccionario[key] = mascara_lerp;
+   }
    this.retorno.push(diccionario[key]);
    if (existe) {
      return this; // Ya existe la propiedad

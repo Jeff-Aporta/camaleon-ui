@@ -17,8 +17,6 @@ import {
 import { zIndex } from "../../rules/constants.js";
 
 export class CursorLight extends Component {
-  static ready = false;
-
   constructor(props) {
     super(props);
     const fn = CursorLight.interactivity;
@@ -37,11 +35,11 @@ export class CursorLight extends Component {
   render() {
     const themeName = getThemeName();
     if (!isDark()) {
-      return <></>;
+      return <React.Fragment></React.Fragment>;
     }
 
     return (
-      <>
+      <React.Fragment>
         <CursorEffectLight
           colors={["white", "transparent 70%"]}
           mixBlendMode={"overlay"}
@@ -52,11 +50,11 @@ export class CursorLight extends Component {
         <CursorEffectLight
           colors={["white", "transparent 50%"]}
           mixBlendMode="overlay"
-          opacity="0.1"
+          opacity="0.2"
           zIndex={zIndex.mouseFxOverall}
           {...colorFilterDiscriminator()}
         />
-      </>
+      </React.Fragment>
     );
 
     /**
@@ -70,7 +68,7 @@ export class CursorLight extends Component {
             .withTouchscreen({
               display: "none",
             })
-            .end([
+            .end(
               "cursor-effect",
               "p-fixed",
               "mouse-in-xy",
@@ -78,8 +76,8 @@ export class CursorLight extends Component {
               "turnoff-when-mouse-left-pressed",
               "minside-win",
               "ghost",
-            ])}
-          data-opacity={styleProps.opacity ?? 1}
+            )}
+          data-opacity={global.nullish(styleProps.opacity, 1)}
           style={{
             transition: "opacity 0.2s",
             background: `radial-gradient(
@@ -110,6 +108,8 @@ export class CursorLight extends Component {
   }
 
   static get allCursorEffects() {
-    return document.querySelectorAll(".cursor-effect") ?? [];
+    return global.nullish(document.querySelectorAll(".cursor-effect"), []);
   }
 }
+
+CursorLight.ready = false;

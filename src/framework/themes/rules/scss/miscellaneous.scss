@@ -57,15 +57,18 @@
   border: 1px solid red;
 }
 
-.p-absolute {
+.p-absolute,
+.absolute {
   position: absolute !important;
 }
 
-.p-relative {
+.p-relative,
+.relative {
   position: relative !important;
 }
 
-.p-fixed {
+.p-fixed,
+.fixed {
   position: fixed !important;
 }
 

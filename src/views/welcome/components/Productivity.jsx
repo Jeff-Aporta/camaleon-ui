@@ -12,15 +12,15 @@ import { ItemPromo } from "./$comun";
 export default function Productivity() {
   const items = [
     {
-      icon: (sz) => <SpeedIcon fontSize={sz} color="primary" />,
+      icon: (sz) => <SpeedIcon fontSize={sz} color={window.view.icon} />,
       label: "Optimización de procesos",
     },
     {
-      icon: (sz) => <VisibilityIcon fontSize={sz} color="primary" />,
+      icon: (sz) => <VisibilityIcon fontSize={sz} color={window.view.icon} />,
       label: "Visión en tiempo real",
     },
     {
-      icon: (sz) => <BarChartIcon fontSize={sz} color="primary" />,
+      icon: (sz) => <BarChartIcon fontSize={sz} color={window.view.icon} />,
       label: "Reportes personalizados",
     },
   ];

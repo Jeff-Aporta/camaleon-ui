@@ -56,11 +56,17 @@ function TooltipIconButton({ title, disabled, onClick, icon, ...rest_props }) {
 }
 
 function ImageLocal(props) {
-  let { src, ...rest } = props;
-  if (!src.startsWith("/")) {
-    src = `/${src}`;
-  }
-  return <Box component="img" {...rest} alt="" src={src} />;
+  const { src, ...rest } = props;
+  const base = process.env.PUBLIC_URL || '';
+  const path = src.startsWith('/') ? src : `/${src}`;
+  return (
+    <Box
+      component="img"
+      {...rest}
+      alt=""
+      src={`${base}${path}`}  
+    />
+  );
 }
 
 function BoxForm(props) {
