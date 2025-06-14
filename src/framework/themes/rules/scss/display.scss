@@ -63,7 +63,8 @@
 
 @each $value in (center, space-between, space-evenly, space-around, end, start)
 {
-  .jc-#{$value} {
+  .jc-#{$value},
+  .justify-#{$value} {
     justify-content: $value !important;
   }
 }
@@ -81,7 +82,8 @@
 }
 
 @each $value in (center, end, start, stretch) {
-  .ai-#{$value} {
+  .ai-#{$value},
+  .align-#{$value} {
     align-items: $value !important;
   }
 }

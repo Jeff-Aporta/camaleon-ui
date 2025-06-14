@@ -1,6 +1,6 @@
 import React from "react";
 
-import { applyPortalBackground, applyDefaultBackground } from "./bg.jsx";
+import { applyPortalBackground, applyDefaultBackground } from "./bg.js";
 
 import { getPaletteConfig, getThemeName, isDark } from "../../rules/manager.js";
 

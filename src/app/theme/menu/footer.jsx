@@ -17,7 +17,7 @@ import {
   Select,
   Typography,
 } from "@mui/material";
-import { ImageLocal } from "@recurrent";
+import { ImageLocal } from "@framework";
 
 import FacebookIcon from "@mui/icons-material/Facebook";
 import TwitterIcon from "@mui/icons-material/Twitter";

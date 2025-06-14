@@ -9,11 +9,13 @@ module.exports = override(
     "@framework": path.resolve(__dirname, "src/framework/index.js"),
     "@views": path.resolve(__dirname, "src/views"),
     "@theme": path.resolve(__dirname, "src/app/theme"),
-    "@components": path.resolve(__dirname, "src/app/theme/components"),
-    "@recurrent": path.resolve(__dirname, "src/app/theme/components/recurrent.jsx"),
   }),
   (config) => {
-    config.resolve.extensions = config.resolve.extensions.concat(['.js', '.jsx', '.mjs']);
+    config.resolve.extensions = config.resolve.extensions.concat([
+      ".js",
+      ".jsx",
+      ".mjs",
+    ]);
     return config;
   }
 );

@@ -7,9 +7,8 @@ initThemeCamaleon();
 export function Main(props) {
   return (
     <AppThemeProvider
-      bgtype="portal"
-      h_init="100px"
-      h_fin="100px"
+      h_init="50px"
+      h_fin="50px"
       Footer={Footer}
       Header={HeadMain}
       {...props}

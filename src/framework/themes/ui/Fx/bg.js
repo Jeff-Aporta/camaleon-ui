@@ -17,6 +17,7 @@ import {
 import {
   getAdjacentPrimaryColor,
   getContrast,
+  getTriadeColors,
 } from "../../rules/manager.selected.js";
 
 import { JS2CSS } from "../../../fluidCSS/JS2CSS/index.js";
@@ -61,26 +62,28 @@ export function newBackground({
  * Aplica el fondo por defecto con texturas, degradados y formas.
  */
 export function applyDefaultBackground({
-  color_anillo = "rgba(128, 128, 128, 0.2)",
+  color_anillo = "rgba(128, 128, 128, 0.05)",
   radio_anillo = 35,
   ...rest
 } = {}) {
-  const [colorBase, colorBase2, colorBase3] = getAdjacentPrimaryColor({
+  const adjl = getAdjacentPrimaryColor({
     a: 20,
     n: 3,
-  });
-  const contrast = getContrast();
-  const color_circulo = `rgba(${contrast.rgb().array().join(",")},0.1)`;
+  }).map((c) => c.rgb().array().join(","));
+
+  const adjd = getAdjacentPrimaryColor({
+    a: 40,
+    n: 3,
+    light: false,
+  }).map((c) => `rgba(${c.rgb().array().join(",")},0.2)`);
+
+  const color_circulo = `rgba(128, 128, 128, 0.1)`;
   let radio_agujero = (() => {
     const grosor = 7;
     return radio_anillo - grosor;
   })();
   radio_anillo = `max(${radio_anillo}dvw, 250px)`;
   radio_agujero = `max(${radio_agujero}dvw, 200px)`;
-
-  const arrayColorBase = colorBase.rgb().array();
-  const arrayColorBase2 = colorBase2.rgb().array();
-  const arrayColorBase3 = colorBase3.rgb().array();
 
   return newBackground({
     ...rest,
@@ -95,9 +98,9 @@ export function applyDefaultBackground({
           angle: "to bottom",
           colors: [
             "transparent 70%",
-            `rgba(${arrayColorBase.join(",")},0.2)`,
-            `rgba(${arrayColorBase2.join(",")},0.2) 98%`,
-            `rgba(${arrayColorBase3.join(",")},0.3) calc(100% - 20px)`,
+            `rgba(${adjl[0]}, 0.2)`,
+            `rgba(${adjl[1]}, 0.2) 98%`,
+            `rgba(${adjl[2]}, 0.3) calc(100% - 20px)`,
           ],
         }),
         ringGradient({
@@ -149,7 +152,7 @@ export function applyDefaultBackground({
           y: "80%",
         }),
         radialGradient({
-          colors: [`rgba(20, 0, 70, 1)`, "transparent"],
+          colors: [...adjd, "transparent"],
           radius: "max(70dvw, 600px)",
           x: "70%",
           y: "600px",

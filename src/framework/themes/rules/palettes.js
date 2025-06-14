@@ -96,6 +96,7 @@ export class PaletteGeneral {
    */
   components({ darkmode, colors }) {
     const primary = colors.primary.color;
+    let bgtooltip = primary[["darken", "lighten"][+darkmode]](0.3).saturate(-0.8);
     return {
       AccordionDetails: {
         root: {
@@ -114,7 +115,15 @@ export class PaletteGeneral {
       },
       Tooltip: {
         tooltip: {
-          backgroundColor: [primary.darken(0.6), primary][+darkmode].hex(),
+          fontWeight: "bold",
+          backgroundColor: bgtooltip.hex(),
+          color: (() => {
+            if (bgtooltip.isLight()) {
+              return "#000000";
+            } else {
+              return "#FFFFFF";
+            }
+          })(),
         },
       },
     };

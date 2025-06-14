@@ -1,6 +1,6 @@
 {
   "name": "@jeff-aporta/camaleon",
-  "version": "0.0.9",
+  "version": "0.0.12",
   "main": "dist/index.js",
   "exports": {
     ".": "./dist/index.js"
@@ -23,16 +23,12 @@
     "copy-scss": "node scripts/copy-scss.js",
     "build-package": "npm run transpile && npm run replace-jsx && npm run copy-scss",
     "version-bump": "npm version patch --no-git-tag-version --no-git-commit-hooks",
-    "git-add-commit-push": "git add . && git commit -m \"Publica la versión $(node -p \"require('./package.json').version\")\" && git push origin main",
+    "git-add-commit-push": "git add . && git commit -m \"Se publica la versión\" && git push origin main",
     "publish-package": "npm run build-package && npm publish --access public && npm run version-bump && npm run git-add-commit-push",
-    "build-gh": "npm run build-gh-repo --package-repository-url=$(node -p \"require('./package.json').repository.url\")",
-    "build-gh-repo": "cross-env-shell \"PUBLIC_URL=. REACT_APP_REPO_URL=\\\"$npm_package_repository_url\\\"\" react-app-rewired build",
-    "deploy-gh-pages": "npm run build-gh && gh-pages -d build",
-    "deploy-gh": "npm run deploy-gh-pages && npm run publish-package",
-    "deploy-branch": "npm run deploy-branch-repo --package-repository-url=$(node -p \"require('./package.json').repository.url\")",
-    "deploy-branch-repo": "cross-env-shell \"PUBLIC_URL=/ REACT_APP_REPO_URL=\\\"$npm_package_repository_url\\\"\" npm run build && gh-pages -d build -b %npm_config_branch%",
-    "deploy-prod": "npm run deploy-branch --branch=build-prod",
-    "deploys": "cross-env-shell PUBLIC_URL=. react-app-rewired build && gh-pages -d build && npx babel src/framework --out-dir dist && node scripts/replace-jsx.js dist && node scripts/copy-scss.js && npm publish --access public && npm version patch --no-git-tag-version --no-git-commit-hooks && git add package.json package-lock.json && git commit -m \"Publica la versión $(node -p \"require('./package.json').version\")\" && git push && cross-env-shell PUBLIC_URL=/ npm run build && gh-pages -d build -b build-prod"
+    "deploy-gh-pages": "cross-env-shell PUBLIC_URL=. react-app-rewired build && gh-pages -d build",
+    "deploy-branch-repo": "cross-env-shell PUBLIC_URL=/ npm run build && gh-pages -d build -b %npm_config_branch%",
+    "deploy-prod": "npm run deploy-branch-repo --branch=build-prod",
+    "deploys": "npm run publish-package && npm run deploy-gh-pages && npm run deploy-prod"
   },
   "eslintConfig": {
     "extends": [

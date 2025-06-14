@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
@@ -39,7 +39,7 @@ export function DialogSimple({
   }, [open]);
 
   return (
-    <>
+    <React.Fragment>
       <VisiblePart
         {...rest}
         className={className}
@@ -55,7 +55,7 @@ export function DialogSimple({
         text={text}
         button_text={button_text}
       />
-    </>
+    </React.Fragment>
   );
 }
 
@@ -63,7 +63,7 @@ function VisiblePart({ className, handleClickOpen, children, ...rest }) {
   return (
     <div
       {...rest}
-      className={`d-inline-block ${className ?? ""}`}
+      className={`d-inline-block ${global.nullish(className, "")}`}
       onClick={handleClickOpen}
     >
       {children}
@@ -93,7 +93,7 @@ function HiddenPart({
       </DialogContent>
       <DialogActions className="mt-20px">
         <Button variant="contained" onClick={handleClose}>
-          {button_text ?? "Entendido"}
+          {global.nullish(button_text, "Entendido")}
         </Button>
       </DialogActions>
     </Dialog>

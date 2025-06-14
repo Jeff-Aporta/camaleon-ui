@@ -27,32 +27,32 @@
 
     transform-origin: var(--tox) var(--toy);
 
-    &.tocenterx {
+    &.toCenterX {
       --tox: center;
     }
 
-    &.tocentery {
+    &.toCenterY {
       --toy: center;
     }
 
-    &.tocenter {
-      @extend .tocenterx;
-      @extend .tocentery;
+    &.toCenter {
+      @extend .toCenterX;
+      @extend .toCenterY;
     }
 
-    &.toleft {
+    &.toLeft {
       --tox: left;
     }
 
-    &.toright {
+    &.toRight {
       --tox: right;
     }
 
-    &.tobottom {
+    &.toBottom {
       --toy: bottom;
     }
 
-    &.totop {
+    &.toTop {
       --toy: top;
     }
 
@@ -98,13 +98,13 @@
       @extend .center-y;
     }
 
-    &.full-w {
-      max-width: 100%;
+    &.full-w, &.fullWidth {
+      min-width: 100%;
       width: 100%;
     }
 
-    &.full-h {
-      max-height: 100%;
+    &.full-h, &.fullHeight {
+      min-height: 100%;
       height: 100%;
     }
 
@@ -113,6 +113,8 @@
       top: 0;
       right: 0;
       bottom: 0;
+      min-width: 100%;
+      min-height: 100%;
     }
 
     &.center-centralized {

@@ -30,7 +30,7 @@ import {
   Avatar,
 } from "@mui/material";
 
-import { ImageLocal } from "@recurrent";
+import { ImageLocal } from "@framework";
 import { fluidCSS } from "@framework";
 import { LuminanceThemeSwitch } from "@framework";
 import LoginIcon from "@mui/icons-material/Login";

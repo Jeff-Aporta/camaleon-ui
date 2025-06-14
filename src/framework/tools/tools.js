@@ -3,3 +3,12 @@ export const isMobile = (() => {
     navigator.userAgent || navigator.vendor || window.opera
   );
 })();
+
+export function assignNullish(dst, src) {
+  for (const key in src) {
+    dst[key] = global.nullish(dst[key], src[key]);
+  }
+  return dst;
+}
+
+Object.assign(window, { assignNullish });
