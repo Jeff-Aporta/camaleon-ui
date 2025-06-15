@@ -1,6 +1,6 @@
 {
   "name": "@jeff-aporta/camaleon",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "main": "dist/index.js",
   "exports": {
     ".": "./dist/index.js"
@@ -27,7 +27,7 @@
     "publish-package": "npm run build-package && npm publish --access public && npm run version-bump && npm run git-add-commit-push",
     "deploy-gh-pages": "cross-env-shell PUBLIC_URL=. react-app-rewired build && gh-pages -d build",
     "deploy-branch-repo": "cross-env-shell PUBLIC_URL=/ npm run build && gh-pages -d build -b %npm_config_branch%",
-    "deploy-prod": "git push origin --delete build-prod || true && npm run deploy-branch-repo --branch=build-prod",
+    "deploy-prod": "npm run deploy-branch-repo --branch=build-prod",
     "deploys": "npm run publish-package && npm run deploy-gh-pages && npm run deploy-prod"
   },
   "eslintConfig": {
