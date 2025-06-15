@@ -1,30 +1,25 @@
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 export function copyFile(src, dest) {
-  const srcPath = path.resolve(__dirname, src);
-  const destPath = path.resolve(__dirname, dest);
+  const srcPath = path.resolve(src);
+  const destPath = path.resolve(dest);
   const destDir = path.dirname(destPath);
   if (!fs.existsSync(destDir)) {
     fs.mkdirSync(destDir, { recursive: true });
   }
   try {
     fs.copyFileSync(srcPath, destPath);
-    console.log(`${path.basename(srcPath)} copiado en ${path.relative(__dirname, destPath)} exitosamente.`);
+    console.log(`${srcPath} copiado en ${destPath} exitosamente.`);
   } catch (err) {
-    console.error(`Error copiando ${path.basename(srcPath)}:`, err);
+    console.error(`Error copiando ${srcPath}:`, err);
     process.exit(1);
   }
 }
 
 export function copyFolder(src, dest) {
-  const srcDir = path.resolve(__dirname, src);
-  const destDir = path.resolve(__dirname, dest);
+  const srcDir = path.resolve(src);
+  const destDir = path.resolve(dest);
   if (!fs.existsSync(destDir)) {
     fs.mkdirSync(destDir, { recursive: true });
   }
