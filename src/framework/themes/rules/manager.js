@@ -11,50 +11,12 @@ import { triggerThemeChange, isReadyThemeChange } from "./manager.listener.js";
 
 export { Color };
 
-Object.entries({
-  toWhite: function (t = 0) {
-    return this.mix(Color("white"), t);
-  },
-  toBlack: function (t = 0) {
-    return this.mix(Color("black"), t);
-  },
-  toGray: function (t = 0) {
-    return this.mix(Color("gray"), t);
-  },
-  invert: function (t = 1) {
-    const rgb = this.rgb()
-      .array()
-      .map((c) => parseInt(255 - c));
-    const invert = Color(`rgb(${rgb.join(",")})`);
-    return this.mix(invert, t);
-  },
-  invertnohue: function (t = 1) {
-    const invert = this.invert().rotate(180);
-    return this.mix(invert, t);
-  },
-  hslarray: function () {
-    return [
-      this.hue(), // H (0–360)
-      this.saturationl(), // S (0–100)
-      this.lightness(), // L (0–100)
-    ];
-  },
-  hsvarray: function () {
-    return [
-      this.hue(), // H (0–360)
-      this.saturationl(), // S (0–100)
-      this.value(), // V (0–100)
-    ];
-  },
-}).forEach(([key, value]) => {
-  if (Color.prototype[key]) {
-    return;
-  }
-  Color.prototype[key] = value;
-});
-
 let _name_;
 let _luminance_;
+
+export const MUIDefaultValues = {
+  loadScrollsbar: {},
+};
 
 export function getAllThemesRegistered() {
   const k = Object.keys(MUIDefaultValues).filter(
@@ -63,17 +25,6 @@ export function getAllThemesRegistered() {
   return k.map((k) => MUIDefaultValues[k]);
 }
 
-/**
- * Registro interno de paletas de colores disponibles.
- */
-export const MUIDefaultValues = {
-  loadScrollsbar: {},
-};
-
-/**
- * Carga y aplica la paleta seleccionada.
- * @param {object} options Opciones de paleta.
- */
 export const paletteLoader = {
   MUIDefaultValues,
   customizeScrollbar,
@@ -91,7 +42,7 @@ export const paletteLoader = {
     return createTheme({
       ...customize_components,
       palette: {
-        mode: darkmode ? "dark" : "light",
+        mode: ["light", "dark"][+darkmode],
         background,
         ...colors,
       },

@@ -1,6 +1,6 @@
 import Color from "color";
 
-Object.assign(Color.prototype, {
+Object.entries({
   toWhite: function (t = 0) {
     return this.mix(Color("white"), t);
   },
@@ -35,6 +35,11 @@ Object.assign(Color.prototype, {
       this.value(), // V (0–100)
     ];
   },
+}).forEach(([key, value]) => {
+  if (Color.prototype[key]) {
+    return;
+  }
+  Color.prototype[key] = value;
 });
 
 export function getprimarylolors() {
