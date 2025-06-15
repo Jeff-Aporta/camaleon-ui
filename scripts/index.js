@@ -5,6 +5,10 @@ const { copyFolder } = require("./copy-scss");
 const { processDirectory } = require("./replace-jsx");
 const readline = require("readline");
 
+async function sleep(s) {
+  return new Promise((resolve) => setTimeout(resolve, s * 1000));
+}
+
 async function main() {
   const question = (q) =>
     new Promise((resolve) => {
@@ -27,11 +31,11 @@ async function main() {
   const getUserConfirm = async (q) => {
     q += " (Y|S para aceptar): ";
     const answer = await getUserInput(q, "n", false);
-    const respuesta = ["y", "s"].includes(answer);
-    if (!respuesta) {
+    const confirmacion = ["y", "s"].includes(answer);
+    if (!confirmacion) {
       console.log("Cancelado 🚫");
     }
-    return respuesta;
+    return confirmacion;
   };
   const isCancel = (answer) => answer === "*";
 
@@ -57,7 +61,7 @@ async function main() {
     if (isCancel(buildBranch)) {
       console.log("Operación cancelada 🚫");
     } else {
-      deployBuild({ PUBLIC_URL: "/", name_branch: buildBranch });
+      await deployBuild({ PUBLIC_URL: "/", name_branch: buildBranch });
     }
   }
 
@@ -125,20 +129,45 @@ function timeStamp() {
     .join("");
 }
 
-function deployBuild({ PUBLIC_URL = "/", name_branch = "build-prod" }) {
+function cleanTempDeploy() {
+  try {
+    console.log("Limpiando carpeta temporal...");
+    execSync(
+      "Remove-Item -Path .\\temp-deploy\\* -Recurse -Force",
+      ENVIRONMENT_RUNTIME
+    );
+  } catch (e) {
+    console.log(
+      "⚠️  Advertencia: no se pudo limpiar carpeta temp-deploy/*",
+      e.message
+    );
+  }
+}
+
+function deleteTempDeploy() {
+  try {
+    console.log("Elimiando carpeta temporal...");
+    execSync("Remove-Item -Recurse -Force .\\temp-deploy", ENVIRONMENT_RUNTIME);
+  } catch (e) {
+    console.warn(
+      "Advertencia: no se pudo eliminar carpeta temp-deploy:",
+      e.message
+    );
+  }
+}
+
+async function deployBuild({ PUBLIC_URL = "/", name_branch = "build-prod" }) {
   console.log("Deploy de build...", { PUBLIC_URL, name_branch });
   try {
+    deleteTempDeploy();
+
     build({ PUBLIC_URL });
     console.log("Limpiando worktrees huérfanos...");
     execSync("git worktree prune", ENVIRONMENT_RUNTIME);
     console.log("Agregando worktree temporal...");
     execSync("git worktree add -f temp-deploy", ENVIRONMENT_RUNTIME);
 
-    console.log("Limpiando carpeta temporal...");
-    execSync(
-      "Remove-Item -Path .\\temp-deploy\\* -Recurse -Force",
-      ENVIRONMENT_RUNTIME
-    );
+    cleanTempDeploy();
 
     console.log("Copiando build a carpeta temporal...");
     execSync(
@@ -147,7 +176,7 @@ function deployBuild({ PUBLIC_URL = "/", name_branch = "build-prod" }) {
     );
 
     console.log("Entrando en temp-deploy...");
-    process.chdir("temp-deploy");
+    execSync("cd temp-deploy", ENVIRONMENT_RUNTIME);
 
     try {
       console.log("Eliminando branch build-prod si existe...");
@@ -158,10 +187,12 @@ function deployBuild({ PUBLIC_URL = "/", name_branch = "build-prod" }) {
 
     console.log("Creando rama orphan para deploy...");
     execSync(`git checkout --orphan ${name_branch}`, ENVIRONMENT_RUNTIME);
+    await sleep(1);
+
     execSync("git add .", ENVIRONMENT_RUNTIME);
     const fecha = timeStamp();
     execSync(
-      `git commit -m "Autodeploy ${packageJson.version} ${fecha}"`,
+      `git commit -m "Autodeploy v${packageJson.version} ${fecha}"`,
       ENVIRONMENT_RUNTIME
     );
 
@@ -172,10 +203,12 @@ function deployBuild({ PUBLIC_URL = "/", name_branch = "build-prod" }) {
     );
 
     console.log("Volviendo al directorio raíz...");
-    process.chdir("..");
+    execSync("cd ..", ENVIRONMENT_RUNTIME);
 
-    console.log("Limpiando carpeta temporal...");
-    execSync("Remove-Item -Recurse -Force .\\temp-deploy", ENVIRONMENT_RUNTIME);
+    execSync("git checkou main", ENVIRONMENT_RUNTIME);
+    await sleep(1);
+    
+    deleteTempDeploy();
 
     console.log("✅ Deploy manual completado.");
   } catch (err) {

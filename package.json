@@ -19,9 +19,7 @@
     "eject": "react-scripts eject",
     "build:context": "cross-env-shell PUBLIC_URL=%npm_config_public_url% npm run build",
     "serve": "serve -s build",
-    "deploy:gh-pages": "gh-pages -d build",
-    "git-add-commit-push": "git add . && git commit -m \"Actualización\" && git push origin main",
-    "deploys": "npm run deploy-prod && npm run deploy-gh-pages && npm run publish-package"
+    "deploy:gh-pages": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
