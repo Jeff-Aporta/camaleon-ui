@@ -1,17 +1,6 @@
 import fs from "fs";
 import path from "path";
 
-const baseDir = process.argv[2];
-
-if (!baseDir) {
-  console.error(
-    "❌ Debes proporcionar la ruta a la carpeta base. Ejemplo: node replace-jsx.js dist"
-  );
-  process.exit(1);
-}
-
-const absoluteBaseDir = path.resolve(baseDir);
-
 function replaceInFile(filePath) {
   fs.readFile(filePath, "utf8", (err, data) => {
     if (err) {
@@ -33,7 +22,8 @@ function replaceInFile(filePath) {
   });
 }
 
-function processDirectory(dir) {
+export function processDirectory(dir) {
+  dir = path.resolve(dir);
   fs.readdir(dir, { withFileTypes: true }, (err, items) => {
     if (err) {
       console.error(`❌ Error leyendo directorio ${dir}: ${err.message}`);
@@ -51,6 +41,3 @@ function processDirectory(dir) {
     });
   });
 }
-
-// Inicia el procesamiento
-processDirectory(absoluteBaseDir);

@@ -1,6 +1,6 @@
 {
   "name": "@jeff-aporta/camaleon",
-  "version": "0.0.19",
+  "version": "0.0.21",
   "main": "dist/index.js",
   "exports": {
     ".": "./dist/index.js"
@@ -16,19 +16,12 @@
   "scripts": {
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
-    "serve": "serve -s build",
     "eject": "react-scripts eject",
-    "transpile": "npx babel src/framework --out-dir dist",
-    "replace-jsx": "node scripts/replace-jsx.js dist",
-    "copy-scss": "node scripts/copy-scss.js",
-    "build-package": "npm run transpile && npm run replace-jsx && npm run copy-scss",
-    "version-bump": "npm version patch --no-git-tag-version --no-git-commit-hooks",
+    "build:context": "cross-env-shell PUBLIC_URL=%npm_config_public_url% npm run build",
+    "serve": "serve -s build",
+    "deploy:gh-pages": "gh-pages -d build",
     "git-add-commit-push": "git add . && git commit -m \"Actualización\" && git push origin main",
-    "publish-package": "npm run build-package && npm publish --access public && npm run version-bump && npm run git-add-commit-push",
-    "deploy-gh-pages": "cross-env-shell PUBLIC_URL=. react-app-rewired build && gh-pages -d build",
-    "deploy-branch-repo": "cross-env-shell PUBLIC_URL=/ npm run build && gh-pages -d build -b %npm_config_branch% -f",
-    "deploy-prod": "npm run deploy-branch-repo --branch=build-prod",
-    "deploys": "npm run publish-package && npm run deploy-gh-pages && npm run deploy-prod"
+    "deploys": "npm run deploy-prod && npm run deploy-gh-pages && npm run publish-package"
   },
   "eslintConfig": {
     "extends": [

@@ -38,5 +38,3 @@ export function copyFolder(src, dest) {
     }
   });
 }
-
-copyFolder('../src/framework/themes/rules/scss', '../dist/themes/rules/scss');
