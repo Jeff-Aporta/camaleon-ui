@@ -1,6 +1,6 @@
 {
   "name": "@jeff-aporta/camaleon",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "main": "dist/index.js",
   "exports": {
     ".": "./dist/index.js"
@@ -23,11 +23,11 @@
     "copy-scss": "node scripts/copy-scss.js",
     "build-package": "npm run transpile && npm run replace-jsx && npm run copy-scss",
     "version-bump": "npm version patch --no-git-tag-version --no-git-commit-hooks",
-    "git-add-commit-push": "git add . && git commit -m \"Se publica la versión\" && git push origin main",
+    "git-add-commit-push": "git add . && git commit -m \"Actualización\" && git push origin main",
     "publish-package": "npm run build-package && npm publish --access public && npm run version-bump && npm run git-add-commit-push",
     "deploy-gh-pages": "cross-env-shell PUBLIC_URL=. react-app-rewired build && gh-pages -d build",
     "deploy-branch-repo": "cross-env-shell PUBLIC_URL=/ npm run build && gh-pages -d build -b %npm_config_branch%",
-    "deploy-prod": "git push origin --delete build-prod && npm run deploy-branch-repo --branch=build-prod",
+    "deploy-prod": "git push origin --delete build-prod || true && npm run deploy-branch-repo --branch=build-prod",
     "deploys": "npm run publish-package && npm run deploy-gh-pages && npm run deploy-prod"
   },
   "eslintConfig": {
