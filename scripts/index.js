@@ -65,6 +65,11 @@ async function main() {
     }
   }
 
+  if(await getUserConfirm("¿Eliminar build y dist?")){
+    deleteTempDeploy("build")
+    deleteTempDeploy("dist")
+  }
+
   console.log("Operación completada ✅");
 }
 
@@ -144,10 +149,10 @@ function cleanTempDeploy() {
   }
 }
 
-function deleteTempDeploy() {
+function deleteTempDeploy(name_folder="temp-deploy") {
   try {
     console.log("Elimiando carpeta temporal...");
-    execSync("Remove-Item -Recurse -Force .\\temp-deploy", ENVIRONMENT_RUNTIME);
+    execSync(`Remove-Item -Recurse -Force .\\${name_folder}`, ENVIRONMENT_RUNTIME);
   } catch (e) {
     console.warn(
       "Advertencia: no se pudo eliminar carpeta temp-deploy:",
@@ -207,7 +212,7 @@ async function deployBuild({ PUBLIC_URL = "/", name_branch = "build-prod" }) {
 
     execSync("git checkou main", ENVIRONMENT_RUNTIME);
     await sleep(1);
-    
+
     deleteTempDeploy();
 
     console.log("✅ Deploy manual completado.");
