@@ -140,12 +140,10 @@ export function AppThemeProvider({
 
   if (theme_name != getThemeName()) {
     setThemeName(theme_name);
-    localStorage.setItem("theme-name", theme_name);
   }
 
   if (theme_luminance != getThemeLuminance()) {
     setThemeLuminance(theme_luminance);
-    localStorage.setItem("theme-luminance", theme_luminance);
   }
 
   useLayoutEffect(() => {
@@ -167,7 +165,7 @@ export function AppThemeProvider({
         rule.push(".Mui" + item + "-root");
       });
       retorno[rule.join(", ")] = {
-        filter: `brightness(${isDark() ? 1.2 : 0.8}) saturate(1.8)`,
+        filter: `saturate(1.3)`,
       };
       return retorno;
     })(),
@@ -175,31 +173,49 @@ export function AppThemeProvider({
 
   return (
     <Notifier>
-      <FirstPart />
+      <FirstPart
+        bgtype={bgtype}
+        h_init={h_init}
+        h_fin={h_fin}
+        theme_name={theme_name}
+        theme_luminance={theme_luminance}
+        Header={Header}
+      >
+        {children}
+      </FirstPart>
       <Footer updateThemeName={updateThemeName} />
       <CursorLight />
     </Notifier>
   );
+}
 
-  function FirstPart() {
-    return (
-      <div className="p-relative">
-        <div
-          className={burnBGFluid({
-            bgtype,
-            theme_name,
-            theme_luminance,
-          }).end("expand", "back-texture", "z-index-1")}
-        />
-        <div className="min-h-80vh">
-          <Header updateTheme={updateThemeLuminance} />
-          {h_init && <div style={{ minHeight: h_init }} />}
-          {children}
-          {h_fin && <div style={{ minHeight: h_fin }} />}
-        </div>
+function FirstPart({
+  bgtype,
+  h_init,
+  h_fin,
+  theme_name,
+  theme_luminance,
+  updateThemeLuminance,
+  Header,
+  children,
+}) {
+  return (
+    <div className="p-relative">
+      <div
+        className={burnBGFluid({
+          bgtype,
+          theme_name,
+          theme_luminance,
+        }).end("expand", "back-texture", "z-index-1")}
+      />
+      <div className="min-h-80vh">
+        <Header updateTheme={updateThemeLuminance} />
+        {h_init && <div style={{ minHeight: h_init }} />}
+        {children}
+        {h_fin && <div style={{ minHeight: h_fin }} />}
       </div>
-    );
-  }
+    </div>
+  );
 }
 
 export { themeSwitch_listener };

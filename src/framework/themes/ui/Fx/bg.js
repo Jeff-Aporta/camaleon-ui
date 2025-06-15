@@ -26,7 +26,7 @@ export function newBackground({
   back_texture_css,
   startBg = [],
   endBg = [],
-  style = ({ defaultbg }) => ({
+  style = ({ defaultbg, getLightFilter }) => ({
     ...defaultbg,
   }),
 }) {
@@ -62,20 +62,24 @@ export function newBackground({
  * Aplica el fondo por defecto con texturas, degradados y formas.
  */
 export function applyDefaultBackground({
-  color_anillo = "rgba(128, 128, 128, 0.05)",
+  color_anillo = "rgba(128, 128, 128, 0.15)",
   radio_anillo = 35,
   ...rest
 } = {}) {
   const adjl = getAdjacentPrimaryColor({
-    a: 20,
+    a: 25,
     n: 3,
   }).map((c) => c.rgb().array().join(","));
 
   const adjd = getAdjacentPrimaryColor({
-    a: 40,
+    a: 20,
     n: 3,
-    light: false,
-  }).map((c) => `rgba(${c.rgb().array().join(",")},0.2)`);
+  }).reverse().map(
+    (c, i, arr) =>
+      `rgba(${c.rgb().array().join(",")}, ${
+        (0.5 * (arr.length - i)) / arr.length
+      })`
+  );
 
   const color_circulo = `rgba(128, 128, 128, 0.1)`;
   let radio_agujero = (() => {
@@ -98,9 +102,9 @@ export function applyDefaultBackground({
           angle: "to bottom",
           colors: [
             "transparent 70%",
-            `rgba(${adjl[0]}, 0.2)`,
-            `rgba(${adjl[1]}, 0.2) 98%`,
-            `rgba(${adjl[2]}, 0.3) calc(100% - 20px)`,
+            `rgba(${adjl[0]}, 0.15)`,
+            `rgba(${adjl[1]}, 0.3) 98%`,
+            `rgba(${adjl[2]}, 0.5) calc(100% - 20px)`,
           ],
         }),
         ringGradient({

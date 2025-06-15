@@ -6,7 +6,7 @@ export const isMobile = (() => {
 
 export function assignNullish(dst, src) {
   for (const key in src) {
-    dst[key] = global.nullish(dst[key], src[key]);
+    dst[key] = global.nullishNoF(dst[key], src[key]);
   }
   return dst;
 }

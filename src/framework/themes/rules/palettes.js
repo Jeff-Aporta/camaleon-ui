@@ -58,7 +58,7 @@ export class PaletteGeneral {
   control_components(darkmode) {
     return {
       href: function (props, prepareProps) {
-        const stayinGit = window["location"]["href"].includes("github.io");
+        const stayinGit = window.location.href.includes("github.io");
         if (prepareProps) {
           props = prepareProps(props);
         }

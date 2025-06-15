@@ -12,11 +12,13 @@ import { RoutingManagement } from "@framework";
 
 init();
 
+const componentsContext = require.context("./views", true, /\.jsx$/);
+
 createRoot(document.getElementById("root")).render(
   <RoutingManagement
     {...{
-      componentsContext: require.context("./views", true, /\.jsx$/),
-      routeCheck, // Función verificadora de errores en ruta
+      componentsContext,
+      // routeCheck, // Función verificadora de errores en ruta
       routeError: (check) => {
         toast.error(check.message); // Tratamiento de error
       },

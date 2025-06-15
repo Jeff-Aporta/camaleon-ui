@@ -199,6 +199,7 @@
 
 .bright-hover-2 {
   transition: filter 0.2s;
+  filter: brightness(0);
   &:hover {
     filter: brightness(2);
   }
@@ -214,6 +215,7 @@
 .bright-10 {
   filter: brightness(10);
 }
+
 
 .dyn-filter {
   --invert: 0;

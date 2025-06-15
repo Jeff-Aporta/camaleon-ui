@@ -43,6 +43,7 @@ import {
   href,
   JS2CSS,
   getThemeLuminance,
+  setThemeLuminance,
 } from "@framework";
 import { getQueryPath } from "@framework";
 import { PaperF, Hm } from "@framework";
@@ -50,7 +51,7 @@ import { PaperF, Hm } from "@framework";
 const hideIcon = 500;
 const wbrk = 600;
 
-export function HeadMain({ updateTheme = () => 0 }) {
+export function HeadMain() {
   const isLoginPage = getQueryPath().includes("/users/login");
   const [anchorEl, setAnchorEl] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -87,7 +88,18 @@ export function HeadMain({ updateTheme = () => 0 }) {
         <MenuDrawer />
         <LogoHome />
       </div>
-      <MenuX />
+      <div className="flex gap-10px">
+        <MenuX />
+        <div
+          className={fluidCSS()
+            .ltX("medium", {
+              display: "none",
+            })
+            .end()}
+        >
+          <ThemeSwitch />
+        </div>
+      </div>
     </PaperF>
   );
 
@@ -203,7 +215,7 @@ export function HeadMain({ updateTheme = () => 0 }) {
       <Tooltip title={"Cambiar a tema " + (isDark() ? "claro" : "oscuro")}>
         <LuminanceThemeSwitch
           checked={isDark()}
-          onChange={() => updateTheme(isDark() ? "light" : "dark")}
+          onChange={() => setThemeLuminance(isDark() ? "light" : "dark")}
         />
       </Tooltip>
     );
@@ -221,7 +233,7 @@ export function HeadMain({ updateTheme = () => 0 }) {
           <Box role="presentation">
             <List>
               <CaptionSection icon={<HomeIcon fontSize="small" />}>
-                Navegación
+                Biblioteca de Componentes React
               </CaptionSection>
               <ListItemButton component="a" href={href("/")}>
                 <ListItemText primary="Inicio" />
@@ -287,57 +299,59 @@ export function HeadMain({ updateTheme = () => 0 }) {
 }
 
 function LogoHome() {
-  const themeName = getThemeName();
   return (
-    <Link
-      color="inherit"
-      underline="none"
-      href={href("/")}
-      className="d-center bright-hover-1-5 gap-10px c-pointer"
-    >
-      <ImageLocal
-        src={`img/logo.svg`}
-        width="40"
-        className={fluidCSS()
-          .lerpX("responsive-min", { width: [30, 40] })
-          .end()}
-        style={{
-          width: "40px",
-        }}
-      />
-      <Box
-        className={fluidCSS()
-          .lerpX("responsive-min", { fontSize: [15, 20] })
-          .end("d-flex-col")}
+    <span className="bright-hover-1-5">
+      <Link
+        color="inherit"
+        underline="none"
+        href={href("/")}
+        className="d-center gap-10px c-pointer"
       >
-        <Typography
+        <ImageLocal
+          src={`img/metadata/logo-sd.svg`}
+          width="40"
+          className={fluidCSS()
+            .lerpX("responsive-min", { width: [30, 40] })
+            .end()}
           style={{
-            fontFamily: "goodtimes-rg",
+            width: "40px",
+            objectFit: "contain",
           }}
-          color={(() => {
-            if (isDark()) {
-              return "white";
-            } else {
-              return "black";
-            }
-          })()}
+        />
+        <Box
           className={fluidCSS()
             .lerpX("responsive-min", { fontSize: [15, 20] })
-            .end()}
+            .end("d-flex-col")}
         >
-          Avatar
-        </Typography>
-        <Typography
-          style={{
-            fontFamily: "lemonmilk-rg",
-            fontSize: "45%",
-          }}
-          color="primaryl3"
-          sx={{ display: { xs: "none", sm: "block" } }}
-        >
-          Gestión Digital y Automatización
-        </Typography>
-      </Box>
-    </Link>
+          <Typography
+            style={{
+              fontFamily: "goodtimes-rg",
+            }}
+            color={(() => {
+              if (isDark()) {
+                return "white";
+              } else {
+                return "black";
+              }
+            })()}
+            className={fluidCSS()
+              .lerpX("responsive-min", { fontSize: [15, 20] })
+              .end()}
+          >
+            Camaleón UI
+          </Typography>
+          <Typography
+            style={{
+              fontFamily: "lemonmilk-rg",
+              fontSize: "45%",
+            }}
+            color="primaryl3"
+            sx={{ display: { xs: "none", sm: "block" } }}
+          >
+            Diseño que cambia contigo
+          </Typography>
+        </Box>
+      </Link>
+    </span>
   );
 }

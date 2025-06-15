@@ -6,12 +6,10 @@ import { Color } from "./colors.js";
 import { createTheme, responsiveFontSizes } from "@mui/material";
 
 import { customizeScrollbar } from "./scrollbar.js";
-import { getSelectedPalette } from "./manager.selected.js";
-
-
+import { getSelectedPalette, isPanda } from "./manager.selected.js";
+import { triggerThemeChange, isReadyThemeChange } from "./manager.listener.js";
 
 export { Color };
-
 
 Object.entries({
   toWhite: function (t = 0) {
@@ -55,21 +53,8 @@ Object.entries({
   Color.prototype[key] = value;
 });
 
-let _name_ = (() => {
-  if (typeof localStorage === "undefined") {
-    return "cyan";
-  }
-  const tema_almacenado = localStorage.getItem("theme-name");
-  return global.nullish(tema_almacenado, "cyan");
-})();
-
-let _luminance_ = (() => {
-  const systemLuminance = ["light", "dark"][
-    +!!window.matchMedia("(prefers-color-scheme: dark)").matches
-  ];
-  const stored = localStorage.getItem("theme-luminance");
-  return global.nullish(stored, systemLuminance);
-})();
+let _name_;
+let _luminance_;
 
 export function getAllThemesRegistered() {
   const k = Object.keys(MUIDefaultValues).filter(
@@ -137,7 +122,7 @@ export function muiColors(palette, darkMode) {
  * @returns {boolean}
  */
 export function isDark() {
-  return _luminance_ === "dark";
+  return getThemeLuminance() === "dark";
 }
 
 export function getColorsTheme(darkmode) {
@@ -153,6 +138,25 @@ export function getColorsTheme(darkmode) {
 export function applyTheme() {
   const themeSelected = getPaletteConfig();
   themeSelected.willLoad(isDark());
+  JS2CSS.insertStyle({
+    id: "theme-manager-settings",
+    clasesKebab: false,
+    infer: false,
+    ":root": {
+      "--is-panda": +isPanda(),
+      "--is-dark": +isDark(),
+      "--pandabg-filter": (() => {
+        if (isPanda()) {
+          return "invert() hue-rotate(180deg)";
+        }
+        return "";
+      })(),
+      ".panda-invert": {
+        filter: "var(--pandabg-filter)",
+      },
+    },
+  });
+  triggerThemeChange();
 }
 
 /**
@@ -160,8 +164,11 @@ export function applyTheme() {
  * @param {string} luminance El nivel de luminancia.
  */
 export function setThemeLuminance(luminance) {
+  if (!isReadyThemeChange()) {
+    return;
+  }
   _luminance_ = global.nullish(luminance, "dark");
-  if (typeof localStorage !== "undefined") {
+  if (localStorage) {
     localStorage.setItem("theme-luminance", luminance);
   }
   applyTheme();
@@ -172,14 +179,31 @@ export function setThemeLuminance(luminance) {
  * @returns {string}
  */
 export function getThemeLuminance() {
+  initLuminance();
   return _luminance_;
+}
+
+function initLuminance(luminance) {
+  _luminance_ = global.nullish(
+    _luminance_,
+    (() => {
+      if (luminance) {
+        return luminance;
+      }
+      const systemLuminance = ["light", "dark"][
+        +!!window.matchMedia("(prefers-color-scheme: dark)").matches
+      ];
+      const stored = localStorage.getItem("theme-luminance");
+      return global.nullish(stored, systemLuminance);
+    })()
+  );
 }
 
 /**
  * Devuelve la configuración de paleta actual.
  * @returns {object}
  */
-export function getPaletteConfig(name = _name_) {
+export function getPaletteConfig(name = getThemeName()) {
   let retorno = MUIDefaultValues[name];
   if (!retorno) {
     return MUIDefaultValues["cyan"];
@@ -272,6 +296,9 @@ export function readyThemeManager() {
  * @param {string} name Nombre del tema.
  */
 export function setThemeName(name) {
+  if (!isReadyThemeChange()) {
+    return;
+  }
   _name_ = global.nullish(name, "cyan");
   if (typeof localStorage !== "undefined") {
     localStorage.setItem("theme-name", name);
@@ -279,11 +306,28 @@ export function setThemeName(name) {
   applyTheme();
 }
 
+export function initThemeName(name) {
+  _name_ = global.nullish(
+    _name_,
+    (() => {
+      if (name) {
+        return name;
+      }
+      if (typeof localStorage === "undefined") {
+        return "cyan";
+      }
+      const tema_almacenado = localStorage.getItem("theme-name");
+      return global.nullish(tema_almacenado, "cyan");
+    })()
+  );
+}
+
 /**
  * Devuelve el nombre del tema actual.
  * @returns {string}
  */
 export function getThemeName() {
+  initThemeName();
   return _name_;
 }
 

@@ -1,5 +1,6 @@
 import { getPaletteConfig, getThemeName, isDark } from "./manager.js";
 import { responsiveFontSizes } from "@mui/material";
+import { triggerThemeChange, isReadyThemeChange } from "./manager.listener.js";
 
 export function getAdjacentPrimaryColor({ a, n, light } = {}) {
   return getPaletteConfig().getAdjacentPrimaryColor({ a, n, light });
@@ -10,13 +11,11 @@ export function getColorBackground(theme) {
     theme = getSelectedPalette();
   }
   const { palette } = theme;
-  let cursor = palette;
-  if (cursor) {
-    if (cursor.background) {
-      cursor = cursor.background;
-      if (cursor.default) {
-        cursor = cursor.default;
-        return cursor;
+  if (palette) {
+    if (palette.background) {
+      let { background } = palette;
+      if (background.default) {
+        return background.default;
       }
     }
   }
