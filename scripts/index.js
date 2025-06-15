@@ -210,7 +210,7 @@ async function deployBuild({ PUBLIC_URL = "/", name_branch = "build-prod" }) {
     console.log("Volviendo al directorio raíz...");
     execSync("cd ..", ENVIRONMENT_RUNTIME);
 
-    execSync("git checkou main", ENVIRONMENT_RUNTIME);
+    execSync("git checkout main", ENVIRONMENT_RUNTIME);
     await sleep(1);
 
     deleteTempDeploy();
