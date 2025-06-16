@@ -23,14 +23,13 @@ function replaceInFile(filePath) {
 }
 
 export function processDirectory(dir) {
-  dir = path.resolve(dir);
-  fs.readdir(dir, { withFileTypes: true }, (err, items) => {
-    if (err) {
-      console.error(`❌ Error leyendo directorio ${dir}: ${err.message}`);
-      return;
-    }
-
-    items.forEach((item) => {
+  console.log("==========================================")
+  console.log(dir)
+  console.log("==========================================")
+  try {
+    const items = fs.readdirSync(dir, { withFileTypes: true });
+    
+    for (const item of items) {
       const fullPath = path.join(dir, item.name);
 
       if (item.isDirectory()) {
@@ -38,6 +37,8 @@ export function processDirectory(dir) {
       } else if (item.isFile() && fullPath.endsWith(".js")) {
         replaceInFile(fullPath);
       }
-    });
-  });
+    }
+  } catch (err) {
+    console.error(`❌ Error leyendo directorio ${dir}: ${err.message}`);
+  }
 }

@@ -17,7 +17,6 @@ export class Main extends Component {
     this._listener = (themeProps) => {
       setTimeout(() => {
         this.setState(themeProps);
-        console.log(themeProps);
       });
     };
     addThemeChangeListener(this._listener);

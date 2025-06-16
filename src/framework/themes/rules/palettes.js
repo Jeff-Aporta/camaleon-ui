@@ -2,8 +2,6 @@ import { isDark } from "./manager.js";
 import { Color } from "./colors.js";
 import { clamp, map } from "../../tools/index.js";
 
-import { driverParams } from "../router.jsx";
-
 export const registerThemes_PaletteGeneral = {};
 
 /**
@@ -64,7 +62,7 @@ export class PaletteGeneral {
           window.PUBLIC_URL == ".",
           window.location.host.includes(".github"),
         ].some(Boolean);
-        
+
         if (prepareProps) {
           props = prepareProps(props);
         }

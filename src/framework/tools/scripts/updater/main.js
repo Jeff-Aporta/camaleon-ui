@@ -33,7 +33,7 @@ export async function updater_cmd({
   deleteDist = true,
 } = {}) {
   if (publish && (await getUserConfirm("¿Publicar npm?"))) {
-    publishPackage(config);
+    await publishPackage(config);
     await closeReadline();
   }
 
@@ -94,8 +94,9 @@ function build({ PUBLIC_URL = "/" }) {
   exec_cmd(`npm run build:context --public-url=${PUBLIC_URL}`);
 }
 
-function publishPackage(props) {
+async function publishPackage(props) {
   buildPackage(props);
+  await sleep(1);
   publish();
 
   function publish() {

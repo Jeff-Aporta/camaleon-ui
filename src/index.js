@@ -8,7 +8,7 @@ import { Unauthorize } from "./views/unauthorize";
 
 import { createRoot } from "react-dom/client";
 import toast from "react-hot-toast";
-import { RoutingManagement } from "@framework";
+import { RoutingManagement, showError } from "@framework";
 
 init();
 
@@ -20,9 +20,11 @@ createRoot(document.getElementById("root")).render(
       componentsContext,
       // routeCheck, // Función verificadora de errores en ruta
       routeError: (check) => {
-        toast.error(check.message); // Tratamiento de error
+        showError(check.message || "No tiene acceso"); // Tratamiento de error
       },
-      componentError: (check) => <Unauthorize message={check.message} />,
+      componentError: (check) => {
+        return <Unauthorize message={check.message || "No tiene acceso"} />;
+      },
       customRoutes: { custom: <h1>Hola desde custom</h1> },
       startIgnore: [
         package_json.repository.url

@@ -87,6 +87,9 @@ export function getColorsTheme(darkmode) {
  * Aplica la configuración de tema.
  */
 export function applyTheme() {
+  setTimeout(() => {
+    processSettingsView();
+  }, 0);
   const themeSelected = getPaletteConfig();
   themeSelected.willLoad(isDark());
   JS2CSS.insertStyle({
@@ -108,6 +111,23 @@ export function applyTheme() {
     },
   });
   triggerThemeChange();
+}
+
+function processSettingsView() {
+  if (window.settingsView) {
+    const { title, theme={} } = window.settingsView;
+    const {luminance, name} = theme;
+
+    if (title) {
+      document.title = title;
+    }
+    if (luminance) {
+      setThemeLuminance(luminance);
+    }
+    if (name) {
+      setThemeName(name);
+    }
+  }
 }
 
 /**

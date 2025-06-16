@@ -1,9 +1,9 @@
 import { Main } from "@theme/main";
 import { Box, Typography } from "@mui/material";
-import EventsDoc from "./sections/events";
-import FluidCSSDoc from "./sections/fluidCSS";
-import ThemesDoc from "./sections/themes";
-import ToolsDoc from "./sections/tools";
+import EventsDoc from "../sections/events";
+import FluidCSSDoc from "../sections/fluidCSS";
+import ThemesDoc from "../sections/themes";
+import ToolsDoc from "../sections/tools";
 
 export default function () {
   return (
