@@ -1,6 +1,6 @@
 {
   "name": "@jeff-aporta/camaleon",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "main": "dist/index.js",
   "exports": {
     ".": "./dist/index.js"
@@ -18,7 +18,7 @@
     "build": "react-app-rewired build",
     "eject": "react-scripts eject",
     "build:context": "cross-env-shell PUBLIC_URL=%npm_config_public_url% npm run build",
-    "serve": "serve -s build",
+    "server": "serve -s build",
     "deploy:gh-pages": "gh-pages -d build"
   },
   "eslintConfig": {

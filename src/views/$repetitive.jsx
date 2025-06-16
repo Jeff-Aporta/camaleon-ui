@@ -9,6 +9,7 @@ import {
 
 import { PaperP } from "@framework";
 import SchoolIcon from '@mui/icons-material/School';
+import { href as hrefCamaleon } from "@framework";
 
 export function BuildSectionDoc({ namekey="", title, description, cards, href }) {
   return (
@@ -25,7 +26,7 @@ export function BuildSectionDoc({ namekey="", title, description, cards, href })
         <Button
           variant="contained"
           size="large"
-          href={href}
+          href={hrefCamaleon(href)}
           startIcon={<SchoolIcon />}
         >
           Aprender más
@@ -51,7 +52,7 @@ export function BuildDocCards({ cards = [], namekey="" }) {
     <Box display="flex" flexWrap="wrap" justifyContent="space-evenly" gap={2}>
       {cards.map(({ title, description, href }) => (
         <Box key={namekey+title}>
-          <DocCard title={title} description={description} href={href} />
+          <DocCard title={title} description={description} href={hrefCamaleon(href)} />
         </Box>
       ))}
     </Box>

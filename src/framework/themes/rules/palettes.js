@@ -2,6 +2,8 @@ import { isDark } from "./manager.js";
 import { Color } from "./colors.js";
 import { clamp, map } from "../../tools/index.js";
 
+import { driverParams } from "../router.jsx";
+
 export const registerThemes_PaletteGeneral = {};
 
 /**
@@ -58,7 +60,11 @@ export class PaletteGeneral {
   control_components(darkmode) {
     return {
       href: function (props, prepareProps) {
-        const stayinGit = window.location.href.includes("github.io");
+        const stayinGit = [
+          window.PUBLIC_URL == ".",
+          window.location.host.includes(".github"),
+        ].some(Boolean);
+        
         if (prepareProps) {
           props = prepareProps(props);
         }
@@ -96,7 +102,8 @@ export class PaletteGeneral {
    */
   components({ darkmode, colors }) {
     const primary = colors.primary.color;
-    let bgtooltip = primary[["darken", "lighten"][+darkmode]](0.3).saturate(-0.8);
+    let bgtooltip =
+      primary[["darken", "lighten"][+darkmode]](0.3).saturate(-0.8);
     return {
       AccordionDetails: {
         root: {

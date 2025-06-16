@@ -76,6 +76,7 @@ export async function updater_cmd({
     await closeReadline();
   }
 
+  await closeReadline();
   console.log("Operación completada ✅");
 }
 
