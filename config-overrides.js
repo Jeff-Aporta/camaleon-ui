@@ -15,6 +15,7 @@ module.exports = override(
       ".js",
       ".jsx",
       ".mjs",
+      ".cjs",
     ]);
     return config;
   }

@@ -1,5 +1,5 @@
 #!/usr/bin/env node --experimental-modules
-import { copyFolder } from "./copy-scss.js";
+import { copyFolder } from "./copy-filesext.js";
 import { processDirectory } from "./replace-jsx.js";
 import {
   getUserInput,
@@ -96,7 +96,7 @@ function build({ PUBLIC_URL = "/" }) {
 
 async function publishPackage(props) {
   buildPackage(props);
-  await sleep(1);
+  await sleep(2);
   publish();
 
   function publish() {

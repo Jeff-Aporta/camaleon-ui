@@ -5,13 +5,13 @@ export const settings = {
 };
 
 export function View() {
-  const {ex, exf} = getComponentsQuery();
-  console.log({ex, exf});
+  const { Ex, Exf } = getComponentsQuery();
+  console.log({ Ex, Exf });
   return (
     <>
       <h1>Hola mundo</h1>
-      <ex.default />
-      <exf.default />
+      <Ex />
+      <Exf />
     </>
   );
 }

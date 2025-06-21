@@ -47,6 +47,7 @@ import {
   PaperF,
   Hm,
   LuminanceThemeSwitch,
+  NavigationLink,
 } from "@framework";
 
 const hideIcon = 500;
@@ -82,6 +83,7 @@ export function HeadMain() {
 
   return (
     <PaperF
+      nobr
       className="menu-top flex space-between ai-center pad-10px"
       hm={false}
     >
@@ -125,20 +127,21 @@ export function HeadMain() {
           }}
         >
           {!isLogged && !isLoginPage && (
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              startIcon={<LoginIcon />}
-              href={href("/users/login")}
-              sx={{
-                borderRadius: "20px",
-                textTransform: "none",
-                fontWeight: "bold",
-              }}
-            >
-              Inicia sesión
-            </Button>
+            <NavigationLink to="/users/login">
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                startIcon={<LoginIcon />}
+                sx={{
+                  borderRadius: "20px",
+                  textTransform: "none",
+                  fontWeight: "bold",
+                }}
+              >
+                Inicia sesión
+              </Button>
+            </NavigationLink>
           )}
           {isLogged && (
             <Tooltip title="Account settings">
@@ -302,10 +305,10 @@ export function HeadMain() {
 function LogoHome() {
   return (
     <span className="bright-hover-1-5">
-      <Link
+      <NavigationLink
+        to="/"
         color="inherit"
         underline="none"
-        href={href("/")}
         className="d-center gap-10px c-pointer"
       >
         <ImageLocal
@@ -346,13 +349,13 @@ function LogoHome() {
               fontFamily: "lemonmilk-rg",
               fontSize: "45%",
             }}
-            color="primaryl3"
+            color="contrastpaper"
             sx={{ display: { xs: "none", sm: "block" } }}
           >
             Diseño que cambia contigo
           </Typography>
         </Box>
-      </Link>
+      </NavigationLink>
     </span>
   );
 }

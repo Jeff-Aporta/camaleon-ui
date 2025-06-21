@@ -1,13 +1,11 @@
 // Polyfills and environment adjustments
-import { href as routerHref } from "@framework";
-import { hrefManagement } from "./hrefManagement";
+import { href as routerHref, UseViewId } from "@framework";
+// UseViewId();
 
 localStorage.setItem(
   "theme-name",
   localStorage.getItem("theme-name") ?? "skyGreenPanda"
 );
-
-Object.assign(window, { hrefManagement });
 
 export function init() {
   window.assignNullish(window, {

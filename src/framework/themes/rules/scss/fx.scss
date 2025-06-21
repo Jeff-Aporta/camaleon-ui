@@ -37,9 +37,13 @@
 
 .z-overfx,
 .rz-overfx {
-  z-index: var(--z-index-mouse-fx-minover);
+  z-index: var(--z-index-mouse-fx-overall);
 }
 
 .rz-overfx {
   @extend .relative;
+}
+
+.invert-nohue {
+  filter: invert(1) hue-rotate(180deg);
 }

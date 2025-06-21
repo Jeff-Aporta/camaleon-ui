@@ -1,8 +1,8 @@
 import { JS2CSS } from "../../fluidCSS/JS2CSS/index.js";
 
-import { init } from "../../start.js";
+import { initStart } from "../../start.js";
 
-init();
+initStart();
 
 export const {
   zIndex = (() => {

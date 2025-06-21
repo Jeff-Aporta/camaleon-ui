@@ -1,5 +1,7 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
+
+const extensions = [".css", ".scss", ".json"];
 
 export function copyFile(src, dest) {
   const srcPath = path.resolve(src);
@@ -29,7 +31,10 @@ export function copyFolder(src, dest) {
     if (fs.lstatSync(srcItem).isDirectory()) {
       copyFolder(srcItem, destItem);
     } else {
-      copyFile(srcItem, destItem);
+      const extension = path.extname(srcItem);
+      if (extensions.includes(extension)) {
+        copyFile(srcItem, destItem);
+      }
     }
   });
 }

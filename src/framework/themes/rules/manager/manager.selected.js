@@ -1,9 +1,16 @@
-import { getPaletteConfig, getThemeName, isDark } from "./manager.js";
+import { getPaletteConfig, getThemeName, isDark } from "./manager.vars.js";
 import { responsiveFontSizes } from "@mui/material";
 import { triggerThemeChange, isReadyThemeChange } from "./manager.listener.js";
+import {
+  hrefManagement,
+  _setURLParams,
+  driverParams,
+  _updateParams,
+} from "../../router.jsx";
+import { useNavigate } from "react-router-dom";
 
-export function getAdjacentPrimaryColor({ a, n, light } = {}) {
-  return getPaletteConfig().getAdjacentPrimaryColor({ a, n, light });
+export function getAdjacentPrimaryColor(props) {
+  return getPaletteConfig().getAdjacentPrimaryColor(props);
 }
 
 export function getColorBackground(theme) {
@@ -25,12 +32,20 @@ export function getPrimaryColor() {
   return getPaletteConfig().getPrimaryColor();
 }
 
-export function getTriadeColors(primary) {
-  return getPaletteConfig().getTriadeColors(primary);
+export function getTriadeColors() {
+  return getPaletteConfig().getTriadeColors();
 }
 
-export function getContrast(primary) {
-  return getPaletteConfig().getContrast(primary);
+export function getContrastPaper() {
+  return getPaletteConfig().getContrastPaper();
+}
+
+export function getContrast() {
+  return getPaletteConfig().getContrast();
+}
+
+export function getComplement() {
+  return getPaletteConfig().getComplement();
 }
 
 export function isPanda() {
@@ -42,17 +57,6 @@ export function getSelectedPalette({
   darkmode = isDark(),
 } = {}) {
   return getPaletteConfig(name)[["light", "dark"][+darkmode]];
-}
-
-export function getThemePandaComplement() {
-  if (!isPanda()) {
-    return getTheme();
-  }
-  return getThemeInvert();
-}
-
-export function getThemeInvert() {
-  return getTheme({ darkmode: !isDark() });
 }
 
 export function getTheme(props) {
@@ -87,7 +91,7 @@ export function controlComponents() {
 export function href(href) {
   const control = controlComponents();
   if (control.href) {
-    return control.href(href);
+    return control.href(hrefManagement(href));
   }
   return href;
 }

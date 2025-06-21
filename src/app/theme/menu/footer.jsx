@@ -1,15 +1,18 @@
-import { PaperF } from "@framework";
 import {
+  PaperP,
   href,
   getAllThemesRegistered,
-  getThemeName,
   isRegistered,
+  configUseViewId,
+  getUseViewId,
+  ImageLocal,
+  ToolsCustomizeInFooter,
 } from "@framework";
 import {
   Box,
-  Container,
+  Checkbox,
   FormControl,
-  Grid,
+  FormControlLabel,
   InputLabel,
   Link,
   MenuItem,
@@ -17,7 +20,6 @@ import {
   Select,
   Typography,
 } from "@mui/material";
-import { ImageLocal } from "@framework";
 
 import FacebookIcon from "@mui/icons-material/Facebook";
 import TwitterIcon from "@mui/icons-material/Twitter";
@@ -25,164 +27,140 @@ import InstagramIcon from "@mui/icons-material/Instagram";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 
 export function Footer({ updateThemeName }) {
-  const themeName = getThemeName();
   return (
     <>
       <FooterNavSection />
-      <PaperF elevation={0} className="content-container footer pad-10px">
-        <SelectThemeName {...{ themeName, updateThemeName }} />
-      </PaperF>
+      <ToolsCustomizeInFooter updateThemeName={updateThemeName} />
     </>
-  );
-}
-
-function SelectThemeName({ themeName, updateThemeName }) {
-  return (
-    <FormControl style={{ width: "150px" }}>
-      <InputLabel id="label-select-theme-name">Nombre tema</InputLabel>
-      <Select
-        labelId="label-select-theme-name"
-        id="select-theme-name"
-        value={isRegistered(themeName) ?? ""}
-        onChange={(e) => updateThemeName(e.target.value)}
-      >
-        {getAllThemesRegistered()
-          .sort((a, b) => a.label.localeCompare(b.label))
-          .map((themeRegister, i) => (
-            <MenuItem key={i} value={themeRegister.name[0]}>
-              {themeRegister.label}
-            </MenuItem>
-          ))}
-      </Select>
-    </FormControl>
   );
 }
 
 function FooterNavSection() {
   const year = new Date().getFullYear();
   return (
-    <PaperF>
-      <Container>
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={12}>
-            <Box sx={{ textAlign: "right" }}>
-              <ImageLocal
-                src="img/logo.svg"
-                alt="Logo"
-                style={{
-                  width: "120px",
-                  marginBottom: "20px",
-                  marginLeft: "auto",
-                }}
-              />
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                Plataforma integral de automatización y gestión digital de
-                procesos empresariales.
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                Automatización de servicio al cliente, gestión de proyectos y
-                Guía Matic.
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 2 }}>
-                {`© ${year} Avatar. Todos los derechos reservados.`}
-              </Typography>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  gap: 2,
-                  mb: 2,
-                }}
-              >
-                <img
-                  src="https://logo.clearbit.com/play.google.com"
-                  alt="Google Play"
-                  style={{ height: "30px", borderRadius: "4px" }}
+    <footer>
+      <PaperP nobr hm rhm={2}>
+          <Box sx={{ display: "flex", gap: 4 }}>
+            <Box sx={{ flex: 1 }}>
+              <Box sx={{ textAlign: "right" }}>
+                <ImageLocal
+                  src="img/metadata/logo-hd.svg"
+                  alt="Logo"
+                  style={{
+                    width: "150px",
+                    marginBottom: "20px",
+                    marginLeft: "auto",
+                  }}
                 />
-                <img
-                  src="https://logo.clearbit.com/apple.com"
-                  alt="App Store"
-                  style={{ height: "30px", borderRadius: "4px" }}
-                />
-              </Box>
-              <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-                <Link href="#" color="inherit">
-                  <Box
-                    sx={{
-                      width: "30px",
-                      height: "30px",
-                      borderRadius: "50%",
-                      bgcolor: "action.hover",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <FacebookIcon fontSize="small" />
-                  </Box>
-                </Link>
-                <Link href="#" color="inherit">
-                  <Box
-                    sx={{
-                      width: "30px",
-                      height: "30px",
-                      borderRadius: "50%",
-                      bgcolor: "action.hover",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <TwitterIcon fontSize="small" />
-                  </Box>
-                </Link>
-                <Link href="#" color="inherit">
-                  <Box
-                    sx={{
-                      width: "30px",
-                      height: "30px",
-                      borderRadius: "50%",
-                      bgcolor: "action.hover",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <InstagramIcon fontSize="small" />
-                  </Box>
-                </Link>
-                <Link href="#" color="inherit">
-                  <Box
-                    sx={{
-                      width: "30px",
-                      height: "30px",
-                      borderRadius: "50%",
-                      bgcolor: "action.hover",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <YouTubeIcon fontSize="small" />
-                  </Box>
-                </Link>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  Camaleón UI: biblioteca de componentes React con theming dinámico y altamente personalizable.
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  Adapta automáticamente colores, estilos y funcionalidades a tus necesidades.
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  {`© ${year} Camaleón UI. Todos los derechos reservados.`}
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    gap: 2,
+                    mb: 2,
+                  }}
+                >
+                  <img
+                    src="https://logo.clearbit.com/play.google.com"
+                    alt="Google Play"
+                    style={{ height: "30px", borderRadius: "4px" }}
+                  />
+                  <img
+                    src="https://logo.clearbit.com/apple.com"
+                    alt="App Store"
+                    style={{ height: "30px", borderRadius: "4px" }}
+                  />
+                </Box>
+                <Box
+                  sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}
+                >
+                  <Link href="#" color="inherit">
+                    <Box
+                      sx={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        bgcolor: "action.hover",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <FacebookIcon fontSize="small" />
+                    </Box>
+                  </Link>
+                  <Link href="#" color="inherit">
+                    <Box
+                      sx={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        bgcolor: "action.hover",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <TwitterIcon fontSize="small" />
+                    </Box>
+                  </Link>
+                  <Link href="#" color="inherit">
+                    <Box
+                      sx={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        bgcolor: "action.hover",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <InstagramIcon fontSize="small" />
+                    </Box>
+                  </Link>
+                  <Link href="#" color="inherit">
+                    <Box
+                      sx={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "50%",
+                        bgcolor: "action.hover",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <YouTubeIcon fontSize="small" />
+                    </Box>
+                  </Link>
+                </Box>
               </Box>
             </Box>
-          </Grid>
-        </Grid>
+          </Box>
 
-        <Typography
-          variant="caption"
-          align="center"
-          sx={{
-            display: "block",
-            mt: 4,
-            opacity: 0.5,
-          }}
-        >
-          {`© ${year} Avatar. Todos los derechos reservados.`}
-        </Typography>
-      </Container>
-    </PaperF>
+          <Typography
+            variant="caption"
+            align="center"
+            sx={{
+              display: "block",
+              mt: 4,
+              opacity: 0.5,
+            }}
+          >
+            {`© ${year} Avatar. Todos los derechos reservados.`}
+          </Typography>
+
+      </PaperP>
+    </footer>
   );
 }

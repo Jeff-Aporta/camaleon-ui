@@ -1,5 +1,16 @@
-.fit-w {
+.fit-w,
+.fit-width {
   width: fit-content;
+}
+
+.fit-h,
+.fit-height {
+  height: fit-content;
+}
+
+.fit-content {
+  width: fit-content;
+  height: fit-content;
 }
 
 .design {
@@ -98,12 +109,14 @@
       @extend .center-y;
     }
 
-    &.full-w, &.fullWidth {
+    &.full-w,
+    &.fullWidth {
       min-width: 100%;
       width: 100%;
     }
 
-    &.full-h, &.fullHeight {
+    &.full-h,
+    &.fullHeight {
       min-height: 100%;
       height: 100%;
     }

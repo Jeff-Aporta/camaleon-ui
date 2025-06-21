@@ -18,7 +18,7 @@ import {
   getAdjacentPrimaryColor,
   getContrast,
   getTriadeColors,
-} from "../../rules/manager.selected.js";
+} from "../../rules/manager/index.js";
 
 import { JS2CSS } from "../../../fluidCSS/JS2CSS/index.js";
 
@@ -67,21 +67,23 @@ export function applyDefaultBackground({
   ...rest
 } = {}) {
   const adjl = getAdjacentPrimaryColor({
-    a: 25,
+    a: 15,
     n: 3,
   }).map((c) => c.rgb().array().join(","));
 
   const adjd = getAdjacentPrimaryColor({
-    a: 20,
+    a: 10,
     n: 3,
-  }).reverse().map(
-    (c, i, arr) =>
-      `rgba(${c.rgb().array().join(",")}, ${
-        (0.5 * (arr.length - i)) / arr.length
-      })`
-  );
+  })
+    .reverse()
+    .map(
+      (c, i, arr) =>
+        `rgba(${c.rgb().array().join(",")}, ${
+          (0.3 * (arr.length - i)) / arr.length
+        })`
+    );
 
-  const color_circulo = `rgba(128, 128, 128, 0.1)`;
+  const color_circulo = `rgba(128, 128, 128, 0.2)`;
   let radio_agujero = (() => {
     const grosor = 7;
     return radio_anillo - grosor;
@@ -97,6 +99,8 @@ export function applyDefaultBackground({
       circleGradient,
       radialGradient,
     }) => ({
+      filter: "var(--pandabg-filter)",
+      opacity: 0.6,
       background: [
         linearGradient({
           angle: "to bottom",

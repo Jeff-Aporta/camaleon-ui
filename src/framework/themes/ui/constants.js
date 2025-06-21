@@ -1,4 +1,4 @@
-import { getAllThemesRegistered } from "../rules/manager.js";
+import { getAllThemesRegistered } from "../rules/manager/index.js";
 import { Color } from "../rules/colors.js";
 import { JS2CSS } from "../../fluidCSS/index.js";
 
@@ -6,13 +6,11 @@ export const baseColor = window.cyan;
 
 export const zIndex = (() => {
   const mouseFxBackall = "-1";
-  const mouseFxOverall = "8";
-  const MinOverscroll = "7";
+  const mouseFxOverall = "10";
   return {
-    mouseFxBackall,
-    mouseFxOverall,
-    MinOverMouseFx: (Number(mouseFxOverall) + 1).toString(),
-    MinOverscroll,
+    mouseFxBackall, //Efectos que estan por debajo
+    mouseFxOverall, //Efectos que estan por encima
+    MinOverMouseFx: (+mouseFxOverall + 1).toString(), //Elementos que no se afectan por efectos
   };
 })();
 

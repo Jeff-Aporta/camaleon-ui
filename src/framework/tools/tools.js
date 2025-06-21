@@ -4,11 +4,17 @@ export const isMobile = (() => {
   );
 })();
 
-export function assignNullish(dst, src) {
-  for (const key in src) {
-    dst[key] = global.nullishNoF(dst[key], src[key]);
-  }
-  return dst;
-}
+export const IS_GITHUB = (() => {
+  return window.location.hostname.includes(".github");
+})();
 
-Object.assign(window, { assignNullish });
+export const IS_LOCAL = (() => {
+  return ["localhost", "127.0.0.1"].some((h) =>
+    window.location.hostname.includes(h)
+  );
+})();
+
+export function firstUppercase(str) {
+  const retorno = str.charAt(0).toUpperCase() + str.slice(1);
+  return retorno;
+}

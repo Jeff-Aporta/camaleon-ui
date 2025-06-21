@@ -31,13 +31,19 @@ export const nullishNoF = (value, ...rest) => {
   return value;
 };
 
-export function init() {
-  Object.assign(global, {
-    nullish,
-    nullishNoF,
-  }); 
-  Object.assign(window, {
-    nullish,
-    nullishNoF,
+export function assignNullish(dst, src) {
+  for (const key in src) {
+    dst[key] = nullishNoF(dst[key], src[key]);
+  }
+  return dst;
+}
+
+export function initStart() {
+  [global, window].forEach((g) => {
+    Object.assign(g, {
+      nullish,
+      nullishNoF,
+      assignNullish,
+    });
   });
 }

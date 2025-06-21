@@ -3,7 +3,7 @@ import { Paper } from "@mui/material";
 import { fluidCSS } from "../../../fluidCSS/index.js";
 
 export function Hm({
-  h_min = 20,
+  h_min = 15,
   h_max = 30,
   r = 1,
   className = "",
@@ -16,7 +16,7 @@ export function Hm({
         .lerpX("responsive", {
           height: [h_min * r, h_max * r],
         })
-        .end("Hm", "tw-balance", className)}
+        .end("Hm", className)}
     />
   );
 }
@@ -26,15 +26,21 @@ export function Design({
   fullw,
   fullh,
   hinherit,
+  hiddenflow,
   ...rest
 } = {}) {
-  fullw = fullw ? "full-w" : "";
-  fullh = fullh ? "full-h" : "";
-  hinherit = hinherit ? "h-inherit" : "";
+  ({ fullw, fullh, hinherit, hiddenflow } = inferSuggar({
+    fullw,
+    fullh,
+    hinherit,
+    hiddenflow,
+  }));
   return (
     <div
       {...rest}
-      className={`design ${fullw} ${fullh} ${hinherit} ${className}`}
+      className={["design", className, fullw, fullh, hiddenflow, hinherit]
+        .filter(Boolean)
+        .join(" ")}
     />
   );
 }
@@ -45,30 +51,39 @@ export function Layer({
   fullw,
   center,
   centralized,
+  hiddenflow,
+  hinherit,
+  centercentralized,
   ...rest
 } = {}) {
-  fill = fill ? "fill" : "";
-  fullw = fullw ? "full-w" : "";
-  center = center ? "center" : "";
-  centralized = centralized ? "centralized" : "";
-  const centercentralized = center && centralized ? "center-centralized" : "";
-  let buildClasses = [];
-  buildClasses.push(fill);
-  buildClasses.push(fullw);
-  if (centercentralized) {
-    buildClasses.push(centercentralized);
-  } else {
-    if (center) {
-      buildClasses.push(center);
-    }
-    if (centralized) {
-      buildClasses.push(centralized);
-    }
-  }
+  ({
+    hiddenflow,
+    fill,
+    fullw,
+    center,
+    centralized,
+    centercentralized,
+    hinherit,
+  } = inferSuggar({
+    hiddenflow,
+    fill,
+    fullw,
+    center,
+    centralized,
+    hinherit,
+    centercentralized,
+  }));
 
-  return (
-    <div {...rest} className={`layer ${buildClasses.join(" ")} ${className}`} />
-  );
+  let buildClasses = [
+    "layer",
+    className,
+    fill,
+    fullw,
+    hiddenflow,
+    hinherit,
+    ...[[center, centralized], [centercentralized]][+!!centercentralized],
+  ];
+  return <div {...rest} className={buildClasses.filter(Boolean).join(" ")} />;
 }
 
 export function PaperLayer(props) {
@@ -86,15 +101,14 @@ export function PaperDesign({
   type = "design",
   ...props
 }) {
-  if (hiddenflow) {
-    hiddenflow = "overflow-hidden";
-  }
+  ({ hiddenflow } = inferSuggar({ hiddenflow }));
   return (
     <PaperP
       hm={false}
       p_min={p_min}
       p_max={p_max}
       {...props}
+      balance={false}
       className={`${type} ${hiddenflow} ${className}`}
     >
       <Design fullw fullh hinherit {...designProps}>
@@ -108,12 +122,14 @@ export function PaperDesign({
 }
 
 export function DivM({
-  pad,
+  pad = true,
   m_min = 5,
   m_max = 20,
   className = "",
+  balance = false,
   ...props
 } = {}) {
+  ({ balance } = inferSuggar({ balance }));
   return (
     <div
       {...props}
@@ -121,52 +137,98 @@ export function DivM({
         .lerpX("responsive", {
           [pad ? "padding" : "margin"]: [m_min, m_max],
         })
-        .end("DivM", "tw-balance", className)}
+        .end("DivM", balance, className)}
     />
   );
+}
+
+function inferSuggar({
+  hm,
+  zOverall,
+  nobr,
+  balance,
+  hiddenflow,
+  fill,
+  fullw,
+  center,
+  centralized,
+  centercentralized,
+  hinherit,
+  rhm,
+}) {
+  nobr = ["", "br-0"][+!!nobr];
+  zOverall = ["", "z-overall"][+!!zOverall];
+  hm = ["", <Hm r={rhm} />][+!!hm];
+  balance = ["", "tw-balance"][+!!balance];
+  hiddenflow = ["", "overflow-hidden"][+!!hiddenflow];
+  fill = ["", "fill"][+!!fill];
+  fullw = ["", "full-w"][+!!fullw];
+  center = ["", "center"][+!!center];
+  centralized = ["", "centralized"][+!!centralized];
+  centercentralized = ["", "center-centralized"][
+    +!!((center && centralized) || centercentralized)
+  ];
+  hinherit = ["", "h-inherit"][+!!hinherit];
+  return {
+    nobr,
+    zOverall,
+    hm,
+    balance,
+    hiddenflow,
+    fill,
+    fullw,
+    center,
+    centralized,
+    centercentralized,
+    hinherit,
+  };
 }
 
 export function PaperF({
   children,
   className = "",
   zOverall,
-  hm = true,
+  rhm,
+  hm = false,
   nobr = true,
+  balance = true,
   ...props
 }) {
-  if (nobr) {
-    nobr = "br-0";
-  }
+  ({ nobr, zOverall, hm, balance } = inferSuggar({
+    hm,
+    zOverall,
+    rhm,
+    nobr,
+    balance,
+  }));
   return (
-    <Paper
-      {...props}
-      className={`PaperF tw-balance ${zOverall ? "z-overall" : ""}`}
-    >
-      {hm && <Hm />}
+    <Paper {...props} className={`PaperF ${balance} ${zOverall} ${nobr}`}>
+      {hm}
       <div className={className}>{children}</div>
-      {hm && <Hm />}
+      {hm}
     </Paper>
   );
 }
 
 export function PaperP({
-  p_min = 3,
+  p_min = 10,
   p_max = 20,
   className = "",
   zOverall,
   children,
   nobr,
-  hm = true,
+  rhm,
+  hm = false,
+  balance = true,
   ...props
 } = {}) {
-  let nobrClass = "";
-  if (nobr) {
-    nobrClass = "br-0";
-  }
-  let zOverallClass = "";
-  if (zOverall) {
-    zOverallClass = "z-overall";
-  }
+  ({ nobr, zOverall, hm, balance } = inferSuggar({
+    hm,
+    zOverall,
+    rhm,
+    nobr,
+    balance,
+  }));
   return (
     <Paper
       {...props}
@@ -174,11 +236,24 @@ export function PaperP({
         .lerpX("responsive", {
           Padding: [p_min, p_max],
         })
-        .end("PaperP", nobrClass, "tw-balance", zOverallClass, className)}
+        .end("PaperP", nobr, balance, zOverall, className)}
     >
-      {hm && <Hm />}
+      {hm}
       {children}
-      {hm && <Hm />}
+      {hm}
     </Paper>
   );
+}
+
+export function ReserveLayer({ children, ...props }) {
+  return (
+    <>
+      <Reserveme>{children}</Reserveme>
+      <Layer {...props}>{children}</Layer>
+    </>
+  );
+}
+
+export function Reserveme({ children }) {
+  return <div className="ghost hidden">{children}</div>;
 }

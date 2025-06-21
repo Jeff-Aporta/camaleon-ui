@@ -11,11 +11,15 @@ import { Footer, HeadMain } from "./menu/index.js";
 initThemeCamaleon();
 
 export class Main extends Component {
-  state = {};
+  constructor(props) {
+    super(props);
+    this.state = {};
+  }
 
   componentDidMount() {
     this._listener = (themeProps) => {
       setTimeout(() => {
+        console.log("state", this.state, themeProps);
         this.setState(themeProps);
       });
     };

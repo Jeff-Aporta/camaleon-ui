@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-import { isDark, getThemeName } from "../../rules/manager.js";
+import { isDark, getThemeName } from "../../rules/manager/index.js";
 
 import { fluidCSS } from "../../../fluidCSS/index.js";
 import { JS2CSS } from "../../../fluidCSS/JS2CSS/index.js";
@@ -15,6 +15,8 @@ import {
 } from "../../../events/events.base.js";
 
 import { zIndex } from "../../rules/constants.js";
+
+import { getAdjacentPrimaryColor } from "../../rules/manager/index.js";
 
 export class CursorLight extends Component {
   constructor(props) {
@@ -38,19 +40,21 @@ export class CursorLight extends Component {
       return <React.Fragment></React.Fragment>;
     }
 
+    const [c1, c2] = getAdjacentPrimaryColor({ a: 30, n: 2 });
+
     return (
       <React.Fragment>
         <CursorEffectLight
-          colors={["white", "transparent 70%"]}
+          colors={[c1.toWhite(0.4).hex(), "transparent 50%"]}
           mixBlendMode={"overlay"}
-          opacity="0.3"
+          opacity="0.2"
           zIndex={zIndex.mouseFxBackall}
           {...colorFilterDiscriminator()}
         />
         <CursorEffectLight
-          colors={["white", "transparent 50%"]}
-          mixBlendMode="overlay"
-          opacity="0.2"
+          colors={[c2.toWhite(0.1).hex(), "transparent 50%"]}
+          mixBlendMode="screen"
+          opacity="0.1"
           zIndex={zIndex.mouseFxOverall}
           {...colorFilterDiscriminator()}
         />
@@ -75,15 +79,15 @@ export class CursorLight extends Component {
               "centraliced",
               "turnoff-when-mouse-left-pressed",
               "minside-win",
-              "ghost",
+              "ghost"
             )}
           data-opacity={global.nullish(styleProps.opacity, 1)}
           style={{
             transition: "opacity 0.2s",
             background: `radial-gradient(
-                  circle at center, 
-                  ${colors.join(", ")}
-                )`,
+              circle at center, 
+              ${colors.join(", ")}
+            )`,
             ...styleProps,
           }}
         />

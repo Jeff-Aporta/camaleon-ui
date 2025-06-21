@@ -2,7 +2,11 @@ import React from "react";
 
 import { applyPortalBackground, applyDefaultBackground } from "./bg.js";
 
-import { getPaletteConfig, getThemeName, isDark } from "../../rules/manager.js";
+import {
+  getPaletteConfig,
+  getThemeName,
+  isDark,
+} from "../../rules/manager/index.js";
 
 import { colorFilterDiscriminator } from "../../../tools/utils.jsx";
 

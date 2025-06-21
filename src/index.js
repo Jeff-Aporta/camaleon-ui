@@ -7,9 +7,15 @@ import { routeCheck } from "./app/start/routeCheck";
 import { Unauthorize } from "./views/unauthorize";
 
 import { createRoot } from "react-dom/client";
-import toast from "react-hot-toast";
-import { RoutingManagement, showError } from "@framework";
+import { RoutingManagement, showError, defaultUseViewId } from "@framework";
 
+import { assignMapManagement } from "@framework";
+
+assignMapManagement({
+  "@home": "/",
+});
+
+defaultUseViewId(true);
 init();
 
 const componentsContext = require.context("./views", true, /\.jsx$/);
@@ -19,10 +25,8 @@ createRoot(document.getElementById("root")).render(
     {...{
       componentsContext,
       // routeCheck, // Función verificadora de errores en ruta
-      routeError: (check) => {
-        showError(check.message || "No tiene acceso"); // Tratamiento de error
-      },
       componentError: (check) => {
+        showError(check.message || "No tiene acceso");
         return <Unauthorize message={check.message || "No tiene acceso"} />;
       },
       customRoutes: { custom: <h1>Hola desde custom</h1> },
