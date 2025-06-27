@@ -1,0 +1,7 @@
+.menu-top {
+  border-bottom: 3px solid var(--border-section);
+}
+
+.footer {
+  border-top: 3px solid var(--border-section);
+}

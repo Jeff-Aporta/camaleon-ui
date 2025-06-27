@@ -1,0 +1,97 @@
+// ---------------------------------------------
+// 1. Display Utilities
+// ---------------------------------------------
+@each $value in (flex, inline-flex, none, block, inline-block) {
+  .d-#{$value},
+  .d-#{$value}-col,
+  .#{$value} {
+    display: $value !important;
+  }
+  .d-#{$value}-col {
+    flex-direction: column !important;
+  }
+}
+
+.row-direction {
+  flex-direction: row !important;
+}
+
+.col-direction {
+  flex-direction: column !important;
+}
+
+.col-direction-reverse {
+  flex-direction: column-reverse !important;
+}
+
+.flex-row {
+  @extend .flex;
+  @extend .row-direction;
+}
+
+.flex-col {
+  @extend .flex;
+  @extend .col-direction;
+}
+
+.wrap {
+  flex-wrap: wrap !important;
+}
+
+.wflex {
+  @extend .flex;
+  @extend .wrap;
+}
+
+.wflex-row {
+  @extend .flex-row;
+  @extend .wrap;
+}
+
+.wflex-col {
+  @extend .flex-col;
+  @extend .wrap;
+}
+
+.d-center {
+  @extend .flex;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.d-end {
+  @extend .flex;
+  justify-content: end !important;
+  align-items: end !important;
+}
+
+@each $value in (center, space-between, space-evenly, space-around, end, start)
+{
+  .jc-#{$value},
+  .justify-#{$value} {
+    justify-content: $value !important;
+  }
+}
+
+.space-between {
+  @extend .jc-space-between;
+}
+
+.space-evenly {
+  @extend .jc-space-evenly;
+}
+
+.space-around {
+  @extend .jc-space-around;
+}
+
+@each $value in (center, end, start, stretch) {
+  .ai-#{$value},
+  .align-#{$value} {
+    align-items: $value !important;
+  }
+}
+
+.stretch {
+  @extend .ai-stretch;
+}

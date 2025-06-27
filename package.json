@@ -1,0 +1,75 @@
+{
+  "name": "@jeff-aporta/camaleon",
+  "version": "0.0.107",
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./scripts": "./src/framework/tools/scripts/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jeff-Aporta/camaleon-ui"
+  },
+  "scripts": {
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "eject": "react-scripts eject",
+    "server": "serve -s build",
+    "build:context": "cross-env-shell PUBLIC_URL=%npm_config_public_url% npm run build",
+    "deploy:gh-pages": "gh-pages -d build"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "dependencies": {
+    "color": "^5.0.0",
+    "goober": "^2.1.16",
+    "react-router-dom": "^7.4.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.26.4",
+    "@babel/core": "^7.26.10",
+    "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/plugin-proposal-private-methods": "^7.18.6",
+    "@babel/preset-react": "^7.26.3",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^7.1.2",
+    "@mui/material": "^7.1.2",
+    "@mui/x-charts": "^8.5.2",
+    "@mui/x-data-grid": "^8.5.2",
+    "@mui/x-date-pickers": "^8.5.2",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@use-gesture/react": "^10.3.1",
+    "cross-env": "^7.0.3",
+    "cross-env-shell": "^7.0.3",
+    "customize-cra": "^1.0.0",
+    "date-fns": "^4.1.0",
+    "gh-pages": "^6.3.0",
+    "react": "^19.1.0",
+    "react-app-rewired": "^2.2.1",
+    "react-dom": "^19.1.0",
+    "react-scripts": "5.0.1",
+    "react-slick": "^0.30.3",
+    "sass": "^1.86.0",
+    "sharp": "^0.34.2",
+    "slick-carousel": "^1.8.1"
+  }
+}
