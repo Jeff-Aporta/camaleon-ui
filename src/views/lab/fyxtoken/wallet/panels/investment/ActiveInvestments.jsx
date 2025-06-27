@@ -21,9 +21,9 @@ function ActiveInvestments() {
         />
       </Typography>
       <br />
-      <div style={{ width: "100%", minHeight: "100px" }}>
+      <Paper elevation={0}>
         <InvestmentTable />
-      </div>
+      </Paper>
     </>
   );
 }

@@ -5,8 +5,10 @@ import {
   PaperP,
   isDark,
   controlComponents,
-  href,
+  NavigationLink,
   fluidCSS,
+  showPromptDialog,
+  getSelectedPalette,
 } from "@framework";
 
 import {
@@ -21,6 +23,8 @@ import {
   Rating,
   TextField,
   Typography,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 
 // Iconos
@@ -37,25 +41,20 @@ import CurrencyBitcoinIcon from "@mui/icons-material/CurrencyBitcoin";
 
 import { Main } from "@theme/main";
 
-export default WelcomePage;
+export default function () {
+  return <WelcomePage />;
+}
 
 function WelcomePage() {
+  const palette = getSelectedPalette();
+  console.log(palette);
   return (
     <Main bgtype="default">
       <div className="welcome-page">
-        {/* Hero Section */}
         <HeroSection />
-
-        {/* Benefits Section */}
         <BenefitsSection />
-
-        {/* Expert Reviews */}
         <ExpertReviewsSection />
-
-        {/* Call to Action */}
         <CTASection />
-
-        {/* Stats Section */}
         <StatsSection />
       </div>
     </Main>
@@ -127,28 +126,30 @@ function HeroSection() {
                 </Typography>
               </div>
               <Box sx={{ display: "flex", gap: 2 }}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  href={href("/login")}
-                  sx={{
+                <NavigationLink to="/login">
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    sx={{
                     borderRadius: "20px",
                     px: 3,
                   }}
                 >
                   Comenzar ahora
                 </Button>
+                </NavigationLink>
+                <NavigationLink to="/pricing">
                 <Button
                   variant="outlined"
-                  color="secondary.main"
+                  color="contrast"
                   sx={{
                     borderRadius: "20px",
                     px: 3,
                   }}
-                  href={href("/pricing")}
                 >
                   ¿Cómo funciona?
                 </Button>
+                </NavigationLink>
               </Box>
             </Box>
           </Grid>
@@ -349,7 +350,7 @@ function BenefitsSection() {
           variant="h4"
           component="h2"
           align="center"
-          color="primary"
+          color="contrast"
           sx={{
             fontWeight: "bold",
             mb: 5,
@@ -448,7 +449,8 @@ function BenefitsSection() {
                   }}
                 >
                   <ShowChartIcon
-                    sx={{ fontSize: 50, color: "secondary.main" }}
+                    color="contrastpaper"
+                    sx={{ fontSize: 50}}
                   />
                 </Box>
                 <Typography
@@ -498,7 +500,8 @@ function BenefitsSection() {
                   }}
                 >
                   <AccountBalanceWalletIcon
-                    sx={{ fontSize: 50, color: "secondary.main" }}
+                    color="contrastpaper"
+                    sx={{ fontSize: 50, }}
                   />
                 </Box>
                 <Typography
@@ -575,7 +578,7 @@ function ExpertReviewsSection() {
           variant="h5"
           component="h2"
           align="center"
-          color="primary"
+          color="contrastpaper"
           sx={{
             fontWeight: "bold",
             mb: 5,
@@ -681,12 +684,12 @@ function CTASection() {
         padding: "60px 0",
       }}
     >
-      <Container>
+      <Container className="color-bg-opposite">
         <Typography
           variant="h5"
           component="h2"
           align="center"
-          className="color-bg-opposite"
+          color="contrast"
           sx={{
             fontWeight: "bold",
             mb: 3,

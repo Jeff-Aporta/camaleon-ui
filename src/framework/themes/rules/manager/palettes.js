@@ -222,6 +222,17 @@ export class PaletteMonochrome extends PaletteGeneral {
   }
 }
 
+function getDirectionAdjacentDark(hue) {
+  return -getDirectionAdjacentLight(hue);
+}
+
+function getDirectionAdjacentLight(hue) {
+  if (hue > 120 && hue < 240) {
+    return -1;
+  }
+  return 1;
+}
+
 export class PaletteBaseMonochrome extends PaletteMonochrome {
   constructor(props) {
     super(props);
@@ -263,41 +274,47 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
   }
 
   adjacentFactor() {
-    let tono = this.main_color.hue();
-    let factor = tono < 180 ? 1 : -1;
-    if (tono > 240) {
-      factor = 1;
-    }
-    const complement = tono > 180 ? map(tono, 180, 360, -180, 0) : tono;
-    const hueGreen = 120;
-    const hueOrange = 30;
-    const hueYellow = 60;
-    const hueCyan = 180;
-    const hueMagenta = 300;
+    let hue = this.main_color.hue();
+    let factor = getDirectionAdjacentLight(hue);
+    const colorsConflictiveContrast = {
+      red: {
+        hue: 0,
+        fi: 0.05,
+        ff: 1,
+      },
+      green: {
+        hue: 120,
+        fi: 0.05,
+        ff: 1,
+      },
+      orange: {
+        hue: 30,
+      },
+      yellow: {
+        hue: 60,
+      },
+      cyan: {
+        hue: 180,
+      },
+      magenta: {
+        hue: 300,
+        fi: 0.3,
+        ff: 1,
+      },
+    };
+    const f = Object.values(colorsConflictiveContrast)
+      .map((c) => ({ ...c, diff: Math.abs(c.hue - hue) }))
+      .sort((a, b) => a.diff - b.diff);
+
+    const minDiff = f[0].diff;
     const tolerance = 29;
-    const diffYellow = Math.abs(hueYellow - tono);
-    const diffCyan = Math.abs(hueCyan - tono);
-    const diffMagenta = Math.abs(hueMagenta - tono);
-    const diffOrange = Math.abs(hueOrange - tono);
-    const diffRed = Math.abs(complement);
-    const diffGreen = Math.abs(hueGreen - tono);
-    if (diffRed <= tolerance) {
-      factor *= map(diffRed / tolerance, 0, 1, 0.05, 1);
-    }
-    if (diffGreen <= tolerance) {
-      factor *= map(diffGreen / tolerance, 0, 1, 0.05, 1);
-    }
-    if (diffOrange <= tolerance) {
-      factor *= diffOrange / tolerance;
-    }
-    if (diffYellow <= tolerance) {
-      factor *= diffYellow / tolerance;
-    }
-    if (diffCyan <= tolerance) {
-      factor *= diffCyan / tolerance;
-    }
-    if (diffMagenta <= tolerance) {
-      factor *= map(diffMagenta / tolerance, 0, 1, 0.3, 1);
+    if (minDiff <= tolerance) {
+      const { fi, ff } = f[0];
+      if (fi && ff) {
+        factor *= map(minDiff / tolerance, 0, 1, fi, ff);
+      } else {
+        factor *= minDiff / tolerance;
+      }
     }
     return factor;
   }
@@ -312,7 +329,11 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
   }
 
   getPrimaryColor() {
-    return this.main_color.saturate(0.3);
+    return this.primary || this.main_color;
+  }
+
+  getSecondaryColor() {
+    return this.secondary || this.primary.toGray(0.5);
   }
 
   getTriadeColors() {
@@ -341,26 +362,46 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
     const color_uncontrast = colors_contrast[1 - darkmode];
 
     const primary = this.getPrimaryColor();
+    this.primary = primary;
 
     this.contrast = (() => {
-      const bg = this.getbg(darkmode, false);
-      const badlight = primary.isLight() && bg.isLight();
-      const baddark = primary.isDark() && bg.isDark();
-      if (baddark || badlight) {
-        return primary.invertnohue();
-      }
-      return primary;
+      return calculateContrastBG(primary, this.getbg(darkmode, false));
     })();
 
     this.contrastpaper = (() => {
-      const bg = this.getbgPaper(darkmode, false);
-      const badlight = primary.isLight() && bg.isLight();
-      const baddark = primary.isDark() && bg.isDark();
-      if (baddark || badlight) {
-        return primary.invertnohue();
-      }
-      return primary;
+      return calculateContrastBG(primary, this.getbgPaper(darkmode, false));
     })();
+
+    function calculateContrastBG(colorOver, bg) {
+      const isBgLight = bg.isLight();
+      const isBgDark = bg.isDark();
+      const hue = colorOver.hue();
+      const colorsroblemLight = {
+        green: 120,
+        yellow: 60,
+        cyan: 180,
+      };
+      const vals = Object.values(colorsroblemLight).map((v) =>
+        Math.abs(v - hue)
+      );
+      const minVal = Math.min(...vals);
+      const ratio = 30;
+      const lerpd = 0.3;
+      colorOver = colorOver.toLerp(
+        colorOver.invertnohue(),
+        1 - Math.abs(colorOver.luminosity() - bg.luminosity())
+      );
+      if (minVal <= ratio) {
+        const t = 1 - minVal / ratio;
+        const ti = 1 - t;
+        const temp = colorOver;
+        colorOver = colorOver[["toWhite", "toBlack"][+isBgLight]](lerpd * t);
+        colorOver = colorOver.rotate(
+          getDirectionAdjacentDark(hue) * 10 * [ti, t][+isBgLight]
+        );
+      }
+      return colorOver;
+    }
 
     const [, primary2, primary3] = this.getTriadeColors(primary);
 
@@ -373,7 +414,8 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
       this.getAdjacentPrimaryColor({ n: 4 }), // adjacents lights
       this.getAdjacentPrimaryColor({ n: 4, light: false }), // adjacents darks
     ];
-    const secondary = primary.toGray(0.5);
+    const secondary = this.getSecondaryColor();
+    this.secondary = secondary;
 
     function genObjMui(props) {
       const retorno = {};
@@ -458,15 +500,6 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
           "primaryd2",
           "primaryd3",
           "secondary",
-          "secondaryi",
-          "secondary2",
-          "secondary3",
-          "secondaryc1",
-          "secondaryc2",
-          "secondaryc3",
-          "secondarync1",
-          "secondarync2",
-          "secondarync3",
           "error",
           "warning",
           "info",

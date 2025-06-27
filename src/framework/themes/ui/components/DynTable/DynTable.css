@@ -14,15 +14,6 @@
 .DynTable-container {
  --DataGrid-rowWidth: fit-content !important;
 
- & .MuiDataGrid-row:hover {
-   background-color: hsla(
-     var(--morado-enfasis-h),
-     var(--morado-enfasis-s),
-     var(--morado-enfasis-l),
-     0.2
-   );
- }
-
  & .MuiDataGrid-cell {
    border: none;
    white-space: normal;

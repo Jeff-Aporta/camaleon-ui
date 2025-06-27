@@ -28,6 +28,10 @@ export function getColorBackground(theme) {
   }
 }
 
+export function getSecondaryColor() {
+  return getPaletteConfig().getSecondaryColor();
+}
+
 export function getPrimaryColor() {
   return getPaletteConfig().getPrimaryColor();
 }

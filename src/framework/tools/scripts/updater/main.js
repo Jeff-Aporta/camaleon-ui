@@ -1,6 +1,7 @@
 #!/usr/bin/env node --experimental-modules
 import { copyFolder } from "./copy-filesext.js";
 import { processDirectory } from "./replace-jsx.js";
+import path from "path";
 import {
   getUserInput,
   getUserConfirm,
@@ -15,9 +16,14 @@ let packageJson = {
 };
 
 let config = {};
+let directory = "";
 
 export function config_updater_cmd(conf) {
   config = conf;
+}
+
+export function setDirectory(dir) {
+  directory = dir;
 }
 
 export function packageJson_updater_cmd(pack) {
@@ -25,13 +31,13 @@ export function packageJson_updater_cmd(pack) {
 }
 
 export async function updater_cmd({
-  publish = true,
-  git = true,
-  ghPages = true,
-  buildProd = true,
-  deleteBuild = true,
-  deleteDist = true,
-} = {}) {
+  publish,
+  git,
+  ghPages,
+  buildProd,
+  deleteBuild,
+  deleteDist,
+}) {
   if (publish && (await getUserConfirm("¿Publicar npm?"))) {
     await publishPackage(config);
     await closeReadline();
@@ -105,20 +111,12 @@ async function publishPackage(props) {
     exec_cmd(`npm version patch --no-git-tag-version --no-git-commit-hooks`);
   }
 
-  function buildPackage({
-    framework,
-    dist,
-    sass_framework,
-    sass_dist,
-  }) {
+  function buildPackage({ framework, dist, sass_framework, sass_dist }) {
     console.log("Construyendo paquete...");
     exec_cmd(`npx babel ${framework} --out-dir ${dist}`);
     processDirectory(dist);
     if (sass_framework && sass_dist) {
-      copyFolder(
-        sass_framework,
-        sass_dist
-      );
+      copyFolder(sass_framework, sass_dist);
     }
   }
 }
@@ -180,7 +178,7 @@ async function deployBuild({ PUBLIC_URL = "/", name_branch = "build-prod" }) {
     );
 
     console.log("Entrando en temp-deploy...");
-    exec_cmd("cd temp-deploy");
+    exec_cmd(`cd ${path.resolve(directory, "temp-deploy")}`);
 
     try {
       console.log("Eliminando branch build-prod si existe...");
@@ -201,7 +199,7 @@ async function deployBuild({ PUBLIC_URL = "/", name_branch = "build-prod" }) {
     exec_cmd(`git push origin HEAD:${name_branch} --force`);
 
     console.log("Volviendo al directorio raíz...");
-    exec_cmd("cd ..");
+    exec_cmd(`cd ${path.resolve(directory)}`);
 
     exec_cmd("git checkout main");
     await sleep(1);
@@ -220,5 +218,3 @@ function deployGHPages() {
   build({ PUBLIC_URL: "." });
   exec_cmd(`npm run deploy:gh-pages`);
 }
-
-updater_cmd();

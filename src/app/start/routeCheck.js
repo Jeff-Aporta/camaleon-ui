@@ -1,4 +1,12 @@
-function authError([first, second]) {
+function authError(nodes) {
+  const [first, second] = nodes;
+  const path = nodes.join("/");
+  if(path === "not-access-test") {
+    return {
+      error: true,
+      message: "No tienes acceso a esta ruta",
+    };
+  }
   const thereIsUser = window["currentUser"];
   if (!thereIsUser) {
     if (first === "users") {

@@ -16,6 +16,14 @@ Object.entries({
   clone: function () {
     return Color(this.hex());
   },
+  isDarkC: function () {
+    const [r, g, b] = this.rgb().array();
+    const max = Math.max(r, g, b);
+    return max < 128;
+  },
+  isLightC: function () {
+    return !this.isDarkC();
+  },
   toLerp: function (color, t = 0) {
     if (!color) {
       return this.clone();

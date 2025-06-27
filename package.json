@@ -1,24 +1,21 @@
 {
   "name": "@jeff-aporta/camaleon",
-  "version": "0.0.88",
+  "version": "0.0.107",
   "main": "dist/index.js",
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./scripts": "./src/framework/tools/scripts/index.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/Jeff-Aporta/camaleon-ui"
   },
-  "dependencies": {
-    "color": "^5.0.0",
-    "react-router-dom": "^7.4.0"
-  },
   "scripts": {
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "eject": "react-scripts eject",
-    "build:context": "cross-env-shell PUBLIC_URL=%npm_config_public_url% npm run build",
     "server": "serve -s build",
+    "build:context": "cross-env-shell PUBLIC_URL=%npm_config_public_url% npm run build",
     "deploy:gh-pages": "gh-pages -d build"
   },
   "eslintConfig": {
@@ -38,6 +35,11 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "dependencies": {
+    "color": "^5.0.0",
+    "goober": "^2.1.16",
+    "react-router-dom": "^7.4.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.26.4",
@@ -64,9 +66,10 @@
     "react": "^19.1.0",
     "react-app-rewired": "^2.2.1",
     "react-dom": "^19.1.0",
-    "react-hot-toast": "^2.5.2",
     "react-scripts": "5.0.1",
+    "react-slick": "^0.30.3",
     "sass": "^1.86.0",
-    "sharp": "^0.34.2"
+    "sharp": "^0.34.2",
+    "slick-carousel": "^1.8.1"
   }
 }

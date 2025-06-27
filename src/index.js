@@ -24,7 +24,7 @@ createRoot(document.getElementById("root")).render(
   <RoutingManagement
     {...{
       componentsContext,
-      // routeCheck, // Función verificadora de errores en ruta
+      //routeCheck, // Función verificadora de errores en ruta
       componentError: (check) => {
         showError(check.message || "No tiene acceso");
         return <Unauthorize message={check.message || "No tiene acceso"} />;

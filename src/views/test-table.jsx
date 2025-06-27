@@ -303,7 +303,7 @@ export default function () {
   return (
     <Main>
       <Button onClick={() => showSuccess("Success")}>Success</Button>
-      <Button onClick={() => showWarning("Warning")}>Warning</Button>
+      <Button onClick={() => showWarning("Warning asdasdasdasdasd")}>Warning</Button>
       <Button onClick={() => showError("Error")}>Error</Button>
       <Button onClick={() => showInfo("Info")}>Info</Button>
       <DynTable columns={cols.config} rows={unpackTable(rows.content)} />

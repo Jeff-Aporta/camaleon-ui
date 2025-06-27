@@ -8,6 +8,7 @@ import "./DynTable.css";
 import { JS2CSS } from "../../../../fluidCSS/JS2CSS/index.js";
 
 import {
+  getPrimaryColor,
   getThemeLuminance,
   getThemeName,
   isDark,
@@ -20,10 +21,37 @@ import { rendersTemplate } from "./rendersTemplate.jsx";
 export class DynTable extends Component {
   constructor(props) {
     super(props);
+    const { elevation, background, headercolor, rowHoverColor } = props;
+    this.elevation = elevation || 1;
+    this.background = background || "none !important";
+    this.headercolor =
+      headercolor ||
+      `rgba(${getPrimaryColor()
+        .toGray(0.6)
+        .rgb()
+        .array()
+        .map((c) => parseInt(c))
+        .join(",")}, 0.2) !important`;
+    this.rowHoverColor =
+      rowHoverColor ||
+      `rgba(${getPrimaryColor()
+        .rgb()
+        .array()
+        .map((c) => parseInt(c))
+        .join(",")}, 0.1) !important`;
     this.state = { windowWidth: window.innerWidth };
     this.apiRef = React.createRef();
     this.refDataGrid = React.createRef();
     this.rsz = this.rsz.bind(this);
+    this.R = Math.random().toString(36).replace("0.", "R-");
+    JS2CSS.insertStyle({
+      id: "DynTable-js2css",
+      [`.DynTable-container.${this.R}`]: {
+        "& .MuiDataGrid-row:hover": {
+          backgroundColor: this.rowHoverColor,
+        },
+      },
+    });
   }
 
   componentDidMount() {
@@ -95,21 +123,12 @@ export class DynTable extends Component {
     rendersTemplate(columns);
 
     return (
-      <Paper
-        elevation={(() => {
-          if (getThemeLuminance() == "dark") {
-            if (getThemeName() != "blacknwhite") {
-              return 0;
-            }
-          }
-        })()}
-      >
+      <Paper elevation={this.elevation}>
         <div
-          className="DynTable-container"
+          className={`DynTable-container ${this.R}`}
           style={{
             height: "auto",
             width: "100%",
-            background: `rgba(0,0,0,${isDark() ? 0.1 : 0.025})`,
           }}
         >
           <DataGrid
@@ -128,6 +147,11 @@ export class DynTable extends Component {
             autoHeight
             disableExtendRowFullWidth={false}
             localeText={localeTextES}
+            sx={{
+              "--DataGrid-t-color-background-base": this.background,
+              "--DataGrid-t-header-background-base": this.headercolor,
+              "--DataGrid-containerBackground": this.headercolor,
+            }}
           />
         </div>
       </Paper>

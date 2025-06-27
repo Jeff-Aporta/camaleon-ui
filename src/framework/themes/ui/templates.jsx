@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-import { Toaster } from "react-hot-toast";
+// import { Toaster } from "react-hot-toast";
 
 import { CssBaseline } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
@@ -25,6 +25,7 @@ import {
   assignedPath,
 } from "../router.jsx";
 import { PromptDialog } from "./PromptDialog.jsx";
+import { NotifierBox } from "./Notifier.jsx";
 
 initThemeCamaleon();
 init();
@@ -51,12 +52,6 @@ export class Notifier extends React.Component {
     this.handleThemeSwitch = () => {
       this.setState({ theme: getSelectedPalette() });
     };
-    this.handleParamListener = {
-      "view-id, test": ({ name, new_value }) => {
-        console.log("Hola");
-        this.setState({ [name]: new_value });
-      },
-    };
   }
 
   componentDidMount() {
@@ -77,7 +72,8 @@ export class Notifier extends React.Component {
         <CssBaseline />
         <div className="theme-provider-notifier">
           {children}
-          <ToasterPart theme={theme} palette={palette} />
+          <NotifierBox position="bottom-right" />
+          {/* <ToasterPart theme={theme} palette={palette} /> */}
           <PromptDialog />
         </div>
       </ThemeProvider>
@@ -86,8 +82,8 @@ export class Notifier extends React.Component {
 }
 
 function ToasterPart({ theme, palette }) {
-  return (
-    <Toaster
+  return (<></>
+    /* <Toaster
       position="bottom-right"
       toastOptions={{
         style: {
@@ -121,7 +117,7 @@ function ToasterPart({ theme, palette }) {
           animation: "fadeIn 1s ease, fadeOut 0.3s ease 9.7s forwards",
         },
       }}
-    />
+    /> */
   );
 }
 

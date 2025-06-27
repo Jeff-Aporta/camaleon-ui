@@ -26,7 +26,11 @@ import {
 
 import { fluidCSS } from "../../../fluidCSS/index.js";
 import { JS2CSS } from "../../../fluidCSS/JS2CSS/index.js";
-import { isDark, typographyTheme } from "../../rules/manager/index.js";
+import {
+  getPrimaryColor,
+  isDark,
+  typographyTheme,
+} from "../../rules/manager/index.js";
 import { TooltipGhost } from "./recurrent.jsx";
 
 /**
@@ -130,29 +134,42 @@ export function InputGender({
   placeholder,
   value,
   fem,
+  singular = true,
+  placeholder_uppercase = false,
   label,
   ...rest
 }) {
   placeholder = global.nullish(
     placeholder,
-    `Ingresa ${fem ? "la" : "el"} ` + label.toLowerCase()
+    `Ingresa ${(() => {
+      if (singular) {
+        return fem ? "la" : "el";
+      }
+      return fem ? "las" : "los";
+    })()} ${label.toLowerCase()}`
   );
+  if (placeholder_uppercase) {
+    placeholder = placeholder.toUpperCase();
+  }
+  if (!color) {
+    color = getPrimaryColor();
+  }
   let {
     h: hue,
     s: saturation,
     v: luminance,
   } = color ? color.hsv().object() : {};
-  let filter =
-    isDark() && color
-      ? `
+  let filter = [
+    null,
+    `
           invert(0.7)
           invert(${1 - luminance / 100})
           sepia() 
-          contrast(3)
+          contrast(2)
           saturate(${3 * saturation}%)
           hue-rotate(${hue - 48}deg) 
-      `
-      : null;
+      `,
+  ][+!!isDark()];
 
   return (
     <Input
@@ -206,7 +223,7 @@ export function genSelectFast(array) {
  * @param {string} [props.color] - Color principal.
  */
 export function SelectFast(props) {
-  const {
+  let {
     onChange,
     style,
     label = "",
@@ -221,21 +238,13 @@ export function SelectFast(props) {
 
   const [value, setValue] = useState(value_default);
 
+  if (!name) {
+    name = Math.random().toString(36).replace("0.", "");
+  }
+
   const lblID = `lbl-${name}`,
     selectID = `select-${name}`,
     captionizeID = `captionize-${name}`;
-
-  JS2CSS.insertStyle({
-    id: `js2css-${captionizeID}`,
-    objJs: {
-      [`#${lblID}`]: {
-        transition: "opacity 0.4s",
-        [`&[data-shrink="true"]`]: {
-          opacity: 0,
-        },
-      },
-    },
-  });
 
   const inputlbl = `Selecciona ${fem ? "la" : "el"} ` + label.toLowerCase();
 

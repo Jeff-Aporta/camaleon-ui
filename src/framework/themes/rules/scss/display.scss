@@ -20,6 +20,10 @@
   flex-direction: column !important;
 }
 
+.col-direction-reverse {
+  flex-direction: column-reverse !important;
+}
+
 .flex-row {
   @extend .flex;
   @extend .row-direction;

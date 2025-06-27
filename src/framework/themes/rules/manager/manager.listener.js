@@ -21,12 +21,10 @@ function themeValuesWasChanged() {
 }
 
 export function addThemeChangeListener(listener) {
-  console.log("addThemeChangeListener", listener)
   themeChangeListener.push(listener);
 }
 
 export function removeThemeChangeListener(listener) {
-  console.log("removeThemeChangeListener", listener)
   themeChangeListener.splice(themeChangeListener.indexOf(listener), 1);
 }
 

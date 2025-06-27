@@ -7,10 +7,13 @@ export const baseColor = window.cyan;
 export const zIndex = (() => {
   const mouseFxBackall = "-1";
   const mouseFxOverall = "10";
+  const MinOverMouseFx = (mouseFxOverall + 1).toString();
+  const notifier = (mouseFxOverall + 2).toString();
   return {
     mouseFxBackall, //Efectos que estan por debajo
     mouseFxOverall, //Efectos que estan por encima
-    MinOverMouseFx: (+mouseFxOverall + 1).toString(), //Elementos que no se afectan por efectos
+    MinOverMouseFx, //Elementos que no se afectan por efectos
+    notifier,
   };
 })();
 
@@ -37,6 +40,9 @@ export function init() {
       "--z-index-mouse-fx-overall": zIndex.mouseFxOverall,
       "--z-index-mouse-fx-minover": zIndex.MinOverMouseFx,
       "--z-index-minover-scroll": zIndex.MinOverscroll,
+    },
+    ".z-notifier": {
+      "z-index": zIndex.notifier,
     },
   });
 }

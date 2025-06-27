@@ -18,8 +18,10 @@ export default function () {
     <Main>
       <Box py={2} px={3}>
         <Box>
-          <Typography variant="h2">Camaleón UI</Typography>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h2" color="contrast">
+            Camaleón UI
+          </Typography>
+          <Typography variant="h6" gutterBottom color="contrast">
             Documentación
           </Typography>
         </Box>

@@ -190,10 +190,8 @@ export function RoutingManagement(props) {
 export function RoutingManagement_(props) {
   const [forceUpdate, setForceUpdate] = useState(0);
   useEffect(() => {
-    console.log("xxxx");
     addParamListener({
       "view-id, test": ({ name, new_value }) => {
-        console.log("Hola", name, new_value);
         setForceUpdate((f) => f + 1);
       },
     });
@@ -400,17 +398,13 @@ function RouteComponent({
   let path = inferirIntension(querypath, cleanedNodes);
   path = evaluate404(path);
 
-  let RETURN = evaluateFn(path) || routes[path].main;
+  const RETURN = evaluateFn(path) || routes[path].main;
   if (routes[path]) {
     const { settings = {} } = routes[path].component;
     setSettingsView(settings);
   }
-  RETURN = global.nullish(RETURN, "Imposible de resolver");
-  return <Wrap />;
 
-  function Wrap() {
-    return <React.Fragment>{RETURN}</React.Fragment>;
-  }
+  return global.nullish(RETURN, "Imposible de resolver");
 }
 
 // Helpers extracted for clarity/tests
@@ -476,7 +470,13 @@ function evaluateFn(path) {
   return RETURN;
 }
 
-export function NavigationLink({ to, target = "_self", children, ...rest }) {
+export function NavigationLink({
+  to,
+  scrolltop = true,
+  target = "_self",
+  children,
+  ...rest
+}) {
   const navigate = useNavigate();
   to = hrefManagement(to);
   const url = buildHref(to);
@@ -484,15 +484,18 @@ export function NavigationLink({ to, target = "_self", children, ...rest }) {
 
   const handleClick = (e) => {
     e.preventDefault();
-    if (viewId) {
-      _setURLParams("replaceState", url);
-    } else {
-      if (target == "_self") {
-        navigate(url, { replace: true });
+    if (to.view != viewId) {
+      if (viewId) {
+        _setURLParams("replaceState", url);
       } else {
-        window.open(url, target);
+        if (target == "_self") {
+          navigate(url, { replace: true });
+        } else {
+          window.open(url, target);
+        }
       }
     }
+    scrolltop && window.scrollTo(0, 0);
   };
 
   return (

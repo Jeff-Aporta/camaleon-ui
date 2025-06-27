@@ -101,7 +101,9 @@ function Wallet() {
     return (
       <Typography
         variant="h2"
-        className={fluidCSS().ltX(600, { fontWeight: "500" }).end()}
+        className={fluidCSS()
+          .ltX(600, { fontWeight: "500" })
+          .end("color-bg-opposite")}
       >
         {txt}
       </Typography>
