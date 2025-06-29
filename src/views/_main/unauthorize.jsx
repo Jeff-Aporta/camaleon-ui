@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
-import { Notifier, href } from "@framework";
-import { PaperP } from "@framework";
+import React, { useState, useEffect, Component } from "react";
+import { PaperP, driverParams, Notifier, href, showError } from "@framework";
 import {
   Button,
   CircularProgress,
@@ -10,12 +9,27 @@ import {
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 
-export function Unauthorize({ message }) {
-  return (
-    <Notifier>
-      <CountdownRedirect message={message} />
-    </Notifier>
-  );
+export default function () {
+  return <Unauthorize />;
+}
+
+class Unauthorize extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      message: driverParams.get("message") || "Acceso denegado",
+    };
+  }
+  componentDidMount() {
+    showError(this.state.message);
+  }
+  render() {
+    return (
+      <Notifier>
+        <CountdownRedirect message={this.state.message} />
+      </Notifier>
+    );
+  }
 }
 
 function CountdownRedirect({ message }) {

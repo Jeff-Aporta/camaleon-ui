@@ -1,6 +1,7 @@
 import { Main } from "@theme/main";
 import React from "react";
-import { BuildSectionDoc } from "../$repetitive";
+import { getCommonRoot } from "@framework";
+const { BuildSectionDoc } = getCommonRoot();
 
 const cards = [
   {

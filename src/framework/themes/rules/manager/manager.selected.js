@@ -6,7 +6,7 @@ import {
   _setURLParams,
   driverParams,
   _updateParams,
-} from "../../router.jsx";
+} from "../../router/index.js";
 import { useNavigate } from "react-router-dom";
 
 export function getAdjacentPrimaryColor(props) {

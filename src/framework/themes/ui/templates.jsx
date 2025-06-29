@@ -21,9 +21,7 @@ import { CursorLight } from "./Fx/index.js";
 import { burnBGFluid } from "./Fx/back-texture.jsx";
 import { JS2CSS } from "../../fluidCSS/JS2CSS/index.js";
 import { fluidCSS } from "../../fluidCSS/index.js";
-import {
-  assignedPath,
-} from "../router.jsx";
+import { assignedPath } from "../router/router.jsx";
 import { PromptDialog } from "./PromptDialog.jsx";
 import { NotifierBox } from "./Notifier.jsx";
 
@@ -82,7 +80,8 @@ export class Notifier extends React.Component {
 }
 
 function ToasterPart({ theme, palette }) {
-  return (<></>
+  return (
+    <></>
     /* <Toaster
       position="bottom-right"
       toastOptions={{
@@ -218,8 +217,10 @@ function FirstPart({
           bgtype,
           theme_name,
           theme_luminance,
-        }).end("expand", "back-texture", "z-index-1")}
-      />
+        }).end()}
+      >
+        <div className="expand back-texture z-index-1 bg-filter" />
+      </div>
       <div className="min-h-80vh">
         <Header updateTheme={updateThemeLuminance} />
         {h_init && <div style={{ minHeight: h_init }} />}

@@ -1,4 +1,5 @@
-import "./head-main.css";
+import "./head.css";
+
 import React, { useState } from "react";
 import Menu from "@mui/material/Menu";
 import Drawer from "@mui/material/Drawer";
@@ -16,6 +17,8 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import HomeIcon from "@mui/icons-material/Home";
 import { Divider, ListItemButton, ListItemIcon } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import LoginIcon from "@mui/icons-material/Login";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 import {
   Button,
@@ -30,16 +33,12 @@ import {
   Avatar,
 } from "@mui/material";
 
-import LoginIcon from "@mui/icons-material/Login";
-import LogoutIcon from "@mui/icons-material/Logout";
-
 import {
   fluidCSS,
   ImageLocal,
   isDark,
   controlComponents,
   getThemeName,
-  href,
   JS2CSS,
   getThemeLuminance,
   setThemeLuminance,
@@ -50,20 +49,29 @@ import {
   NavigationLink,
 } from "@framework";
 
+import { SessionUser } from "./SessionUser";
+
 const hideIcon = 500;
 const wbrk = 600;
 
+export const handleLogout = () => {
+  window.logoutUser();
+};
+
+export const user = window.currentUser;
+
+export const isLogged = !!user;
+
+export function isLoginPage() {
+  const path = getQueryPath();
+  return path.includes("users/login");
+}
+
 export function HeadMain() {
-  const isLoginPage = getQueryPath().includes("/users/login");
   const [anchorEl, setAnchorEl] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const handleOpen = (e) => setAnchorEl(e.currentTarget);
   const handleClose = () => setAnchorEl(null);
-  const handleLogout = () => {
-    window["logoutUser"]();
-  };
-  const user = window["currentUser"] ?? null;
-  const isLogged = !!user;
   const toggleDrawer = () => setDrawerOpen((o) => !o);
 
   JS2CSS.insertStyle({
@@ -83,8 +91,7 @@ export function HeadMain() {
 
   return (
     <PaperF
-      nobr
-      className="menu-top flex space-between ai-center pad-10px"
+      className="menu-top flex space-between align-center pad-10px"
       hm={false}
     >
       <div className="flex">
@@ -92,7 +99,7 @@ export function HeadMain() {
         <LogoHome />
       </div>
       <div className="flex gap-10px">
-        <MenuX />
+        <SessionUser />
         <div
           className={fluidCSS()
             .ltX("medium", {
@@ -105,125 +112,6 @@ export function HeadMain() {
       </div>
     </PaperF>
   );
-
-  function MenuX() {
-    const [anchorEl, setAnchorEl] = useState(null);
-    const open = Boolean(anchorEl);
-    const handleClick = (event) => setAnchorEl(event.currentTarget);
-    const handleClose = () => setAnchorEl(null);
-    const handleLogoutAndClose = () => {
-      handleLogout();
-      handleClose();
-    };
-
-    return (
-      <>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            textAlign: "center",
-            gap: 2,
-          }}
-        >
-          {!isLogged && !isLoginPage && (
-            <NavigationLink to="/users/login">
-              <Button
-                variant="contained"
-                color="primary"
-                size="small"
-                startIcon={<LoginIcon />}
-                sx={{
-                  borderRadius: "20px",
-                  textTransform: "none",
-                  fontWeight: "bold",
-                }}
-              >
-                Inicia sesión
-              </Button>
-            </NavigationLink>
-          )}
-          {isLogged && (
-            <Tooltip title="Account settings">
-              <IconButton
-                onClick={handleClick}
-                size="small"
-                sx={{ ml: 2 }}
-                aria-controls={open ? "account-menu" : undefined}
-                aria-haspopup="true"
-                aria-expanded={open ? "true" : undefined}
-              >
-                <Avatar
-                  sx={{ width: 32, height: 32 }}
-                  src={user.avatarUrl || ""}
-                >
-                  {!user.avatarUrl && user.name?.[0]}
-                </Avatar>
-              </IconButton>
-            </Tooltip>
-          )}
-        </Box>
-
-        <Menu
-          anchorEl={anchorEl}
-          id="account-menu"
-          open={open}
-          onClose={handleClose}
-          onClick={handleClose}
-          slotProps={{
-            paper: {
-              elevation: 0,
-              sx: {
-                overflow: "visible",
-                filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
-                mt: 1.5,
-                "& .MuiAvatar-root": { width: 32, height: 32, ml: -0.5, mr: 1 },
-                "&::before": {
-                  content: '""',
-                  display: "block",
-                  position: "absolute",
-                  top: 0,
-                  right: 14,
-                  width: 10,
-                  height: 10,
-                  bgcolor: "background.paper",
-                  transform: "translateY(-50%) rotate(45deg)",
-                  zIndex: 0,
-                },
-              },
-            },
-          }}
-          transformOrigin={{ horizontal: "right", vertical: "top" }}
-          anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-        >
-          <MenuItem onClick={handleClose}>
-            <Avatar sx={{ width: 32, height: 32 }} /> Profile
-          </MenuItem>
-          <MenuItem onClick={handleClose}>
-            <Avatar sx={{ width: 32, height: 32 }} /> My account
-          </MenuItem>
-          <Divider />
-          <MenuItem onClick={handleLogoutAndClose}>
-            <ListItemIcon>
-              <LogoutIcon fontSize="small" />
-            </ListItemIcon>
-            Logout
-          </MenuItem>
-        </Menu>
-      </>
-    );
-  }
-
-  function ThemeSwitch() {
-    return (
-      <Tooltip title={"Cambiar a tema " + (isDark() ? "claro" : "oscuro")}>
-        <LuminanceThemeSwitch
-          checked={isDark()}
-          onChange={() => setThemeLuminance(isDark() ? "light" : "dark")}
-        />
-      </Tooltip>
-    );
-  }
 
   function MenuDrawer() {
     return (
@@ -239,14 +127,18 @@ export function HeadMain() {
               <CaptionSection icon={<HomeIcon fontSize="small" />}>
                 Biblioteca de Componentes React
               </CaptionSection>
-              <ListItemButton component="a" href={href("/")}>
-                <ListItemText primary="Inicio" />
+              <ListItemButton>
+                <NavigationLink to="/">
+                  <ListItemText primary="Inicio" />
+                </NavigationLink>
               </ListItemButton>
               <hr />
               <br />
-              {!isLogged && !isLoginPage && (
-                <ListItemButton component="a" href={href("/users/login")}>
-                  <ListItemText primary="Iniciar sesión" />
+              {!isLogged && !isLoginPage() && (
+                <ListItemButton>
+                  <NavigationLink to="/users/login">
+                    <ListItemText primary="Iniciar sesión" />
+                  </NavigationLink>
                 </ListItemButton>
               )}
               {isLogged && (
@@ -302,13 +194,24 @@ export function HeadMain() {
   }
 }
 
+function ThemeSwitch() {
+  return (
+    <Tooltip title={"Cambiar a tema " + (isDark() ? "claro" : "oscuro")}>
+      <LuminanceThemeSwitch
+        checked={isDark()}
+        onChange={() => setThemeLuminance(isDark() ? "light" : "dark")}
+      />
+    </Tooltip>
+  );
+}
+
 function LogoHome() {
   return (
     <span className="bright-hover-1-5">
       <NavigationLink
-        to="/"
         color="inherit"
         underline="none"
+        to="/"
         className="d-center gap-10px c-pointer"
       >
         <ImageLocal
@@ -325,7 +228,7 @@ function LogoHome() {
         <Box
           className={fluidCSS()
             .lerpX("responsive-min", { fontSize: [15, 20] })
-            .end("d-flex-col")}
+            .end("flex-col")}
         >
           <Typography
             style={{
@@ -349,10 +252,10 @@ function LogoHome() {
               fontFamily: "lemonmilk-rg",
               fontSize: "45%",
             }}
-            color="contrastpaper"
+            color="primaryl3"
             sx={{ display: { xs: "none", sm: "block" } }}
           >
-            Diseño que cambia contigo
+            Interfaz de usuario
           </Typography>
         </Box>
       </NavigationLink>

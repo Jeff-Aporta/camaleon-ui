@@ -1,6 +1,7 @@
 import React from "react";
-import { BuildSectionDoc } from "../$repetitive";
-import { href } from "@framework";
+import { href, getCommonQuery, getCommonRoot } from "@framework";
+
+const { BuildSectionDoc } = getCommonRoot();
 
 const cards = [
   {

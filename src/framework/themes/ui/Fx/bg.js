@@ -18,14 +18,13 @@ import {
   getAdjacentPrimaryColor,
   getContrast,
   getTriadeColors,
+  startAnimateCSSTime,
 } from "../../rules/manager/index.js";
 
 import { JS2CSS } from "../../../fluidCSS/JS2CSS/index.js";
 
 export function newBackground({
   back_texture_css,
-  startBg = [],
-  endBg = [],
   style = ({ defaultbg, getLightFilter }) => ({
     ...defaultbg,
   }),
@@ -36,7 +35,11 @@ export function newBackground({
   });
 
   function backtexture_styles() {
-    const { background, ...rest } = back_texture_css({
+    const {
+      background = [],
+      backgroundImage = [],
+      ...rest
+    } = back_texture_css({
       colorFilterDiscriminator,
       getLightFilter,
       linearGradient,
@@ -46,6 +49,7 @@ export function newBackground({
       toViewportPercent,
       holeCircleGradient,
     });
+    console.log(background, backgroundImage, rest);
     return {
       ...style({
         // defaultbg: colorFilterDiscriminator(getLightFilter()),
@@ -53,7 +57,8 @@ export function newBackground({
         getLightFilter,
       }),
       ...rest,
-      background: [...startBg, background, ...endBg].join(","),
+      background: background.join(","),
+      backgroundImage: backgroundImage.join(","),
     };
   }
 }
@@ -61,7 +66,7 @@ export function newBackground({
 /**
  * Aplica el fondo por defecto con texturas, degradados y formas.
  */
-export function applyDefaultBackground({
+export function bgdefault({
   color_anillo = "rgba(128, 128, 128, 0.15)",
   radio_anillo = 35,
   ...rest
@@ -99,7 +104,6 @@ export function applyDefaultBackground({
       circleGradient,
       radialGradient,
     }) => ({
-      filter: "var(--pandabg-filter)",
       opacity: 0.6,
       background: [
         linearGradient({
@@ -170,10 +174,47 @@ export function applyDefaultBackground({
   });
 }
 
-/**
- * Aplica un fondo estilo portal con anillos rotativos y superposiciones.
- */
-export function applyPortalBackground(options = {}) {
+export function zigZag1({ ...rest } = {}) {
+  return newBackground({
+    ...rest,
+    back_texture_css: ({ linearGradient }) => ({
+      opacity: 0.1,
+      backgroundImage: [
+        linearGradient({
+          angle: "-45deg",
+          colors: ["transparent 75%", "rgb(128, 128, 128) 0"],
+        }),
+        linearGradient({
+          angle: "45deg",
+          colors: ["transparent 75%", "rgb(128, 128, 128) 0"],
+        }),
+        linearGradient({
+          angle: "-135deg",
+          colors: ["transparent 75%", "rgb(128, 128, 128) 0"],
+        }),
+        linearGradient({
+          angle: "135deg",
+          colors: ["transparent 75%", "rgb(128, 128, 128) 0"],
+        }),
+      ],
+      backgroundSize: "8rem 8rem",
+      backgroundPosition: "4rem 0, 4rem 0, 0 0, 0 0",
+    }),
+  });
+}
+
+export function portal(options = {}) {
+  const [l1, l2, l3, l4] = getAdjacentPrimaryColor({
+    a: 15,
+    n: 4,
+  });
+  const [d1, d2, d3, d4] = getAdjacentPrimaryColor({
+    a: 15,
+    n: 4,
+    light: false,
+  });
+  const [triade0, triade120, triade240] = getTriadeColors();
+  startAnimateCSSTime();
   return newBackground({
     ...options,
     back_texture_css: ({
@@ -184,35 +225,44 @@ export function applyPortalBackground(options = {}) {
     }) => ({
       background: [
         ...[
-          { a: 30, r: 30, ri: 4 },
-          { a: 35, r: 30, ri: 6 },
-          { a: 40, r: 30, ri: 8 },
-          { a: 210, r: 30, ri: 4 },
-          { a: 215, r: 30, ri: 6 },
-          { a: 220, r: 30, ri: 8 },
-        ].map(({ a, r, ri }) =>
-          ringGradient({
-            color: "hsla(180, 100.00%, 53.90%, 0.25)",
-            holeRadius: ri + "px",
-            radius: ri + 4 + `px`,
-            x: `calc(${toViewportPercent(r)} * cos(${a}deg) + 50%)`,
-            y: `calc(${toViewportPercent(r)} * sin(${a}deg) + 50%)`,
-          })
-        ),
+          { a: 0, r: 30, ri: 4 },
+          { a: 5, r: 30, ri: 6 },
+          { a: 10, r: 30, ri: 8 },
+          { a: 180, r: 30, ri: 4 },
+          { a: 185, r: 30, ri: 6 },
+          { a: 190, r: 30, ri: 8 },
+        ].map(({ a, r, ri }) => {
+          const dr = `3px * (sin(${2 + (a % 15)} * var(--burn-time)) + 1) / 2`;
+
+          return ringGradient({
+            color: `rgba(${triade0.rgb().array().join(",")}, 0.25)`,
+            holeRadius: `calc(${ri}px + ${dr})`,
+            radius: `calc(${ri + 4}px + ${dr})`,
+            x: `calc(${toViewportPercent(
+              0.9 * r
+            )} * cos(${a}deg + 30deg * var(--burn-time)) + 50%)`,
+            y: `calc(${toViewportPercent(
+              0.9 * r
+            )} * sin(${a}deg + 30deg * var(--burn-time)) + 50%)`,
+          });
+        }),
         linearGradient({
           angle: "45deg",
           colors: [
-            "hsla(120, 100.00%, 50.00%, 0.5)",
-            "hsla(130, 100.00%, 90.00%, 0.30)",
+            `rgba(${l1.rgb().array().join(",")}, 0.5)`,
+            `rgba(${l2.rgb().array().join(",")}, 0.30)`,
+            `rgba(${l3.rgb().array().join(",")}, 0.20)`,
+            `rgba(${l4.rgb().array().join(",")}, 0.10)`,
             `transparent ${toViewportPercent(40)}`,
             `transparent ${toViewportPercent(60)}`,
             "hsla(0, 0.00%, 0.00%, 0.30)",
             "hsla(0, 0.00%, 0.00%, 0.50)",
             "hsla(0, 0.00%, 0.00%, 0.70)",
             "hsla(0, 0.00%, 0.00%, 0.30)",
-            "hsla(220, 100.00%, 70%, 0.10)",
-            "hsla(230, 100.00%, 80%, 0.40)",
-            "hsla(240, 100.00%, 90%, 0.20)",
+            `rgba(${d1.rgb().array().join(",")}, 0.10)`,
+            `rgba(${d2.rgb().array().join(",")}, 0.50)`,
+            `rgba(${d3.rgb().array().join(",")}, 0.20)`,
+            `rgba(${d4.rgb().array().join(",")}, 0.10)`,
           ],
         }),
         holeCircleGradient({
@@ -222,16 +272,16 @@ export function applyPortalBackground(options = {}) {
           y: "center",
         }),
         ringGradient({
-          color: "hsla(170, 100.00%, 50.00%, 0.05)",
+          color: `rgba(${triade120.rgb().array().join(",")}, 0.1)`,
           holeRadius: toViewportPercent(33),
           radius: `calc(${toViewportPercent(33)} + 20px)`,
           x: "center",
           y: "center",
         }),
         ringGradient({
-          color: "hsla(0, 0.00%, 100.00%, 0.08)",
-          holeRadius: toViewportPercent(50),
-          radius: toViewportPercent(51),
+          color: `rgba(${triade240.rgb().array().join(",")}, 0.15)`,
+          holeRadius: toViewportPercent(45),
+          radius: `calc(${toViewportPercent(45)} + 20px)`,
           x: "center",
           y: "center",
         }),

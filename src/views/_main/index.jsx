@@ -7,13 +7,15 @@ import {
   FormControlLabel,
   Checkbox,
 } from "@mui/material";
-import EventsDoc from "../sections/events";
-import FluidCSSDoc from "../sections/fluidCSS";
-import ThemesDoc from "../sections/themes";
-import ToolsDoc from "../sections/tools";
-import { showPromptDialog, driverParams } from "@framework";
+import { showPromptDialog, driverParams, getComponentsQuery } from "@framework";
+
+const { Events, FluidCSS, Themes, Tools } = getComponentsQuery();
 
 export default function () {
+  return <Index />;
+}
+
+function Index() {
   return (
     <Main>
       <Box py={2} px={3}>
@@ -26,13 +28,13 @@ export default function () {
           </Typography>
         </Box>
         <br />
-        <EventsDoc />
+        <Events />
         <br />
-        <FluidCSSDoc />
+        <FluidCSS />
         <br />
-        <ThemesDoc />
+        <Themes />
         <br />
-        <ToolsDoc />
+        <Tools />
       </Box>
       <Button
         onClick={async () => {

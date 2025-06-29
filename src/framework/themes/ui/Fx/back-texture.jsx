@@ -1,6 +1,6 @@
 import React from "react";
 
-import { applyPortalBackground, applyDefaultBackground } from "./bg.js";
+import { portal, bgdefault, zigZag1 } from "./bg.js";
 
 import {
   getPaletteConfig,
@@ -14,6 +14,7 @@ import { fluidCSS, JS2CSS } from "../../../fluidCSS/index.js";
 
 export function burnBGFluid({ bgtype = "1", theme_name, theme_luminance }) {
   const fluid = fluidCSS();
+  console.log(bgtype);
   switch (bgtype) {
     default:
     case "1":
@@ -21,15 +22,23 @@ export function burnBGFluid({ bgtype = "1", theme_name, theme_luminance }) {
       fluid.ltX("small", {
         opacity: ["0.75", "1"],
       });
-      applyDefaultBackground();
+      bgdefault();
       break;
     case "2":
     case "portal":
-      fluid.btwX("responsive", {
-        opacity: ["0.7", "0.85", "1"],
-      });
-      applyPortalBackground();
+      genealFluid();
+      portal();
+      break;
+    case "zigzag":
+      genealFluid();
+      zigZag1();
       break;
   }
   return fluid;
+
+  function genealFluid() {
+    fluid.btwX("responsive", {
+      opacity: ["0.7", "0.85", "1"],
+    });
+  }
 }

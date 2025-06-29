@@ -1,7 +1,7 @@
 import { showError } from "../themes/ui/Notifier.jsx";
 import { HTTP_GET, HTTP_POST, HTTP_PUT, HTTP_PATH, HTTP_PATCH } from "./base";
 import { failureDefault, reEnvolve, getMessageError } from "./utils";
-import { driverParams } from "../themes/router.jsx";
+import { driverParams } from "../themes/router/index.js";
 
 export function AUTO_PARAMS(props) {
   const { currentUser = {} } = window;

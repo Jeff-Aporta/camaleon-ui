@@ -1,7 +1,7 @@
 import { isDark } from "./manager.vars.js";
 import { Color } from "../colors.js";
 import { clamp, map } from "../../../tools/index.js";
-import { buildHref } from "../../router.jsx";
+import { buildHref } from "../../router/index.js";
 import { themeColors } from "../colors.js";
 
 export const registerThemes_PaletteGeneral = {};

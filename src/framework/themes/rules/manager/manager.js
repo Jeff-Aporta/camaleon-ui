@@ -19,6 +19,27 @@ import {
   setThemeLuminance,
   processSettingsView,
 } from "./manager.vars.js";
+import { millis } from "../../../tools/time.js";
+
+let _startAnimateCSSTime_;
+burnTimeCSS();
+
+export function startAnimateCSSTime() {
+  if (_startAnimateCSSTime_) {
+    return;
+  }
+  _startAnimateCSSTime_ = setInterval(burnTimeCSS, 1000 / 30);
+}
+
+function burnTimeCSS() {
+  JS2CSS.insertStyle({
+    id: "burn-time",
+    infer: false,
+    ":root": {
+      "--burn-time": millis() / 1000,
+    },
+  });
+}
 
 const paletteLoader = {
   MUIDefaultValues: getMUIDefaultValues(),
@@ -52,9 +73,17 @@ export function getPaletteLoader() {
 export function muiColors(palette, darkMode) {
   const colors = palette.colors(darkMode);
   const retorno = Object.entries(colors).reduce((acc, [key, value]) => {
+    const bg = value.color;
+    let color = value.text;
+    if (bg.isLight() && color.isLight()) {
+      color = color.invertnohue();
+    }
+    if (bg.isDark() && color.isDark()) {
+      color = color.invertnohue();
+    }
     acc[key] = {
-      main: value.color.hex(),
-      contrastText: value.text.hex(),
+      main: bg.hex(),
+      contrastText: color.hex(),
     };
     return acc;
   }, {});
@@ -90,12 +119,22 @@ export function applyTheme() {
       "--font-color-bg-default": colorFont[isBGDark() ? 1 : 0],
       "--is-panda": +isPanda(),
       "--is-dark": +isDark(),
-      "--pandabg-filter": (() => {
+      "--bg-filter": (() => {
+        const F = "invert() hue-rotate(180deg)";
         if (isPanda()) {
-          return "invert() hue-rotate(180deg)";
+          if (isDark()) {
+            return F;
+          }
+        } else {
+          if (!isDark()) {
+            return F;
+          }
         }
         return "";
       })(),
+      ".bg-filter": {
+        filter: "var(--bg-filter)",
+      },
       ".color-bg-opposite": {
         color: "var(--font-color-bg-opposite) !important",
       },

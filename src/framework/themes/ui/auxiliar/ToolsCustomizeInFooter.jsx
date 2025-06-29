@@ -9,7 +9,7 @@ import {
   MenuItem,
   Typography,
 } from "@mui/material";
-import { configUseViewId, getUseViewId } from "../../router.storage.js";
+import { configUseViewId, getUseViewId } from "../../router/storage.js";
 import {
   isRegistered,
   getAllThemesRegistered,

@@ -13,9 +13,10 @@ import {
   getPrimaryColor,
   getColorPaperTheme,
   Color,
+  getContrastPaper,
 } from "@framework";
 
-import { lighten } from "@mui/material";
+import { lighten, Paper } from "@mui/material";
 import { Box } from "@mui/material";
 
 function CustomArrow(props) {
@@ -45,12 +46,15 @@ export function FyxCarrusel(props) {
 
   JS2CSS.insertStyle({
     id: "fyx-carrusel",
-    objJs: {
-      ".slick-dots li.slick-active div": {
-        background: `${
-          isDark() ? "white" : "gray"
-        } !important` /* Cambia este color según tu tema */,
-      },
+    ".slick-dots": {
+      position: "static",
+      height: "50px",
+      display: "flex !important",
+      justifyContent: "center",
+      alignItems: "end",
+    },
+    ".slick-dots li.slick-active div": {
+      background: `${getContrastPaper()} !important` /* Cambia este color según tu tema */,
     },
   });
   const settings = {
@@ -82,14 +86,6 @@ export function FyxCarrusel(props) {
   const bgpaper = getColorPaperTheme();
 
   const sliderStyles = {
-    container: {
-      margin: "0 auto",
-      backgroundColor: isDark()
-        ? bgpaper
-        : getPrimaryColor().toWhite(0.9).hex(),
-      padding: "20px 32px",
-      borderRadius: "8px",
-    },
     button: {
       zIndex: 1,
       backgroundColor: bgpaper,
@@ -104,7 +100,14 @@ export function FyxCarrusel(props) {
   const { children, ...rest_props } = props;
 
   return (
-    <Box {...rest_props} sx={sliderStyles.container}>
+    <Paper
+      {...rest_props}
+      style={{
+        margin: "0 auto",
+        padding: "20px 32px",
+        borderRadius: "8px",
+      }}
+    >
       <Slider {...settings} style={{ minHeight: h }}>
         {Array.from({ length: 4 }, (_, i) => (
           <div key={i} inert className="no-border-focus" style={{ height: h }}>
@@ -116,6 +119,6 @@ export function FyxCarrusel(props) {
           </div>
         ))}
       </Slider>
-    </Box>
+    </Paper>
   );
 }

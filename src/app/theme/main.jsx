@@ -19,7 +19,6 @@ export class Main extends Component {
   componentDidMount() {
     this._listener = (themeProps) => {
       setTimeout(() => {
-        console.log("state", this.state, themeProps);
         this.setState(themeProps);
       });
     };

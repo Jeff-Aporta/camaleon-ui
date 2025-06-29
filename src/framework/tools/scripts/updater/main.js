@@ -188,6 +188,7 @@ async function deployBuild({ PUBLIC_URL = "/", name_branch = "build-prod" }) {
     }
 
     console.log("Creando rama orphan para deploy...");
+    exec_cmd("git stash push -m 'Trabajo en progreso'");
     exec_cmd(`git checkout --orphan ${name_branch}`);
     await sleep(1);
 
@@ -201,9 +202,9 @@ async function deployBuild({ PUBLIC_URL = "/", name_branch = "build-prod" }) {
     console.log("Volviendo al directorio raíz...");
     exec_cmd(`cd ${path.resolve(directory)}`);
 
-    exec_cmd("git checkout main");
+    exec_cmd("git switch main");
     await sleep(1);
-
+    exec_cmd("git stash pop");
     deleteTempDeploy();
 
     console.log("✅ Deploy manual completado.");

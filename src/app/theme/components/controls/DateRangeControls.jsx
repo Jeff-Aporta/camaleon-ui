@@ -12,6 +12,8 @@ import { AutoSkeleton } from "../controls.jsx";
 
 let START_DATE, END_DATE, PERIOD, MONTH, WEEK;
 
+let nWeeks;
+
 export function DateRangeControls({
   type = "select",
   dateRangeInit,
@@ -50,12 +52,6 @@ export function DateRangeControls({
     WEEK ??= getInitWeek(dayjs().month());
   }
 
-  driverParams.sets({
-    month: MONTH,
-    week: WEEK,
-    period: PERIOD,
-  });
-
   // Migrar estados a useState para que los selectores sean reactivos
   const [periodValue, setPeriodValue] = useState(PERIOD);
   const [selectedDate, setSelectedDate] = useState(dayjs(START_DATE));
@@ -65,52 +61,57 @@ export function DateRangeControls({
   // Configurar dayjs para español
   dayjs.locale(es);
 
+  // Sincronizar parámetros de URL tras cambios en estado
+  useEffect(() => {
+    driverParams.sets({
+      month: selectedMonth,
+      week: selectedWeek,
+      period: periodValue,
+    });
+  }, [selectedMonth, selectedWeek, periodValue]);
+
   const handlePeriodChange = (event) => {
     const value = event?.target?.value || periodValue;
+    PERIOD = value;
+    driverParams.set("period", value);
     willPeriodChange(value);
-    if (value === "most_recent") {
-      setPeriodValue(value);
-      driverParams.sets({ period: value });
-      // no date filters for most_recent
+    setPeriodValue(value);
+    if (value == "most_recent") {
       return;
     }
-    setPeriodValue(value);
     const day_value = dayjs(START_DATE);
+    const month = day_value.month();
+    console.log(month);
+    const year = day_value.year();
     setSelectedDate(day_value);
-    const day_value_string = day_value.format("YYYY-MM-DD");
-    if (value === "day") {
-      driverParams.sets({
-        start_date: day_value_string,
-        end_date: day_value_string,
-      });
-    }
-    const iw = getInitWeek(day_value.month());
-    setSelectedWeek(iw);
-    let init;
-    const end = day_value;
-    setDateRangeFin(end);
-
+    setSelectedMonth(month);
+    let init, fin;
     switch (value) {
       case "day":
-        init = day_value.startOf("day");
+        init = day_value.format("YYYY-MM-DD");
+        fin = init;
         break;
       case "week":
-        init = day_value.startOf("week");
+        const iw = +driverParams.get("week") || getInitWeek(month);
+        setSelectedWeek(iw);
+        const { start, end } = getWeekRange(iw);
+        init = getYYYYMMDD(year, month, start);
+        fin = getYYYYMMDD(year, month, end);
+        driverParams.set("week", iw);
         break;
       case "month":
-        init = day_value.startOf("month");
+        init = getYYYYMMDD(year, month, 1);
+        fin = getYYYYMMDD(year, month, daysInMonth());
+        driverParams.set("month", month);
         break;
-      default:
-        init = day_value.startOf("day");
     }
-    setDateRangeInit(init);
     driverParams.sets({
-      month: day_value.month(),
       period: value,
-      week: iw,
-      start_date: init.format("YYYY-MM-DD"),
-      end_date: end.format("YYYY-MM-DD"),
+      start_date: init,
+      end_date: fin,
     });
+    setDateRangeInit(init);
+    setDateRangeFin(fin);
   };
 
   const handleDateChange = (date) => {
@@ -132,26 +133,31 @@ export function DateRangeControls({
     }
   }, [selectedDate, periodValue]);
 
-  const getWeekRange = (month, week) => {
-    const daysInMonth = dayjs().month(month).daysInMonth();
+  function getYYYYMMDD(year, month, start) {
+    return dayjs(year + "-" + (month + 1) + "-" + start).format("YYYY-MM-DD");
+  }
 
-    switch (week) {
-      case 1:
-        return { start: 1, end: 7 };
-      case 2:
-        return { start: 8, end: 14 };
-      case 3:
-        return { start: 15, end: 21 };
-      case 4:
-        return { start: 22, end: daysInMonth };
-      default:
-        return { start: 1, end: 7 };
-    }
-  };
+  function daysInMonth() {
+    return dayjs().month(selectedMonth).daysInMonth();
+  }
+
+  function getWeekRange(week) {
+    const month = selectedMonth;
+    nWeeks = [
+      { start: 1, end: 7 },
+      { start: 8, end: 14 },
+      { start: 15, end: 21 },
+      { start: 22, end: daysInMonth() },
+    ];
+    return nWeeks[week - 1];
+  }
 
   const handleWeekChange = (week) => {
+    if (PERIOD != "week") {
+      return;
+    }
     setSelectedWeek(week);
-    const { start, end } = getWeekRange(selectedMonth, week);
+    const { start, end } = getWeekRange(week);
     const date = dayjs().month(selectedMonth).date(start);
 
     // Verificar si el rango está en el futuro
@@ -179,8 +185,14 @@ export function DateRangeControls({
   };
 
   const handleMonthChange = (month) => {
-    setSelectedMonth(month);
     const iw2 = getInitWeek(month);
+    setSelectedMonth(month);
+    if (PERIOD != "month") {
+      if (PERIOD === "week") {
+        handleWeekChange(iw2);
+      }
+      return;
+    }
     setSelectedWeek(iw2);
     const date = dayjs().month(month);
     const start = date.startOf("month");
@@ -338,7 +350,7 @@ export function DateRangeControls({
                 }}
               >
                 {Array.from({ length: 4 }, (_, i) => {
-                  const { start, end } = getWeekRange(selectedMonth, i + 1);
+                  const { start, end } = getWeekRange(i + 1);
                   const date = dayjs().month(selectedMonth).date(start);
 
                   // Solo mostrar intervalos que no estén en el futuro
