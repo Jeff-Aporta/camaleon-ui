@@ -10,12 +10,7 @@ import {
 import { getUseViewId } from "./storage.js";
 import { setSettingsView, href } from "../rules/manager/index.js";
 import { Link } from "@mui/material";
-import {
-  addParamListener,
-  removeParamListener,
-  driverParams,
-  _setURLParams,
-} from "./params.js";
+import { subscribeParam, driverParams, _setURLParams } from "./params.js";
 import { buildHref, hrefManagement } from "./builder.js";
 import {
   setComponentsContext,
@@ -47,25 +42,25 @@ export function RoutingManagement(props) {
 export class RoutingManagement_ extends Component {
   constructor(props) {
     super(props);
-    this.state = { forceUpdate: 0 };
-    this.handleViewIdChange = null;
+    subscribeParam(
+      {
+        "view-id": () => {
+          this.forceUpdate();
+        },
+      },
+      this
+    );
   }
 
   componentDidMount() {
-    this.handleViewIdChange = {
-      "view-id": ({ name, new_value }) => {
-        this.setState((prev) => ({ forceUpdate: prev.forceUpdate + 1 }));
-      },
-    };
-    addParamListener(this.handleViewIdChange);
+    this.addParamListener();
   }
 
   componentWillUnmount() {
-    removeParamListener(this.handleViewIdChange);
+    this.removeParamListener();
   }
 
   render() {
-    const { forceUpdate } = this.state;
     const { ...props } = this.props;
     return (
       <Routes>
@@ -95,7 +90,7 @@ function RouteComponent({
   routeCheck = () => 0, // Función verificadora de errores en ruta
   componentError = () => 0, // Componente a mostrar si hubo error
 }) {
-  const view_id = driverParams.get("view-id");
+  const view_id = driverParams.get("view-id")[0];
   setComponentsContext(componentsContext);
   setCustomRoutes(customRoutes);
   _setRoutesAvailable(mapGenerateComponents());
@@ -112,6 +107,7 @@ function RouteComponent({
         )
   ).filter(Boolean);
   querypath = nodes.join("/");
+  assignedpath = querypath;
 
   const href = hrefManagement(querypath).view;
   if (href != querypath) {
@@ -176,12 +172,12 @@ export function NavigationLink({
   const navigate = useNavigate();
   to = hrefManagement(to);
   const url = buildHref(to);
-  const viewId = driverParams.get("view-id");
+  const view_Id = driverParams.get("view-id")[0];
 
   const handleClick = (e) => {
     e.preventDefault();
-    if (to.view != viewId) {
-      if (viewId) {
+    if (to.view != view_Id) {
+      if (view_Id) {
         _setURLParams("replaceState", url);
       } else {
         if (target == "_self") {

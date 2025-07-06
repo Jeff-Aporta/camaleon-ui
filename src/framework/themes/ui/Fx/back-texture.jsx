@@ -14,7 +14,6 @@ import { fluidCSS, JS2CSS } from "../../../fluidCSS/index.js";
 
 export function burnBGFluid({ bgtype = "1", theme_name, theme_luminance }) {
   const fluid = fluidCSS();
-  console.log(bgtype);
   switch (bgtype) {
     default:
     case "1":

@@ -72,6 +72,13 @@ export function getAllThemesRegistered() {
   return k.map((k) => MUIDefaultValues[k]);
 }
 
+export function defaultThemeName(name) {
+  if(localStorage.getItem("theme-name")) {
+    return;
+  }
+  localStorage.setItem("theme-name", name);
+}
+
 export function initThemeName(name) {
   if (_name_) {
     return;

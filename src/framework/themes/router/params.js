@@ -2,28 +2,83 @@ const params = {};
 const paramListener = [];
 
 export const driverParams = {
-  get: (key) => gets([key])[0],
-  set: (key, value, config) => sets({ [key]: value }, config),
-  gets,
-  sets,
+  get,
+  set,
+  init,
 };
+
+function init(key, ...rest) {
+  if (typeof key == "object") {
+    Object.entries(key).forEach(([k, v]) => init(k, v));
+    return Object.entries(key).reduce((a, [k, v]) => (a[k] = get(k)[0]), {});
+  }
+  if (typeof key != "string") {
+    console.error("driverParams.init: key must be a string", key);
+    return;
+  }
+  if (!get(key)[0]) {
+    set(key, ...rest);
+  }
+  return get(key)[0];
+}
+
+function get(...keys) {
+  const RETURN = keys.map((k) =>
+    new URLSearchParams(window.location.search).get(k)
+  );
+  return RETURN;
+}
+
+function set(key, value, { save = false, reaload = false } = {}) {
+  if (typeof key == "string") {
+    key = { [key]: value };
+  } else if (typeof key != "object") {
+    return;
+  }
+  const params = new URLSearchParams(window.location.search);
+  const initParams = params.toString();
+  Object.entries(key).forEach(([k, v]) => {
+    if (v) {
+      params.set(k, v);
+    } else {
+      params.delete(k);
+    }
+  });
+  if (initParams !== params.toString()) {
+    const url = urlParamToString(params);
+    _setURLParams(["replaceState", "pushState"][+save], url);
+    reload(reaload);
+    _updateParams();
+  }
+}
 
 function urlParamToString(params) {
   const url = `${window.location.pathname}?${params.toString()}`;
   return url;
 }
 
-export function addParamListener(listener) {
+function addParamListener(listener) {
   paramListener.push(listener); // {"view-id": fn}
 }
 
-export function removeParamListener(listener) {
+function removeParamListener(listener) {
   if (typeof listener != "number") {
     listener = paramListener.indexOf(listener);
   }
   if (listener > -1) {
     paramListener.splice(listener, 1);
   }
+}
+
+export function subscribeParam(modelChange, context) {
+  const handleListeners = {
+    addParamListener: () => addParamListener(modelChange),
+    removeParamListener: () => removeParamListener(modelChange),
+  };
+  if (context) {
+    Object.assign(context, handleListeners);
+  }
+  return handleListeners;
 }
 
 export function _updateParams() {
@@ -43,26 +98,6 @@ export function _updateParams() {
 
 function getAllParams() {
   return Object.fromEntries(new URLSearchParams(window.location.search));
-}
-
-function gets(...keys) {
-  return keys.map((k) => new URLSearchParams(window.location.search).get(k));
-}
-
-function sets(entries, { reaload, save } = {}) {
-  const params = new URLSearchParams(window.location.search);
-  const initParams = params.toString();
-  Object.entries(entries).forEach(([k, v]) => params.set(k, v));
-  if (initParams !== params.toString()) {
-    const url = urlParamToString(params);
-    if (save) {
-      _setURLParams("pushState", url);
-    } else {
-      _setURLParams("replaceState", url);
-    }
-    reload(reaload);
-    _updateParams();
-  }
 }
 
 function reload(ms_reaload) {

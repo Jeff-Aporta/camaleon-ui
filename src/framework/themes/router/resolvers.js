@@ -1,5 +1,5 @@
 import { namesMainJSX } from "./inference.js";
-import { getAssignedPath } from "./router.jsx";
+import { getAssignedPath, getQueryPath } from "./router.jsx";
 import { getAllPaths, getFilePath } from "./context.js";
 import { MAIN_FOLDER } from "./inference.js";
 
@@ -28,13 +28,29 @@ function toPath({ query, STATIC }) {
   if (Array.isArray(query)) {
     query = query.join("/");
   }
+  if (typeof STATIC == "function") {
+    STATIC = STATIC({ FOLDER_COMPONENTS, subcomponent: (name) => [
+      FOLDER_COMPONENTS,
+      Array.isArray(name) ? (()=>{
+        const RETURN = []
+        name.forEach((n, i, arr)=>{
+          RETURN.push(n)
+          if(i < arr.length - 1){
+            RETURN.push(FOLDER_COMPONENTS)
+          }
+        })
+        return RETURN
+      })() : name,
+      FOLDER_COMPONENTS,
+    ] });
+  }
+  if (Array.isArray(STATIC)) {
+    STATIC = STATIC.join("/");
+  }
   if (!query) {
     query = getAssignedPath();
   } else if (query == "/") {
     query = "";
-  }
-  if (Array.isArray(STATIC)) {
-    STATIC = STATIC.join("/");
   }
   const path = [query, STATIC].filter(Boolean).join("/");
   return { path, STATIC, query };
@@ -61,12 +77,12 @@ export function getComponentsQuery({ query, STATIC = FOLDER_COMPONENTS } = {}) {
 
 export function getFirstLevelFolder(folder) {
   folder = folder.replace("./", "");
-  const RETORNO = getAllPaths()
+  const allp = getAllPaths()
+    .map((path) => path.replace("./", ""))
+    .filter((path) => path.startsWith(folder));
+
+  const RETORNO = allp
     .map((path) => {
-      path = path.replace("./", "");
-      if (!path.startsWith(folder)) {
-        return;
-      }
       const lvlsF = folder.split("/").length;
       const lvlsP = path.split("/").length;
       const diffLvls = lvlsP - lvlsF;

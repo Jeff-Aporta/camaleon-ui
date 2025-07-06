@@ -1,60 +1,47 @@
 import React from "react";
 import { Box } from "@mui/material";
 import { DialogSimple } from "./dialog";
-import { Typography } from "@mui/material";
-import { Tooltip, Chip } from "@mui/material";
+import { Tooltip, Chip, Typography } from "@mui/material";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+
+import { showDialog } from "../PromptDialog.jsx";
+import { TooltipGhost } from "./controls.jsx";
 
 export function ImageLocal(props) {
- const { src, ...rest } = props;
- const base = process.env.PUBLIC_URL || '';
- const path = src.startsWith('/') ? src : `/${src}`;
- return (
-   <Box
-     component="img"
-     {...rest}
-     alt=""
-     src={`${base}${path}`}  
-   />
- );
+  const { src, ...rest } = props;
+  const base = process.env.PUBLIC_URL || "";
+  const path = src.startsWith("/") ? src : `/${src}`;
+  return <Box component="img" {...rest} alt="" src={`${base}${path}`} />;
 }
 
-export function Info({ title, title_text, ...rest_props }) {
- return (
-   <DialogSimple
-     {...rest_props}
-     text={title}
-     title_text={global.nullish(title_text, "Información")}
-   >
-     <TooltipGhost {...rest_props} title={title}>
-       <Typography color="secondary" className="d-inline-block c-pointer">
-         <i className="fa-solid fa-info-circle" />
-       </Typography>
-     </TooltipGhost>
-   </DialogSimple>
- );
+export function InfoDialog({
+  title = "Información",
+  description,
+  ...rest_props
+}) {
+  return (
+    <TooltipGhost {...rest_props} title={description}>
+      <Typography
+        color="secondary"
+        className="d-inline-block c-pointer"
+        onClick={() => showDialog({ title: title, description: description })}
+      >
+        <InfoOutlinedIcon fontSize="inherit" />
+      </Typography>
+    </TooltipGhost>
+  );
 }
 
-export function TooltipGhost(props) {
- return <Tooltip {...props} PopperProps={{ sx: { pointerEvents: "none" } }} />;
-}
-
-export function TitleInfo({ title, information, ...rest }) {
- return (
-   <Typography variant="h6" {...rest}>
-     {title}
-     <Info
-       placement="right"
-       className="ml-20px"
-       title_text={
-         <React.Fragment>
-           <div style={{ opacity: 0.8, fontSize: "10px" }} className="mb-20px">
-             <Chip label="Información" variant="outlined" />
-           </div>
-           {title}
-         </React.Fragment>
-       }
-       title={information}
-     />
-   </Typography>
- );
+export function TitleInfo({ title, information, variant = "h6", ...rest }) {
+  return (
+    <Typography variant={variant} {...rest}>
+      {title}
+      <InfoDialog
+        placement="right"
+        className="ml-20px"
+        title={"Información de " + title}
+        description={information}
+      />
+    </Typography>
+  );
 }

@@ -1,3 +1,5 @@
+export const idR = (prefix="R")=>Math.random().toString(36).replace("0.", `${prefix}-`);
+
 export function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }

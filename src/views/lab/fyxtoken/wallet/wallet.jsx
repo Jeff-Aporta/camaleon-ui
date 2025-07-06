@@ -67,7 +67,7 @@ function Wallet() {
               <br />
               <br />
               <FyxCarrusel
-                className="rz-overfx"
+                className="rz-ontopfx"
                 style={{
                   width: "100%",
                   minHeight: "clamp(390px, 50vh, 90vw)",
@@ -124,7 +124,7 @@ function Wallet() {
     return (
       <Paper
         elevation={2}
-        className="z-overfx"
+        className="z-ontopfx"
         style={{
           position: "sticky",
           top: "0",

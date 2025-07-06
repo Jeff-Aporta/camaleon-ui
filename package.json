@@ -1,6 +1,6 @@
 {
   "name": "@jeff-aporta/camaleon",
-  "version": "0.0.108",
+  "version": "0.0.228",
   "main": "dist/index.js",
   "exports": {
     ".": "./dist/index.js",
@@ -48,7 +48,7 @@
     "@babel/preset-react": "^7.26.3",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-   "@mui/icons-material": "^6.4.8",
+    "@mui/icons-material": "^6.4.8",
     "@mui/material": "^6.4.8",
     "@mui/x-charts": "^7.28.0",
     "@mui/x-data-grid": "^7.28.1",

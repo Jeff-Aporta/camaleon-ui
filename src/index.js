@@ -30,7 +30,7 @@ initPolyfill();
 const componentsContext = require.context("./views", true, /\.jsx$/);
 
 // Cargar usuario automáticamente desde localStorage en window.currentUser
-window["currentUser"] = JSON.parse(localStorage.getItem("user") || "null");
+window["currentUser"] = JSON.parse(localStorage.getItem("user") || "{}");
 
 createRoot(document.getElementById("root")).render(
   <RoutingManagement

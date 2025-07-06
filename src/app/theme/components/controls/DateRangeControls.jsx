@@ -8,7 +8,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
-import { AutoSkeleton } from "../controls.jsx";
+import { WaitSkeleton } from "../controls.jsx";
 
 let START_DATE, END_DATE, PERIOD, MONTH, WEEK;
 
@@ -33,7 +33,7 @@ export function DateRangeControls({
     WEEK, // semana
     MONTH, // mes
     WEEK, // semana
-  ] = driverParams.gets(
+  ] = driverParams.get(
     "start_date",
     "end_date",
     "period",
@@ -227,7 +227,7 @@ export function DateRangeControls({
     return (
       <div className="flex align-stretch flex-wrap gap-20px">
         <div className={fluidCSS().ltX(700, { width: "100%" }).end()}>
-          <AutoSkeleton h="10vh" w="250px" loading={loading}>
+          <WaitSkeleton h="10vh" w="250px" loading={loading}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DateTimePicker
                 className="fullWidth"
@@ -237,10 +237,10 @@ export function DateRangeControls({
                 slotProps={{ textField: { size: "small" } }}
               />
             </LocalizationProvider>
-          </AutoSkeleton>
+          </WaitSkeleton>
         </div>
         <div className={fluidCSS().ltX(700, { width: "100%" }).end()}>
-          <AutoSkeleton h="10vh" w="250px" loading={loading}>
+          <WaitSkeleton h="10vh" w="250px" loading={loading}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DateTimePicker
                 className="fullWidth"
@@ -250,7 +250,7 @@ export function DateRangeControls({
                 slotProps={{ textField: { size: "small" } }}
               />
             </LocalizationProvider>
-          </AutoSkeleton>
+          </WaitSkeleton>
         </div>
       </div>
     );
@@ -260,7 +260,7 @@ export function DateRangeControls({
   const palette_config = getPaletteConfig();
   return (
     <div className="flex align-stretch flex-wrap gap-20px">
-      <AutoSkeleton h="10vh" w="150px" loading={loading}>
+      <WaitSkeleton h="10vh" w="150px" loading={loading}>
         <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
           <InputLabel id="period-select-label">Período</InputLabel>
           <Select
@@ -279,10 +279,10 @@ export function DateRangeControls({
             <MenuItem value="month">1 mes</MenuItem>
           </Select>
         </FormControl>
-      </AutoSkeleton>
+      </WaitSkeleton>
 
       {periodValue === "day" && (
-        <AutoSkeleton h="10vh" w="200px" loading={loading}>
+        <WaitSkeleton h="10vh" w="200px" loading={loading}>
           <div style={{ width: "200px", display: "inline-block" }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DateTimePicker
@@ -301,7 +301,7 @@ export function DateRangeControls({
               />
             </LocalizationProvider>
           </div>
-        </AutoSkeleton>
+        </WaitSkeleton>
       )}
 
       {periodValue === "week" && (
@@ -310,7 +310,7 @@ export function DateRangeControls({
             .ltX(700, { width: "100%" })
             .end()}`}
         >
-          <AutoSkeleton h="10vh" w="150px" loading={loading}>
+          <WaitSkeleton h="10vh" w="150px" loading={loading}>
             <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
               <InputLabel id="month-select-label">Mes</InputLabel>
               <Select
@@ -335,8 +335,8 @@ export function DateRangeControls({
                 })}
               </Select>
             </FormControl>
-          </AutoSkeleton>
-          <AutoSkeleton h="10vh" w="150px" loading={loading}>
+          </WaitSkeleton>
+          <WaitSkeleton h="10vh" w="150px" loading={loading}>
             <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
               <InputLabel id="week-select-label">Semana</InputLabel>
               <Select
@@ -368,13 +368,13 @@ export function DateRangeControls({
                 }).filter(Boolean)}
               </Select>
             </FormControl>
-          </AutoSkeleton>
+          </WaitSkeleton>
         </div>
       )}
 
       {periodValue === "month" && (
         <div className={fluidCSS().ltX(700, { width: "100%" }).end()}>
-          <AutoSkeleton h="10vh" w="250px" loading={loading}>
+          <WaitSkeleton h="10vh" w="250px" loading={loading}>
             <FormControl variant="outlined" size="small" sx={{ minWidth: 200 }}>
               <InputLabel id="month-select-label">Mes</InputLabel>
               <Select
@@ -399,7 +399,7 @@ export function DateRangeControls({
                 })}
               </Select>
             </FormControl>
-          </AutoSkeleton>
+          </WaitSkeleton>
         </div>
       )}
     </div>

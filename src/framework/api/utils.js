@@ -1,13 +1,13 @@
 import { showError } from "../themes/ui/Notifier.jsx";
 
-export const urlMapApi = {};
+const URL_MAP_API = {};
 
 export function getURLMapAPI() {
-  return urlMapApi;
+  return URL_MAP_API;
 }
 
 export function setURLMapAPI(map) {
-  Object.assign(urlMapApi, map);
+  Object.assign(URL_MAP_API, map);
 }
 
 export function getMessageError(err, defaultErr) {
@@ -30,7 +30,6 @@ export function reEnvolve(mainF, secondF) {
 }
 
 export function failureDefault(...args) {
-  console.error(...args);
   showError(...args);
 }
 
@@ -38,11 +37,11 @@ export function failureDefault(...args) {
  * Resolve full API URL by buildEndpoint using current context.
  */
 export function buildUrlFromService(buildEndpoint, service) {
-  if (!urlMapApi.getContext) {
-    showError("Debe configurar getContext en el map api", { urlMapApi });
+  if (!URL_MAP_API.getContext) {
+    showError("Debe configurar getContext en el map api", { urlMapApi: URL_MAP_API });
   }
-  const env = urlMapApi.getContext();
-  const BASE_SERVICE = urlMapApi[env][service];
+  const env = URL_MAP_API.getContext();
+  const BASE_SERVICE = URL_MAP_API[env][service];
   return buildEndpoint({ BASE_SERVICE, service, genpath, env });
 
   function genpath(path, params = {}) {

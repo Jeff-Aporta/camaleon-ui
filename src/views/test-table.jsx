@@ -10,7 +10,7 @@ import {
 import {
   showPromptDialog,
   DynTable,
-  modelsFormat,
+  getModelsFormat,
   unpackTable,
   showSuccess,
   showWarning,
@@ -22,6 +22,62 @@ import {
 } from "@framework";
 import StatusOpenIcon from "@mui/icons-material/HourglassTop";
 import StatusCloseIcon from "@mui/icons-material/HourglassBottom";
+
+import BenefitUplineIcon from "@mui/icons-material/TrendingUpOutlined";
+import BenefitDownlineIcon from "@mui/icons-material/TrendingDownOutlined";
+import BenefitConstantlineIcon from "@mui/icons-material/TrendingFlatOutlined";
+import { Chip } from "@mui/material";
+
+addNumberFormat({
+  toCoin(value, local) {
+    const { precision2SmallNumber, numberFormat } = getNumberFormat();
+    const number_format = precision2SmallNumber({ value });
+    const { retorno } = numberFormat(number_format, value, local, "");
+    return retorno;
+  },
+  toCoinDifference(value1, value2, local) {
+    const { precision2SmallNumber, numberFormat } = getNumberFormat();
+    // No es necesario abs en diff, precision2SmallNumber lo infiere
+    const diff = (value1 - value2) / 10;
+    const number_format = precision2SmallNumber({ value: diff });
+    const { retorno } = numberFormat(number_format, value1, local, "");
+    return retorno;
+  },
+  precision2SmallNumber({ value }) {
+    const absValue = Math.abs(+value);
+    if (!absValue || isNaN(absValue)) {
+      return { maximumFractionDigits: 2 };
+    }
+    const decimals = Math.min(
+      8,
+      Math.max(2, Math.floor(1 - Math.log10(absValue)) + 4)
+    );
+    return { maximumFractionDigits: decimals };
+  },
+});
+
+addModelFormat({
+  profit_op: {
+    ...propsNameCoin,
+    extra_width: 30,
+    renderInfo: {
+      ...renderInfoNameCoin,
+      iconized: iconized_real_roi(true),
+    },
+  },
+  profit: {
+    ...propsNameCoin,
+    style: {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    renderInfo: {
+      ...renderInfoNameCoin,
+      iconized: iconized_real_roi(),
+    },
+  },
+});
 
 setURLMapAPI({
   getContext: () => "web",

@@ -16,28 +16,52 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
-let _swa_;
+import {DriverComponent} from "../../tools/tools.js"
+
+const driverDialog = DriverComponent({
+  dialog: {
+    isComponent: true,
+    show(props) {
+      return this.showPromptDialog({
+        ...props,
+        showCancelButton: false,
+        input: "confirm",
+      });
+    },
+    showPrompt(props) {
+      const { input } = props;
+      const okcancel = ["okcancel", "ok/cancel", "confirm"];
+      return new Promise((resolve) => {
+        open({
+          ...props,
+          onSuccess: (value) => {
+            if (okcancel.includes(input)) {
+              value = true;
+            }
+            resolve({ status: "confirmed", success: true, value });
+          },
+          onCancel: (value) => {
+            if (okcancel.includes(input)) {
+              value = false;
+            }
+            resolve({ status: "canceled", success: false, value });
+          },
+        });
+      });
+    },
+  },
+});
+
+function open(props) {
+  driverDialog.getDialog().open(props);
+}
+
+export function showDialog(props) {
+  return driverDialog.showDialog(props);
+}
 
 export function showPromptDialog(props) {
-  const { input } = props;
-  const okcancel = ["okcancel", "ok/cancel", "confirm"];
-  return new Promise((resolve) => {
-    _swa_.open({
-      ...props,
-      onSuccess: (value) => {
-        if (okcancel.includes(input)) {
-          value = true;
-        }
-        resolve({ status: "confirmed", success: true, value });
-      },
-      onCancel: (value) => {
-        if (okcancel.includes(input)) {
-          value = false;
-        }
-        resolve({ status: "canceled", success: false, value });
-      },
-    });
-  });
+  return driverDialog.showPromptDialog(props);
 }
 
 export class PromptDialog extends Component {
@@ -132,7 +156,7 @@ export class PromptDialog extends Component {
   }
 
   componentDidMount() {
-    _swa_ = this;
+    driverDialog.setDialog(this);
   }
 
   render() {
@@ -144,8 +168,11 @@ export class PromptDialog extends Component {
       validationError,
       onValidate,
       input = "text",
-      showConfirm = true,
-      showCancel = true,
+      Actions,
+      footer,
+      showConfirmButton = true,
+      showCancelButton = true,
+      showCloseButton = true,
       confirmText = "aceptar",
       cancelText = "cancelar",
       label = "Valor",
@@ -157,29 +184,31 @@ export class PromptDialog extends Component {
           <Typography variant="h4" component="div">
             {title}
           </Typography>
-          <IconButton
-            aria-label="close"
-            color="secondary"
-            size="small"
-            onClick={this.handleCancel}
-            sx={{ position: "absolute", right: 8, top: 8 }}
-          >
-            <CloseIcon />
-          </IconButton>
+          {showCloseButton && (
+            <IconButton
+              aria-label="close"
+              color="secondary"
+              size="small"
+              onClick={this.handleCancel}
+              sx={{ position: "absolute", right: 8, top: 8 }}
+            >
+              <CloseIcon />
+            </IconButton>
+          )}
         </DialogTitle>
         <Divider />
         <DialogContent>
           {validationError && (
             <Alert
               severity={
-                typeof validationError === "object"
-                  ? validationError.severity
-                  : "error"
+                ["error", validationError.severity][+!!validationError.severity]
               }
             >
-              {typeof validationError === "object"
-                ? validationError.message
-                : validationError}
+              {
+                [validationError, validationError.message][
+                  +!!validationError.message
+                ]
+              }
             </Alert>
           )}
           <p>{description}</p>
@@ -260,18 +289,23 @@ export class PromptDialog extends Component {
                 return null;
             }
           })()}
+          {footer}
         </DialogContent>
         <DialogActions>
-          {showCancel && (
+          <Actions
+            handleClose={this.handleCancel}
+            handleConfirm={this.handleConfirm}
+          />
+          {showCancelButton && (
             <Button onClick={this.handleCancel} color="secondary">
               {cancelText}
             </Button>
           )}
-          {showConfirm && (
+          {showConfirmButton && (
             <Button
               onClick={this.handleConfirm}
               variant="contained"
-              color="primary"
+              color="contrastpaperbow"
             >
               {confirmText}
             </Button>

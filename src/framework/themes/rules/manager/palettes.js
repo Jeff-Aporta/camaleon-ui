@@ -53,11 +53,7 @@ export class PaletteGeneral {
   }
 
   components({ darkmode, colors }) {
-    const primary = colors.primary.color;
-    let bgtooltip = primary
-      .clone()
-      [["darken", "lighten"][+darkmode]](0.3)
-      .saturate(-0.8);
+    let bgtooltip = Color([["white", "black"][+darkmode]]);
     return {
       AccordionDetails: {
         root: {
@@ -76,7 +72,6 @@ export class PaletteGeneral {
       },
       Tooltip: {
         tooltip: {
-          fontWeight: "bold",
           backgroundColor: bgtooltip.hex(),
           color: (() => {
             if (bgtooltip.isLight()) {
@@ -351,6 +346,14 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
     return this.contrast;
   }
 
+  getContrastPaperBow() {
+    return this.contrastpaperbow;
+  }
+
+  getContrastBow() {
+    return this.contrastbow;
+  }
+
   getComplement() {
     return this.complement;
   }
@@ -364,18 +367,31 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
     const primary = this.getPrimaryColor();
     this.primary = primary;
 
-    this.contrast = (() => {
-      return calculateContrastBG(primary, this.getbg(darkmode, false));
-    })();
+    this.contrast = calculateContrastBG(primary, this.getbg(darkmode, false));
 
-    this.contrastpaper = (() => {
-      return calculateContrastBG(primary, this.getbgPaper(darkmode, false));
-    })();
+    this.contrastpaper = calculateContrastBG(
+      primary,
+      this.getbgPaper(darkmode, false)
+    );
+
+    this.contrastbow = calculateContrastBG(
+      [Color("black"), Color("white")],
+      this.getbg(darkmode, false)
+    );
+
+    this.contrastpaperbow = calculateContrastBG(
+      [Color("black"), Color("white")],
+      this.getbgPaper(darkmode, false)
+    );
 
     function calculateContrastBG(colorOver, bg) {
-      const isBgLight = bg.isLight();
       const isBgDark = bg.isDark();
+      if (Array.isArray(colorOver)) {
+        const [dark, light] = colorOver;
+        return isBgDark ? light : dark;
+      }
       const hue = colorOver.hue();
+      const isBgLight = bg.isLight();
       const colorsroblemLight = {
         green: 120,
         yellow: 60,

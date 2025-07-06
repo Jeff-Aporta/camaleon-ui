@@ -1,6 +1,8 @@
 import React from "react";
-import { Chip, Tooltip } from "@mui/material";
-import { modelsFormat } from "./modelsFormat.jsx";
+import { Typography } from "@mui/material";
+import { getNumberFormat } from "./modelsFormat.jsx";
+import { ReserveLayer } from "../containers.jsx";
+import { TooltipGhost } from "../controls.jsx";
 
 export function rendersTemplate(columns_config) {
   columns_config.map((column) => {
@@ -13,10 +15,8 @@ export function rendersTemplate(columns_config) {
         iconized,
         local,
         sufix,
-        chipSufix = true,
         hide_seconds,
         join_date,
-        style = {},
       } = renderInfo;
 
       if (label) {
@@ -85,7 +85,7 @@ export function rendersTemplate(columns_config) {
               };
             }
           },
-          renderCell: renderGeneral({ column, style }),
+          renderCell: RenderGeneral({ column, ...column }),
         };
       }
 
@@ -107,7 +107,7 @@ export function rendersTemplate(columns_config) {
                 ? number_format(params)
                 : number_format;
 
-            ({ retorno } = modelsFormat.format.number.simple(
+            ({ retorno } = getNumberFormat().numberFormat(
               number_format_,
               value,
               local,
@@ -116,13 +116,11 @@ export function rendersTemplate(columns_config) {
 
             ({ retorno: texto } = processSufix(row, sufix, retorno));
 
-            
-
             tooltip = texto;
 
             return { texto, tooltip };
           },
-          renderCell: renderGeneral({ column, style }),
+          renderCell: RenderGeneral({ column, ...column }),
         };
       }
 
@@ -130,7 +128,11 @@ export function rendersTemplate(columns_config) {
         return {
           renderString(params) {
             const { value } = params;
-            const { text = String(value), color, icon } = label[value] || {};
+            const {
+              text = (value ?? "").toString(),
+              color,
+              icon,
+            } = label[value] || {};
             return { texto: text, tooltip: text, color, icon };
           },
           renderCell(params) {
@@ -146,34 +148,86 @@ export function rendersTemplate(columns_config) {
               }
               return renderString;
             })();
-            return (
-              <Tooltip title={tooltip}>
-                <Chip
-                  label={
-                    <div className="d-flex ai-center gap-10px" style={style}>
-                      {icon}
-                      {texto}
-                    </div>
-                  }
-                  color={color}
-                  variant="outlined"
-                />
-              </Tooltip>
-            );
+            return RenderGeneral({
+              column,
+              ...column,
+              className:
+                "LabelFormat d-center gap-10px " + (column.className || ""),
+              component: column.component || "Typography",
+              tooltip,
+              color,
+              children: (
+                <>
+                  {icon} {texto}
+                </>
+              ),
+            });
           },
         };
       }
     }
   });
 
-  function renderGeneral({ column, style }) {
+  function RenderGeneral({
+    column,
+    style = {},
+    className = "",
+    children,
+    //General
+    component = "div",
+    tooltip,
+    //MUI
+    color,
+  }) {
+    const ComponentSelected = ({ children, fromChildren, tooltip }) => {
+      const CLASSNAME = `RenderGeneral-${component} ${
+        fromChildren ? "fromChildren" : ""
+      } ${tooltip ? "tooltip" : "noTooltip"} ${className}`;
+      switch (component) {
+        case "ReserveLayer":
+          return (
+            <ReserveLayer style={style} className={CLASSNAME}>
+              {children}
+            </ReserveLayer>
+          );
+        case "Typography":
+          return (
+            <Typography style={style} className={CLASSNAME} color={color}>
+              {children}
+            </Typography>
+          );
+        case "div":
+        default:
+          return (
+            <div style={style} className={CLASSNAME}>
+              {children}
+            </div>
+          );
+      }
+    };
+
+    const EnvolveTooltip = ({ children, tooltip = "", fromChildren }) => {
+      const CompEnv = (
+        <ComponentSelected fromChildren={fromChildren} tooltip={tooltip}>
+          {children}
+        </ComponentSelected>
+      );
+      return (
+        <TooltipGhost title={tooltip}>
+          <div>{CompEnv}</div>
+        </TooltipGhost>
+      );
+    };
+    if (children) {
+      return (
+        <EnvolveTooltip tooltip={tooltip} fromChildren>
+          {children}
+        </EnvolveTooltip>
+      );
+    }
     return (params) => {
       const { texto, tooltip } = column["renderString"](params);
-      return (
-        <Tooltip title={tooltip}>
-          <div style={style}>{texto}</div>
-        </Tooltip>
-      );
+      return <EnvolveTooltip tooltip={tooltip}>{texto}</EnvolveTooltip>;
     };
   }
 

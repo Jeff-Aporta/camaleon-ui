@@ -35,15 +35,34 @@
   transition: opacity 0.2s;
 }
 
-.z-overfx,
-.rz-overfx {
-  z-index: var(--z-index-mouse-fx-overall);
-}
-
-.rz-overfx {
-  @extend .relative;
-}
-
 .invert-nohue {
   filter: invert(1) hue-rotate(180deg);
+}
+
+.transition-all {
+  --time: 0.3s;
+  --effect: linear;
+  transition: all var(--time) var(--effect);
+  interpolate-size: allow-keywords;
+}
+
+$short-times: (
+  01: 0.1,
+  025: 0.25,
+  05: 0.5,
+  075: 0.75,
+);
+
+@each $suffix, $sec in $short-times {
+  .all-#{$suffix}s {
+    @extend .transition-all;
+    --time: #{$sec}s;
+  }
+}
+
+@for $i from 1 through 10 {
+  .all-#{$i}s {
+    @extend .transition-all;
+    --time: #{$i}s;
+  }
 }

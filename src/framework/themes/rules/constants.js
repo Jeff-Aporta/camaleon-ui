@@ -31,4 +31,13 @@ JS2CSS.insertStyle({
     "--z-index-mouse-fx-minover": zIndex.MinOverMouseFx,
     "--z-index-minover-scroll": zIndex.MinOverscroll,
   },
+  ".z-ontop-but-under-fx, .rz-ontopfx": {
+    zIndex: zIndex.mouseFxOverall,
+  },
+  ".z-ontopfx, .rz-ontopfx": {
+    zIndex: zIndex.mouseFxOverall,
+  },
+  ".rz-ontopfx": {
+    position: "relative",
+  },
 });

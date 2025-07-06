@@ -39,7 +39,6 @@ export class DynTable extends Component {
         .array()
         .map((c) => parseInt(c))
         .join(",")}, 0.1) !important`;
-    this.state = { windowWidth: window.innerWidth };
     this.apiRef = React.createRef();
     this.refDataGrid = React.createRef();
     this.rsz = this.rsz.bind(this);
@@ -54,8 +53,11 @@ export class DynTable extends Component {
     });
   }
 
-  componentDidMount() {
+  componentDidUpdate() {
     this.rsz();
+  }
+
+  componentDidMount() {
     window.addEventListener("resize", this.rsz);
   }
 
@@ -66,8 +68,10 @@ export class DynTable extends Component {
   rsz() {
     // Copiar columnas de props a variable mutable
     let columns = this.props.columns;
-    let width = (0.96 * window.innerWidth - 120) / columns.length;
-    width = Math.min(width, 150);
+    let autoWidth = (0.96 * window.innerWidth - 120) / columns.length;
+    if (autoWidth < 150) {
+      autoWidth = 150;
+    }
     columns = columns.map((c) => {
       const {
         headerName,
@@ -79,7 +83,7 @@ export class DynTable extends Component {
       let { iconized, label } = renderInfo || {};
       const render = Boolean(global.nullishNoF(iconized, label));
       c.minWidth = str2width(headerName) + 50;
-      c.width = Math.max(width, c.minWidth);
+      c.width = Math.max(autoWidth, c.minWidth, c.width || 1);
       if ((fit_content && renderString) || render) {
         c.width = Math.max(
           c.width,
@@ -105,7 +109,6 @@ export class DynTable extends Component {
         return str.length * (14 * 0.55);
       }
     });
-    this.setState({ windowWidth: window.innerWidth });
   }
 
   render() {

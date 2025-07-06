@@ -1,49 +1,70 @@
 import React, { Component } from "react";
 
-import { Typography, IconButton, Paper } from "@mui/material";
+import { Typography, IconButton, Paper, CircularProgress } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import ErrorIcon from "@mui/icons-material/Error";
 import InfoIcon from "@mui/icons-material/Info";
-import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
+
 import { getSecondaryColor } from "../rules/manager/manager.selected.js";
+import { DriverComponent } from "../../tools/tools.js";
 
-const listNotify = [];
-let NOTIFY_SINGLETON;
+const SUCCESS_ICON = <CheckCircleIcon color="success" fontSize="small" />;
+const WARNING_ICON = <WarningAmberIcon color="warning" fontSize="small" />;
+const ERROR_ICON = <ErrorIcon color="error" fontSize="small" />;
+const INFO_ICON = <InfoIcon color="info" fontSize="small" />;
+const LOADING_ICON = <CircularProgress size={16} color="complement" />;
 
-export function sendNotify({ duration = 10000, ...props }) {
-  if (typeof duration !== "number") {
-    console.warn("sendNotify: duration must be a number", duration);
-    duration = 3000;
-  }
-  const id = Date.now();
-  listNotify.push({
-    id,
-    ...props,
-  });
-  NOTIFY_SINGLETON && NOTIFY_SINGLETON.forceUpdate();
-  setTimeout(() => {
-    removeNotify(id);
-  }, duration);
+const driverNotifier = DriverComponent({
+  notifier: {},
+  notify: {
+    value: [],
+    getByID(id) {
+      return this.getNotify().find((item) => item.id == id);
+    },
+    remove(id) {
+      const notification = this.getByIDNotify(id);
+      if (notification) {
+        if (notification.hover) {
+          return setTimeout(() => this.removeNotify(id), 2000);
+        }
+        const listNotify = this.getNotify();
+        listNotify.splice(listNotify.indexOf(notification), 1);
+        this.updateNotifier();
+      }
+    },
+    send({ duration = 10000, id = Date.now(), ...props }) {
+      if (typeof duration !== "number") {
+        console.warn("sendNotify: duration must be a number", duration);
+        duration = 3000;
+      }
+      this.getNotify().push({
+        id,
+        ...props,
+      });
+      if (this.existsNotifier()) {
+        this.updateNotifier();
+      } else {
+        return setTimeout(() => this.sendNotify({ duration, ...props }), 100);
+      }
+      setTimeout(() => {
+        this.removeNotify(id);
+      }, duration);
+    },
+  },
+});
+
+export function getNotify(id) {
+  return driverNotifier.getByIDNotify(id);
 }
 
-function getNotify(id) {
-  return listNotify.find((item) => item.id == id);
+export function sendNotify({ duration = 10000, id = Date.now(), ...props }) {
+  driverNotifier.sendNotify({ duration, id, ...props });
 }
 
-export function removeNotify(notification_id) {
-  console.log("removiendo", notification_id);
-  const notification = getNotify(notification_id);
-  if (notification) {
-    if (notification.hover) {
-      console.log("esperando por hover");
-      return setTimeout(() => removeNotify(notification_id), 2000);
-    }
-    console.log("removiendo", notification_id);
-    listNotify.splice(listNotify.indexOf(notification), 1);
-    NOTIFY_SINGLETON.forceUpdate();
-  }
+export function removeNotify(id) {
+  driverNotifier.removeNotify(id);
 }
 
 export class NotifierBox extends Component {
@@ -52,7 +73,7 @@ export class NotifierBox extends Component {
     this.state = {};
   }
   componentDidMount() {
-    NOTIFY_SINGLETON = this;
+    driverNotifier.setNotifier(this);
   }
   render() {
     const { position = "bottom-right" } = this.props;
@@ -61,6 +82,8 @@ export class NotifierBox extends Component {
         className="flex col-direction-reverse gap-10px z-notifier"
         style={{
           position: "fixed",
+          transition: "all 0.5s ease-in-out",
+          interpolateSize: "allow-keywords",
           ...(() => {
             const RETURN = {};
             const [x, y] = position.split("-");
@@ -78,55 +101,54 @@ export class NotifierBox extends Component {
           })(),
         }}
       >
-        {listNotify.map(
-          ({
-            id,
-            message,
-            jsx,
-            icon,
-            duration,
-            showCloseButton = true,
-            classes,
-            style,
-          }) => (
-            <Paper
-              key={id}
-              className={`flex align-center justify-space-between gap-10px pad-10px ${classes}`}
-              onMouseEnter={() => (getNotify(id).hover = true)}
-              onMouseLeave={() => (getNotify(id).hover = false)}
-              elevation={12}
-              style={{
-                border: `1px solid ${getSecondaryColor()}`,
-                ...style,
-              }}
-            >
-              <div className="flex align-center justify-center">{icon}</div>
-              <div className="flex align-center justify-start">
-                {jsx &&
-                  (() => {
-                    if (!(jsx instanceof React.Component)) {
-                      return jsx;
-                    }
-                    return jsx({ close: () => removeNotify(id) });
-                  })()}
-                {jsx && <br />}
-                <Typography variant="caption">{message}</Typography>
-              </div>
-              {showCloseButton && (
-                <IconButton
-                  color="secondary"
-                  size="small"
-                  onClick={() => removeNotify(id)}
+        {driverNotifier
+          .getNotify()
+          .map(
+            ({
+              id,
+              jsx,
+              icon,
+              duration,
+              classes,
+              style,
+              showCloseButton = true,
+            }) => {
+              return (
+                <Paper
+                  key={id}
+                  className={`Notify-item flex align-center justify-space-between gap-10px pad-5px ${classes}`}
+                  onMouseEnter={() => (getNotify(id).hover = true)}
+                  onMouseLeave={() => (getNotify(id).hover = false)}
+                  elevation={12}
+                  style={{
+                    border: `1px solid ${getSecondaryColor()}`,
+                    ...style,
+                  }}
                 >
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              )}
-            </Paper>
-          )
-        )}
+                  <div className="flex align-center gap-10px">
+                    {icon}
+                    {jsx}
+                  </div>
+                  {showCloseButton && (
+                    <IconButton
+                      color="secondary"
+                      size="small"
+                      onClick={() => removeNotify(id)}
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                </Paper>
+              );
+            }
+          )}
       </div>
     );
   }
+}
+
+function TextNotify({ children }) {
+  return <Typography variant="caption">{children}</Typography>;
 }
 
 export function showJSX(jsx, icon, duration) {
@@ -134,87 +156,131 @@ export function showJSX(jsx, icon, duration) {
     return;
   }
   if (typeof jsx === "string") {
-    jsx = <Typography variant="caption">{jsx}</Typography>;
+    jsx = <TextNotify>{jsx}</TextNotify>;
   }
-  console.log("toast", jsx, icon, duration);
   sendNotify({
     jsx,
     icon,
     duration,
   });
-  /*
-  toast(
-    (t) => (
-      <div className="d-flex ai-center jc-between gap-10px">
-        {jsx}
-        <IconButton
-          color="secondary"
-          size="small"
-          onClick={() => toast.dismiss(t.id)}
-        >
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </div>
-    ),
-    {
-      icon,
-      duration,
-    }
-  );
-  */
 }
 
 export function showSuccess(txt, duration) {
-  showJSX(txt, <CheckCircleIcon color="success" fontSize="small" />, duration);
+  showJSX(txt, SUCCESS_ICON, duration);
 }
 
 export function showWarning(txt, details, duration) {
   console.warn(...[txt, details].filter(Boolean));
-  showJSX(txt, <WarningAmberIcon color="warning" fontSize="small" />, duration);
+  showJSX(txt, WARNING_ICON, duration);
 }
 
 export function showError(txt, details, duration) {
   console.error(...[txt, details].filter(Boolean));
-  showJSX(txt, <ErrorIcon color="error" fontSize="small" />, duration);
+  showJSX(txt, ERROR_ICON, duration);
 }
 
 export function showInfo(txt, duration) {
-  showJSX(txt, <InfoIcon color="info" fontSize="small" />, duration);
+  showJSX(txt, INFO_ICON, duration);
+}
+
+function DefaultSchemaJSXPromise({ text, icon }) {
+  return (
+    <div className="flex align-center gap-10px">
+      {icon}
+      <TextNotify>{text}</TextNotify>
+    </div>
+  );
+}
+
+function LoadingJSXPromise(text) {
+  return DefaultSchemaJSXPromise({ text, icon: LOADING_ICON });
+}
+
+function SuccessJSXPromise(text) {
+  return DefaultSchemaJSXPromise({ text, icon: SUCCESS_ICON });
+}
+
+function ErrorJSXPromise(text) {
+  return DefaultSchemaJSXPromise({ text, icon: ERROR_ICON });
+}
+
+function WarningJSXPromise(text) {
+  return DefaultSchemaJSXPromise({ text, icon: WARNING_ICON });
+}
+
+function InfoJSXPromise(text) {
+  return DefaultSchemaJSXPromise({ text, icon: INFO_ICON });
 }
 
 export function showPromise(
+  loading = "Procesando...",
   promise,
-  {
-    loading = (
-      <>
-        <HourglassEmptyIcon fontSize="small" /> Procesando...
-      </>
-    ),
-    success = (
-      <>
-        <CheckCircleIcon fontSize="small" color="success" /> Listo
-      </>
-    ),
-    error = (
-      <>
-        <ErrorIcon fontSize="small" color="error" /> Error
-      </>
-    ),
-  } = {}
+  duration = 10000
 ) {
-  console.log("toast", promise, loading, success, error);
-  /* toast.promise(promise, {
-    loading: {
-      render: () => loading,
-      icon: <HourglassEmptyIcon fontSize="small" />,
-    },
-    success: {
-      render: () => success,
-      icon: <CheckCircleIcon fontSize="small" color="success" />,
-    },
-    error: {
-      render: () => error,
-      icon: <ErrorIcon fontSize="small" color="error" />,
-    },
-  }); */
+  if (!promise) {
+    console.error("showPromise: 'promise' es requerido");
+    return;
+  }
+  if (typeof promise.then !== "function") {
+    if (typeof promise === "function") {
+      promise = new Promise(promise);
+    } else {
+      console.error("showPromise: 'promise' no se puede procesar", promise);
+      return;
+    }
+  }
+
+  const loadingId = Date.now();
+  sendNotify({
+    id: loadingId,
+    duration: 1_000_000_000,
+    jsx: typeof loading === "string" ? LoadingJSXPromise(loading) : loading,
+    showCloseButton: true,
+  });
+
+  // Cuando la promesa finalice, actualizamos la MISMA notificación
+  const { updateNotifier } = driverNotifier;
+
+  promise
+    .then((msg) => {
+      fromMsg(msg, "success");
+    })
+    .catch((msg) => {
+      fromMsg(msg, "error");
+    });
+
+  return promise; // permitimos al consumidor encadenar
+
+  function fromMsg(msg, typeDefault) {
+    if (!msg) {
+      removeNotify(loadingId);
+      return;
+    }
+    const { type = typeDefault, message } = msg;
+    if (message) {
+      msg = message;
+    }
+    const notify = getNotify(loadingId);
+    if (notify) {
+      notify.jsx = fromType(type, msg) || msg;
+      updateNotifier();
+      setTimeout(() => removeNotify(loadingId), duration);
+    } 
+  }
+
+  function fromType(type, msg) {
+    if (typeof msg !== "string") {
+      return;
+    }
+    switch (type) {
+      case "success":
+        return SuccessJSXPromise(msg);
+      case "warning":
+        return WarningJSXPromise(msg);
+      case "info":
+        return InfoJSXPromise(msg);
+      case "error":
+        return ErrorJSXPromise(msg);
+    }
+  }
 }

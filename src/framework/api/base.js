@@ -10,9 +10,6 @@ import { showSuccess, showWarning, showError } from "../themes/ui/Notifier.jsx";
 
 export const responsePromises = {};
 export const responseResults = {};
-export const responseErrors = {};
-
-const SECONDS_TO_CACHE = 15;
 
 function SINGLETON_EFFECT({
   url,
@@ -20,15 +17,10 @@ function SINGLETON_EFFECT({
   failure = failureDefault,
   newfetch = () => 0,
   fetchcached = () => 0,
-  mock_default,
+  useCache = true,
+  timeCache = 15 * 1000,
   ...rest
 }) {
-  successful = reEnvolve(successful, (json) => {
-    responseResults[url] = json;
-  });
-  failure = reEnvolve(failure, (err) => {
-    responseErrors[url] = err;
-  });
   if (!responsePromises[url]) {
     newfetch({ url });
     responsePromises[url] = new Promise(async (resolve, reject) => {
@@ -37,41 +29,80 @@ function SINGLETON_EFFECT({
           method: "get",
           isTable: true,
           buildEndpoint: () => url,
-          successful,
-          failure,
+          successful: (data) => {
+            const data0 = data[0];
+            if (!HTTP_IS_ERROR(data0)) {
+              successful(data);
+              responseResults[url] = data;
+              resolve(data0);
+            } else {
+              forgot();
+              failure(data0);
+              resolve();
+            }
+          },
+          failure: (...args) => {
+            forgot();
+            failure(...args);
+            resolve();
+          },
           ...rest,
         });
-        resolve(respuesta);
       } catch (err) {
-        reject(err);
+        forgot();
+        failure(err.message || err, {
+          status: "error",
+          message: "Ocurrió un error try-catch en singleton effect",
+          url,
+          value: responseResults[url],
+          promise: responsePromises[url],
+        });
+        resolve();
       }
     });
-    setTimeout(() => {
-      delete responsePromises[url];
-      delete responseResults[url];
-      delete responseErrors[url];
-    }, SECONDS_TO_CACHE * 1000);
+    timeoutCached();
   } else {
-    fetchcached({ url });
+    fetchcached({
+      url,
+      value: responseResults[url],
+      promise: responsePromises[url],
+    });
     if (responseResults[url]) {
       successful(responseResults[url], {
         status: "success",
         message: "",
         url,
       });
-    } else if (responseErrors[url]) {
-      const err = responseErrors[url];
-      failure(err.message || `Hubo un error en ${url}`, {
+    } else {
+      forgot();
+      failure("No hubo respuesta", {
+        status: "error",
+        message: "Hay promesa pero no hubo respuesta",
         url,
-        err,
+        value: responseResults[url],
+        promise: responsePromises[url],
       });
     }
   }
+
   return responsePromises[url];
+
+  function forgot() {
+    timeCache = 0;
+    useCache = false;
+    timeoutCached();
+  }
+
+  function timeoutCached() {
+    setTimeout(() => {
+      delete responsePromises[url];
+      delete responseResults[url];
+    }, +!!useCache * timeCache);
+  }
 }
 
 export const HTTP_REQUEST = async ({
-  method, // post | put | path
+  method, // post | put | get | patch
   buildEndpoint, // Función que construye la URL de la API.
   payload = {}, // Payload para la petición.
   willStart = () => 0, // Callback antes de la petición.
@@ -80,20 +111,16 @@ export const HTTP_REQUEST = async ({
   successful = () => 0, // Callback para recibir el body de la respuesta (success o error)
   failure = failureDefault,
   isTable = false, // Si es true, transforma la respuesta con table2obj
-  mock_default,
 }) => {
   if (!method) {
-    const msg = "Method is required";
-    throw new Error(msg);
+    throw new Error("Method is required, post | put | get | patch");
   }
-  const { CONTEXT } = window;
   method = method.toLowerCase();
   const METHOD = method.toUpperCase();
   const IS_GET = method == "get";
 
   const url = buildUrlFromService(buildEndpoint, service);
 
-  
   const requestConfig = {
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     withCredentials: false,
@@ -121,15 +148,31 @@ export const HTTP_REQUEST = async ({
     if (isTable && data) {
       data = unpackTable(data);
     }
-    successful(data, { data, requestUrl: url, response: fetchRes });
+    if (HTTP_IS_ERROR(data[0])) {
+      failure(
+        data,
+        { data, requestUrl: url, response: fetchRes },
+        rejectPromise
+      );
+    } else {
+      successful(data, { data, requestUrl: url, response: fetchRes });
+    }
     return data;
   } catch (err) {
-    const { content } = mock_default ?? {};
-    failure(err.response?.data, err, content);
+    failure(
+      `Error ${METHOD} en ${url}`,
+      { err, url, method, service },
+      rejectPromise
+    );
   } finally {
     willEnd();
   }
 };
+
+function rejectPromise(txt, reject, bugTracking) {
+  console.error(txt.message ? txt.message : txt, bugTracking);
+  reject(txt);
+}
 
 export const HTTP_GET = ({
   buildEndpoint,
@@ -140,29 +183,23 @@ export const HTTP_GET = ({
   willStart,
   willEnd,
   successful,
-  failure,
+  failure = () => {},
+  mock_default,
   ...rest
 }) => {
   successful = reEnvolve(successful, setApiData);
   failure = reEnvolve(failure, (...args) => {
-    {
-      // PROCEDIMIENTO DE MOCKS
-      const { CONTEXT } = window;
-      const [data, info, mock_default] = args;
-      const use_mockup = (() => {
-        const esArray = Array.isArray(mock_default);
-        return esArray && CONTEXT === "dev";
-      })();
-      if (use_mockup) {
-        showWarning("Mockup en uso", url);
-        const fallback = unpackTable(mock_default);
-        successful(fallback, {
-          status: "simulated",
-          message: "Mockup en uso",
-          url,
-          fallback,
-        });
-      }
+    // PROCEDIMIENTO DE MOCKS
+    const use_mockup = Array.isArray(mock_default) && window.isDev();
+    if (use_mockup) {
+      showWarning(`Mockup en uso ${url}`);
+      const fallback = unpackTable(mock_default);
+      successful(fallback, {
+        status: "simulated",
+        message: "Mockup en uso",
+        url,
+        fallback,
+      });
     }
   });
   if (setLoading) {
@@ -171,11 +208,15 @@ export const HTTP_GET = ({
   }
   const error = checkErrors();
   if (error) {
-    failure(error, {
-      status: "error",
-      message: "Se chequearon errores y se encontró inconsistencia",
+    failure(
       error,
-    });
+      {
+        status: "error",
+        message: "Se chequearon errores y se encontró inconsistencia",
+        error,
+      },
+      rejectPromise
+    );
     return Promise.reject(error);
   }
   const url = buildUrlFromService(buildEndpoint, service);
@@ -202,3 +243,26 @@ export const HTTP_PATH = async (params) => {
 export const HTTP_PATCH = async (params) => {
   return await HTTP_REQUEST({ ...params, method: "patch" });
 };
+
+export function HTTP_IS_ERROR(data) {
+  if (!data) {
+    return;
+  }
+  const { status, $status, status_code } = data;
+
+  return [
+    processFlag(status),
+    processFlag($status),
+    processFlag(status_code),
+  ].some(Boolean);
+
+  function processFlag(flag) {
+    if (!flag) {
+      return false;
+    }
+    if (typeof flag == "number") {
+      return flag >= 400;
+    }
+    return flag == "error";
+  }
+}

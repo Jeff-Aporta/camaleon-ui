@@ -31,7 +31,7 @@ import {
   isDark,
   typographyTheme,
 } from "../../rules/manager/index.js";
-import { TooltipGhost } from "./recurrent.jsx";
+import { TooltipGhost } from "./controls.jsx";
 
 /**
  * IconButtonWithTooltip - Botón con icono y tooltip informativo.

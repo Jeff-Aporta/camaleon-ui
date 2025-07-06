@@ -13,127 +13,161 @@
   height: fit-content;
 }
 
+.fullVW {
+  width: 100vw;
+}
+
+.fullVH {
+  height: 100vh;
+}
+
+.full-w,
+.fullWidth {
+  min-width: 100%;
+  max-width: 100%;
+  width: 100%;
+}
+
+.full-h,
+.fullHeight {
+  min-height: 100%;
+  height: 100%;
+}
+
+.fill {
+  @extend .full-w;
+  @extend .full-h;
+}
+
 .design {
   position: relative !important;
+}
 
-  &.full-w {
-    max-width: 100%;
-    width: 100%;
+.sticky,
+.layer,
+.fixed {
+  --tx: 0;
+  --ty: 0;
+  --x: unset;
+  --y: unset;
+  left: var(--x);
+  top: var(--y);
+
+  &.left {
+    --x: 0;
   }
 
-  .layer {
-    position: absolute !important;
-    --tx: 0;
-    --ty: 0;
-    --e: 1;
-    --ex: 1;
-    --ey: 1;
-    --r: 0;
-    --tox: 0;
-    --toy: 0;
+  &.top {
+    --y: 0;
+  }
 
-    transform: translate(var(--tx), var(--ty))
-      scale(calc(var(--e) * var(--ex)), calc(var(--e) * var(--ey)))
-      rotate(var(--r));
+  &.right {
+    right: 0;
+  }
 
-    transform-origin: var(--tox) var(--toy);
+  &.bottom {
+    bottom: 0;
+  }
 
-    &.toCenterX {
-      --tox: center;
-    }
+  &.center-x {
+    --x: 50%;
+  }
 
-    &.toCenterY {
-      --toy: center;
-    }
+  &.center-y {
+    --y: 50%;
+  }
 
-    &.toCenter {
-      @extend .toCenterX;
-      @extend .toCenterY;
-    }
+  &.center {
+    @extend .center-x;
+    @extend .center-y;
+  }
 
-    &.toLeft {
-      --tox: left;
-    }
+  &.centralized {
+    --tx: -50%;
+    --ty: -50%;
+  }
 
-    &.toRight {
-      --tox: right;
-    }
+  &.full-w,
+  &.fullWidth {
+    --x: 0;
+    right: 0;
+  }
 
-    &.toBottom {
-      --toy: bottom;
-    }
+  &.full-h,
+  &.fullHeight {
+    --y: 0;
+    bottom: 0;
+  }
 
-    &.toTop {
-      --toy: top;
-    }
+  &.center-centralized {
+    @extend .center;
+    @extend .centralized;
+  }
+}
 
-    &.right {
-      right: 0;
-    }
+.sticky {
+  position: sticky !important;
+}
 
-    &.bottom {
-      bottom: 0;
-    }
+.fixed {
+  position: fixed !important;
+}
 
-    &.left {
-      left: 0;
-    }
+.sticky,
+.fixed {
+  transform: translate(var(--tx), var(--ty));
+}
 
-    &.top {
-      top: 0;
-    }
+.layer {
+  position: absolute !important;
+  --e: 1;
+  --ex: 1;
+  --ey: 1;
+  --r: 0;
+  --tox: 0;
+  --toy: 0;
 
-    &.center-x {
-      left: 50%;
-    }
+  transform: translate(var(--tx), var(--ty))
+    scale(calc(var(--e) * var(--ex)), calc(var(--e) * var(--ey)))
+    rotate(var(--r));
 
-    &.center-y {
-      top: 50%;
-    }
+  transform-origin: var(--tox) var(--toy);
 
-    &.centralized {
-      --tx: -50%;
-      --ty: -50%;
-    }
+  &.toCenterX {
+    --tox: center;
+  }
 
-    &.scale-1-5 {
-      --e: 1.5;
-    }
+  &.toCenterY {
+    --toy: center;
+  }
 
-    &.scale-2 {
-      --e: 2;
-    }
+  &.toCenter {
+    @extend .toCenterX;
+    @extend .toCenterY;
+  }
 
-    &.center {
-      @extend .center-x;
-      @extend .center-y;
-    }
+  &.toLeft {
+    --tox: left;
+  }
 
-    &.full-w,
-    &.fullWidth {
-      min-width: 100%;
-      width: 100%;
-    }
+  &.toRight {
+    --tox: right;
+  }
 
-    &.full-h,
-    &.fullHeight {
-      min-height: 100%;
-      height: 100%;
-    }
+  &.toBottom {
+    --toy: bottom;
+  }
 
-    &.fill {
-      left: 0;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      min-width: 100%;
-      min-height: 100%;
-    }
+  &.toTop {
+    --toy: top;
+  }
 
-    &.center-centralized {
-      @extend .center;
-      @extend .centralized;
-    }
+  &.scale-1-5 {
+    --e: 1.5;
+  }
+
+  &.scale-2 {
+    --e: 2;
   }
 }
 
@@ -144,6 +178,11 @@
 
 .fit-cover {
   object-fit: cover;
+  @extend .object-position;
+}
+
+.fit-scale {
+  object-fit: scale-down;
   @extend .object-position;
 }
 

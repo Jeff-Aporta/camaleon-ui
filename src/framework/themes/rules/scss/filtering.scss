@@ -1,0 +1,62 @@
+.filtering {
+  --scale-gray: 0;
+  --opacity: 1;
+  --opacity-animation: 1;
+  --brightness: 1;
+
+  filter: opacity(var(--opacity)) grayscale(var(--scale-gray))
+    brightness(var(--brightness));
+
+  &.halfgray {
+    --scale-gray: 0.5;
+  }
+
+  &.brightness-1-5 {
+    --brightness: 1.5;
+  }
+}
+
+.pointer-waiting {
+  cursor: wait !important;
+}
+
+.transition-filter {
+  transition: filter 0.2s;
+}
+
+.bright-hover-2 {
+  @extend .transition-filter;
+  @extend .filtering;
+  --brightness: 1;
+  &:hover {
+    --brightness: 2;
+  }
+}
+
+.bright-hover-1-5 {
+  @extend .transition-filter;
+  @extend .filtering;
+  --brightness: 1;
+  &:hover {
+    --brightness: 1.5;
+  }
+}
+
+.bright-10 {
+  @extend .filtering;
+  --brightness: 10;
+}
+
+.titiling {
+  animation: titiling 1s infinite alternate !important;
+}
+
+@keyframes titiling {
+  from {
+    filter: opacity(0.2);
+  }
+
+  to {
+    filter: opacity(0.7);
+  }
+}

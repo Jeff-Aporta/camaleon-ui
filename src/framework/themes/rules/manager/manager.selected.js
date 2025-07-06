@@ -40,6 +40,14 @@ export function getTriadeColors() {
   return getPaletteConfig().getTriadeColors();
 }
 
+export function getContrastPaperBow() {
+  return getPaletteConfig().getContrastPaperBow();
+}
+
+export function getContrastBow() {
+  return getPaletteConfig().getContrastBow();
+}
+
 export function getContrastPaper() {
   return getPaletteConfig().getContrastPaper();
 }

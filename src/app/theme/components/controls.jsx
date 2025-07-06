@@ -22,7 +22,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 
 export * from "./controls/DateRangeControls";
 
-export function AutoSkeleton({ loading, w = "100%", h = "5vh", ...rest }) {
+export function WaitSkeleton({ loading, w = "100%", h = "5vh", ...rest }) {
   if (loading == null || loading == undefined) {
     return <></>;
   }
@@ -70,7 +70,7 @@ export function UserFilterControl({
   };
 
   return (
-    <AutoSkeleton h="10vh" w={`${width}px`} loading={loading}>
+    <WaitSkeleton h="10vh" w={`${width}px`} loading={loading}>
       <Box sx={{ display: "flex", alignItems: "center" }}>
         <TextField
           label={label}
@@ -93,6 +93,6 @@ export function UserFilterControl({
           </IconButton>
         )}
       </Box>
-    </AutoSkeleton>
+    </WaitSkeleton>
   );
 }

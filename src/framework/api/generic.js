@@ -8,29 +8,9 @@ export function AUTO_PARAMS(props) {
   return Object.entries(props)
     .map(([k, v]) => [
       k,
-      v ?? currentUser[[-1, k][+(k === "user_id")]] ?? driverParams.get(k),
+      v || currentUser[[-1, k][+(k === "user_id")]] || driverParams.get(k)[0],
     ])
     .reduce((a, [k, v]) => ((a[k] = v), a), {});
-}
-
-export function HTTP_IS_ERROR(data) {
-  const { status, $status, status_code } = data;
-
-  return [
-    processFlag(status),
-    processFlag($status),
-    processFlag(status_code),
-  ].some(Boolean);
-
-  function processFlag(flag) {
-    if (!flag) {
-      return false;
-    }
-    if (typeof flag == "number") {
-      return flag >= 400;
-    }
-    return flag == "error";
-  }
 }
 
 function PROCESS_REQUEST_HTTP(data) {

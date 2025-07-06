@@ -21,26 +21,6 @@ import {
 } from "./manager.vars.js";
 import { millis } from "../../../tools/time.js";
 
-let _startAnimateCSSTime_;
-burnTimeCSS();
-
-export function startAnimateCSSTime() {
-  if (_startAnimateCSSTime_) {
-    return;
-  }
-  _startAnimateCSSTime_ = setInterval(burnTimeCSS, 1000 / 30);
-}
-
-function burnTimeCSS() {
-  JS2CSS.insertStyle({
-    id: "burn-time",
-    infer: false,
-    ":root": {
-      "--burn-time": millis() / 1000,
-    },
-  });
-}
-
 const paletteLoader = {
   MUIDefaultValues: getMUIDefaultValues(),
   customizeScrollbar,

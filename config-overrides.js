@@ -10,6 +10,8 @@ module.exports = override(
     "@views": path.resolve(__dirname, "src/views"),
     "@theme": path.resolve(__dirname, "src/app/theme"),
     "@components": path.resolve(__dirname, "src/app/theme/components"),
+    "@api": path.resolve(__dirname, "src/app/api/index.js"),
+    "@tables": path.resolve(__dirname, "src/tables"),
   }),
   (config) => {
     config.resolve.extensions = config.resolve.extensions.concat([

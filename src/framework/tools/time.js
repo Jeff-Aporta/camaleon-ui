@@ -27,3 +27,32 @@ export function month() {
 export function year() {
   return new Date().getFullYear();
 }
+
+export function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function Delayer(timedelay) {
+  return new (class {
+    constructor() {
+      this.delay = -1;
+      this.timedelay = timedelay;
+    }
+
+    setDelay(timedelay) {
+      this.timedelay = timedelay;
+    }
+
+    ellapsed() {
+      return Date.now() - this.delay;
+    }
+
+    isReady() {
+      if (this.ellapsed() < this.timedelay) {
+        return false;
+      }
+      this.delay = Date.now();
+      return true;
+    }
+  })();
+}

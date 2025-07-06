@@ -27,18 +27,28 @@ export function Design({
   fullh,
   hinherit,
   hiddenflow,
+  ghost,
   ...rest
 } = {}) {
-  ({ fullw, fullh, hinherit, hiddenflow } = inferSuggar({
+  ({ fullw, fullh, hinherit, hiddenflow, ghost } = inferSuggar({
     fullw,
     fullh,
     hinherit,
     hiddenflow,
+    ghost,
   }));
   return (
     <div
       {...rest}
-      className={["design", className, fullw, fullh, hiddenflow, hinherit]
+      className={[
+        "design",
+        className,
+        fullw,
+        fullh,
+        hiddenflow,
+        hinherit,
+        ghost,
+      ]
         .filter(Boolean)
         .join(" ")}
     />
@@ -54,6 +64,7 @@ export function Layer({
   hiddenflow,
   hinherit,
   centercentralized,
+  ghost,
   ...rest
 } = {}) {
   ({
@@ -63,6 +74,7 @@ export function Layer({
     center,
     centralized,
     centercentralized,
+    ghost,
     hinherit,
   } = inferSuggar({
     hiddenflow,
@@ -72,18 +84,26 @@ export function Layer({
     centralized,
     hinherit,
     centercentralized,
+    ghost,
   }));
 
-  let buildClasses = [
-    "layer",
-    className,
-    fill,
-    fullw,
-    hiddenflow,
-    hinherit,
-    ...[[center, centralized], [centercentralized]][+!!centercentralized],
-  ];
-  return <div {...rest} className={buildClasses.filter(Boolean).join(" ")} />;
+  return (
+    <div
+      {...rest}
+      className={[
+        "layer",
+        className,
+        fill,
+        fullw,
+        hiddenflow,
+        hinherit,
+        ghost,
+        ...[[center, centralized], [centercentralized]][+!!centercentralized],
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    />
+  );
 }
 
 export function PaperLayer(props) {
@@ -155,9 +175,10 @@ function inferSuggar({
   centercentralized,
   hinherit,
   rhm,
+  ghost,
 }) {
   nobr = ["", "br-0"][+!!nobr];
-  zOverall = ["", "z-overall"][+!!zOverall];
+  zOverall = ["", "z-ontopall"][+!!zOverall];
   hm = ["", <Hm r={rhm} />][+!!hm];
   balance = ["", "tw-balance"][+!!balance];
   hiddenflow = ["", "overflow-hidden"][+!!hiddenflow];
@@ -169,6 +190,7 @@ function inferSuggar({
     +!!((center && centralized) || centercentralized)
   ];
   hinherit = ["", "h-inherit"][+!!hinherit];
+  ghost = ["", "ghost"][+!!ghost];
   return {
     nobr,
     zOverall,
@@ -181,6 +203,7 @@ function inferSuggar({
     centralized,
     centercentralized,
     hinherit,
+    ghost,
   };
 }
 

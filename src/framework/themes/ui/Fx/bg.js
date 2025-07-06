@@ -18,8 +18,9 @@ import {
   getAdjacentPrimaryColor,
   getContrast,
   getTriadeColors,
-  startAnimateCSSTime,
 } from "../../rules/manager/index.js";
+
+import { startAnimateCSSTime } from "./animate.jsx";
 
 import { JS2CSS } from "../../../fluidCSS/JS2CSS/index.js";
 
@@ -49,7 +50,6 @@ export function newBackground({
       toViewportPercent,
       holeCircleGradient,
     });
-    console.log(background, backgroundImage, rest);
     return {
       ...style({
         // defaultbg: colorFilterDiscriminator(getLightFilter()),
