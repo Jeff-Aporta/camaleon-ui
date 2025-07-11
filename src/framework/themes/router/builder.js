@@ -1,4 +1,5 @@
 import { getUseViewId } from "./storage.js";
+import { VIEW_ID } from "../constants.js";
 
 const mapping = {};
 
@@ -27,7 +28,7 @@ export function buildHref(href) {
 
   function simple(url) {
     if (typeof url == "string") {
-      return stayinGit ? `?view-id=${encodeURIComponent(url)}` : url;
+      return stayinGit ? `?${VIEW_ID}=${encodeURIComponent(url)}` : url;
     }
   }
 }

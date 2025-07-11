@@ -5,7 +5,6 @@ import {
   hrefManagement,
   _setURLParams,
   driverParams,
-  _updateParams,
 } from "../../router/index.js";
 import { useNavigate } from "react-router-dom";
 

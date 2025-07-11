@@ -2,7 +2,7 @@ import { getAllThemesRegistered } from "../rules/manager/index.js";
 import { Color } from "../rules/colors.js";
 import { JS2CSS } from "../../fluidCSS/index.js";
 
-export const baseColor = window.cyan;
+export const mapFilterTheme = {};
 
 export const zIndex = (() => {
   const mouseFxBackall = "-1";
@@ -17,11 +17,7 @@ export const zIndex = (() => {
   };
 })();
 
-export const mapFilterTheme = {};
-
 export function init() {
-  Object.assign(window, { mapFilterTheme, zIndex, baseColor });
-
   Object.assign(mapFilterTheme, {
     ...getAllThemesRegistered().reduce((acc, themeRegister) => {
       acc[themeRegister.name[0]] = (rotation) => {

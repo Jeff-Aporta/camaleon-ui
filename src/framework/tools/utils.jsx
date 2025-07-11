@@ -1,6 +1,7 @@
 import React from "react";
 
 import { getThemeName, Color, isDark, getPaletteConfig } from "../index.js";
+import { mapFilterTheme as _mapFilterTheme } from "../themes/ui/constants.js";
 
 export function getLightFilter() {
   const rl = {
@@ -12,7 +13,7 @@ export function getLightFilter() {
   let retorno;
   if (isDark()) {
     retorno = a[+panda];
-  }else{
+  } else {
     retorno = a[1 - +panda];
   }
   return retorno;
@@ -57,4 +58,3 @@ export function fdhue(color, baseColor) {
   const diff = color.hue() - baseColor.hue();
   return `hue-rotate(${parseInt(diff)}deg)`;
 }
-

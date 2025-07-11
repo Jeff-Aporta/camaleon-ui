@@ -27,6 +27,8 @@ import {
   evaluateFn,
   limpiarIgnorados,
 } from "./inference.js";
+import { JS2CSS } from "../../fluidCSS/JS2CSS/index.js";
+import { VIEW_ID } from "../constants.js";
 
 let querypath = "";
 let assignedpath = "";
@@ -38,18 +40,51 @@ export function RoutingManagement(props) {
     </BrowserRouter>
   );
 }
+const fades = {
+  time: 0,
+  fadeIn: {},
+  fadeOut: {},
+};
+
+export function setTransition({
+  fadein = {},
+  fadeout = {},
+  fade = {},
+  time = 200,
+}) {
+  Object.assign(fades.fadeIn, fadein);
+  Object.assign(fades.fadeOut, fadeout);
+  Object.assign(fades.fadeIn, fade);
+  Object.assign(fades.fadeOut, fade);
+  fades.time = time;
+}
 
 export class RoutingManagement_ extends Component {
   constructor(props) {
     super(props);
     subscribeParam(
       {
-        "view-id": () => {
+        [VIEW_ID]: () => {
+          setTimeout(() => {
+            JS2CSS.insertStyle({
+              id: "effect-change-view-id",
+              ".CamaleonAppThemeProvider": fades.fadeOut,
+            });
+          });
           this.forceUpdate();
         },
       },
       this
     );
+  }
+
+  componentDidUpdate() {
+    setTimeout(() => {
+      JS2CSS.insertStyle({
+        id: "effect-change-view-id",
+        ".CamaleonAppThemeProvider": fades.fadeIn,
+      });
+    }, fades.time);
   }
 
   componentDidMount() {
@@ -90,7 +125,7 @@ function RouteComponent({
   routeCheck = () => 0, // Función verificadora de errores en ruta
   componentError = () => 0, // Componente a mostrar si hubo error
 }) {
-  const view_id = driverParams.get("view-id")[0];
+  const view_id = driverParams.getOne(VIEW_ID);
   setComponentsContext(componentsContext);
   setCustomRoutes(customRoutes);
   _setRoutesAvailable(mapGenerateComponents());
@@ -172,7 +207,7 @@ export function NavigationLink({
   const navigate = useNavigate();
   to = hrefManagement(to);
   const url = buildHref(to);
-  const view_Id = driverParams.get("view-id")[0];
+  const view_Id = driverParams.getOne(VIEW_ID);
 
   const handleClick = (e) => {
     e.preventDefault();

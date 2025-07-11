@@ -2,11 +2,10 @@ import {
   unpackTable,
   buildUrlFromService,
   failureDefault,
-  reEnvolve,
   getMessageError,
 } from "./utils";
 
-import { showSuccess, showWarning, showError } from "../themes/ui/Notifier.jsx";
+import { showWarning } from "../themes/ui/Notifier.jsx";
 
 export const responsePromises = {};
 export const responseResults = {};
@@ -15,10 +14,12 @@ function SINGLETON_EFFECT({
   url,
   successful,
   failure = failureDefault,
-  newfetch = () => 0,
-  fetchcached = () => 0,
+  newfetch = () => {},
+  fetchcached = () => {},
   useCache = true,
   timeCache = 15 * 1000,
+  mock_default,
+  mockIsTable = true,
   ...rest
 }) {
   if (!responsePromises[url]) {
@@ -29,35 +30,77 @@ function SINGLETON_EFFECT({
           method: "get",
           isTable: true,
           buildEndpoint: () => url,
-          successful: (data) => {
-            const data0 = data[0];
-            if (!HTTP_IS_ERROR(data0)) {
-              successful(data);
-              responseResults[url] = data;
-              resolve(data0);
+          successful: (data, info) => {
+            if (HTTP_DATA_ERROR(data)) {
+              if (useMock()) {
+                return;
+              }
+              rejectPromise("Se recibió un error del server", reject, {
+                status: "error",
+                message: "Error en la respuesta, desde el server",
+                data,
+                url,
+                response: responseResults[url],
+              });
             } else {
-              forgot();
-              failure(data0);
-              resolve();
+              responseResults[url] = data;
+              successful(data, {
+                info,
+                status: "success",
+                message: "Se realizo la peticion exitosamente",
+                url,
+                data,
+              });
+              resolve(data);
             }
           },
-          failure: (...args) => {
-            forgot();
-            failure(...args);
-            resolve();
+          failure: (info) => {
+            if (useMock()) {
+              return;
+            }
+            rejectPromise(`Error en GET ${url}`, reject, {
+              status: "error",
+              message: `Error en GET-SINGLETON ${url}`,
+              info,
+              url,
+              response: responseResults[url],
+            });
           },
           ...rest,
         });
       } catch (err) {
-        forgot();
-        failure(err.message || err, {
+        if (useMock()) {
+          return;
+        }
+        rejectPromise(err.message || err, reject, {
           status: "error",
           message: "Ocurrió un error try-catch en singleton effect",
           url,
+          err,
           value: responseResults[url],
           promise: responsePromises[url],
         });
-        resolve();
+      }
+
+      function useMock() {
+        forgot();
+        if (mock_default && window.isDev()) {
+          const useMockup = mockIsTable
+            ? unpackTable(mock_default)
+            : mock_default;
+          if (useMockup.length > 0) {
+            showWarning(`Mockup en uso ${url}`);
+            successful(useMockup, {
+              status: "simulated",
+              message: "Mockup en uso",
+              url,
+              mockup: useMockup,
+            });
+            resolve();
+            return true;
+          }
+        }
+        return false;
       }
     });
     timeoutCached();
@@ -74,14 +117,19 @@ function SINGLETON_EFFECT({
         url,
       });
     } else {
-      forgot();
-      failure("No hubo respuesta", {
-        status: "error",
-        message: "Hay promesa pero no hubo respuesta",
-        url,
-        value: responseResults[url],
-        promise: responsePromises[url],
-      });
+      if (useMock()) {
+        return;
+      }
+      failure(
+        {
+          status: "error",
+          message: "Hay promesa pero no hubo respuesta",
+          url,
+          value: responseResults[url],
+          promise: responsePromises[url],
+        },
+        rejectPromise
+      );
     }
   }
 
@@ -105,15 +153,18 @@ export const HTTP_REQUEST = async ({
   method, // post | put | get | patch
   buildEndpoint, // Función que construye la URL de la API.
   payload = {}, // Payload para la petición.
-  willStart = () => 0, // Callback antes de la petición.
-  willEnd = () => 0, // Callback al finalizar la petición.
+  willStart = () => {}, // Callback antes de la petición.
+  willEnd = () => {}, // Callback al finalizar la petición.
   service = "robot_backend", // Servicio en urlapi.
-  successful = () => 0, // Callback para recibir el body de la respuesta (success o error)
+  successful = () => {}, // Callback para recibir el body de la respuesta (success o error)
   failure = failureDefault,
   isTable = false, // Si es true, transforma la respuesta con table2obj
 }) => {
   if (!method) {
     throw new Error("Method is required, post | put | get | patch");
+  }
+  if (!buildEndpoint) {
+    throw new Error("buildEndpoint is required");
   }
   method = method.toLowerCase();
   const METHOD = method.toUpperCase();
@@ -131,85 +182,108 @@ export const HTTP_REQUEST = async ({
     method,
     url,
   });
+  let data;
   try {
-    const IS_GET = method === "get";
-    const fetchOptions = {
+    const fetchRes = await fetch(url, {
       method: METHOD,
       headers: requestConfig.headers,
       credentials: "omit",
       body: IS_GET ? undefined : JSON.stringify(payload),
-    };
-    const fetchRes = await fetch(url, fetchOptions);
-    if (!fetchRes.ok) {
-      const errorData = await fetchRes.json().catch(() => fetchRes.statusText);
-      throw new Error(JSON.stringify(errorData));
+    });
+    if (fetchRes.ok) {
+      data = await fetchRes.json();
+      good_case();
+    } else {
+      bad_case();
     }
-    let data = await fetchRes.json();
-    if (isTable && data) {
-      data = unpackTable(data);
-    }
-    if (HTTP_IS_ERROR(data[0])) {
-      failure(
+
+    function good_case() {
+      const info = {
         data,
-        { data, requestUrl: url, response: fetchRes },
+        url,
+        method,
+        response: fetchRes,
+      };
+      if (!data) {
+        return _successful_(
+          [],
+          "no hubo data"
+        );
+      }
+      if (isTable) {
+        data = unpackTable(data);
+        info.data = data;
+      }
+      if (HTTP_IS_ERROR([data, data[0]][+Array.isArray(data)])) {
+        _successful_([], "el fetch es un error");
+      } else {
+        _successful_(data);
+      }
+
+      function _successful_(data, message) {
+        if (message) {
+          message = `Caso base, Hubo respuesta (good case) pero ${message}`;
+          info.message = message;
+          console.log(message);
+        }
+        successful(data, info);
+      }
+    }
+
+    function bad_case() {
+      failure(
+        {
+          status: "error",
+          message: "Error en la respuesta, no se obtuvo",
+          errorData: data || fetchRes.statusText,
+          url,
+          method,
+          service,
+        },
         rejectPromise
       );
-    } else {
-      successful(data, { data, requestUrl: url, response: fetchRes });
     }
-    return data;
   } catch (err) {
+    console.error(err);
     failure(
-      `Error ${METHOD} en ${url}`,
-      { err, url, method, service },
+      {
+        msg: `Error fatal try-catch, ${METHOD} en ${url}`,
+        err,
+        url,
+        method,
+        service,
+      },
       rejectPromise
     );
   } finally {
-    willEnd();
+    willEnd({ data, service, payload, method, url });
   }
+  return data;
 };
 
-function rejectPromise(txt, reject, bugTracking) {
+export function rejectPromise(txt, reject, bugTracking = {}) {
   console.error(txt.message ? txt.message : txt, bugTracking);
+  const { err } = bugTracking;
+  if (err) {
+    console.error(err);
+  }
   reject(txt);
 }
 
 export const HTTP_GET = ({
   buildEndpoint,
-  setLoading,
-  setApiData,
   service = "robot_backend",
-  checkErrors = () => 0,
-  willStart,
-  willEnd,
+  checkErrors = () => 0, // Por defecto no hay errores
   successful,
-  failure = () => {},
-  mock_default,
+  failure = (info) => {
+    // Por defecto los GET sólo deben imprimir el error
+    console.error(info);
+  },
   ...rest
 }) => {
-  successful = reEnvolve(successful, setApiData);
-  failure = reEnvolve(failure, (...args) => {
-    // PROCEDIMIENTO DE MOCKS
-    const use_mockup = Array.isArray(mock_default) && window.isDev();
-    if (use_mockup) {
-      showWarning(`Mockup en uso ${url}`);
-      const fallback = unpackTable(mock_default);
-      successful(fallback, {
-        status: "simulated",
-        message: "Mockup en uso",
-        url,
-        fallback,
-      });
-    }
-  });
-  if (setLoading) {
-    willStart = reEnvolve(willStart, () => setLoading(true));
-    willEnd = reEnvolve(willEnd, () => setLoading(false));
-  }
   const error = checkErrors();
   if (error) {
     failure(
-      error,
       {
         status: "error",
         message: "Se chequearon errores y se encontró inconsistencia",
@@ -244,6 +318,10 @@ export const HTTP_PATCH = async (params) => {
   return await HTTP_REQUEST({ ...params, method: "patch" });
 };
 
+export function HTTP_DATA_ERROR(data) {
+  return HTTP_IS_ERROR([data, data[0]][+Array.isArray(data)]);
+}
+
 export function HTTP_IS_ERROR(data) {
   if (!data) {
     return;
@@ -254,15 +332,12 @@ export function HTTP_IS_ERROR(data) {
     processFlag(status),
     processFlag($status),
     processFlag(status_code),
-  ].some(Boolean);
+  ].some((x) => x === true);
 
   function processFlag(flag) {
     if (!flag) {
       return false;
     }
-    if (typeof flag == "number") {
-      return flag >= 400;
-    }
-    return flag == "error";
+    return flag == "error" || (typeof flag === "number" && flag >= 400);
   }
 }

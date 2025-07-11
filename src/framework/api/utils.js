@@ -29,8 +29,14 @@ export function reEnvolve(mainF, secondF) {
   return () => 0;
 }
 
-export function failureDefault(...args) {
-  showError(...args);
+export function failureDefault(info = {}) {
+  let message = "ERROR 💀";
+  if (typeof info === "string") {
+    message = info;
+  } else if (info && typeof info === "object") {
+    message = info.message || JSON.stringify(info);
+  }
+  showError(message, info);
 }
 
 /**
@@ -38,7 +44,9 @@ export function failureDefault(...args) {
  */
 export function buildUrlFromService(buildEndpoint, service) {
   if (!URL_MAP_API.getContext) {
-    showError("Debe configurar getContext en el map api", { urlMapApi: URL_MAP_API });
+    showError("Debe configurar getContext en el map api", {
+      urlMapApi: URL_MAP_API,
+    });
   }
   const env = URL_MAP_API.getContext();
   const BASE_SERVICE = URL_MAP_API[env][service];

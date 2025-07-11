@@ -1,11 +1,37 @@
-const params = {};
+import { VIEW_ID } from "../constants.js";
+
+const lastParams = {};
 const paramListener = [];
 
 export const driverParams = {
   get,
+  getOne,
   set,
   init,
+  deleteAll,
+  delete: deleteParam,
 };
+
+function deleteParam(...keys) {
+  const params = new URLSearchParams(window.location.search);
+  keys.forEach((key) => params.delete(key));
+  _setURLParams("replaceState", urlParamToString(params), {
+    updateListenerParams: false,
+  });
+}
+
+function deleteAll({ preserveViewId = true } = {}) {
+  const currentParams = new URLSearchParams(window.location.search);
+  const viewId = currentParams.get(VIEW_ID);
+  const params = new URLSearchParams();
+  currentParams.forEach((value, key) => params.delete(key));
+  if (preserveViewId && viewId) {
+    params.set(VIEW_ID, viewId);
+  }
+  _setURLParams("replaceState", urlParamToString(params), {
+    updateListenerParams: false,
+  });
+}
 
 function init(key, ...rest) {
   if (typeof key == "object") {
@@ -22,6 +48,10 @@ function init(key, ...rest) {
   return get(key)[0];
 }
 
+function getOne(key) {
+  return get(key)[0];
+}
+
 function get(...keys) {
   const RETURN = keys.map((k) =>
     new URLSearchParams(window.location.search).get(k)
@@ -29,7 +59,7 @@ function get(...keys) {
   return RETURN;
 }
 
-function set(key, value, { save = false, reaload = false } = {}) {
+function set(key, value, { save = false, reload = false } = {}) {
   if (typeof key == "string") {
     key = { [key]: value };
   } else if (typeof key != "object") {
@@ -45,16 +75,17 @@ function set(key, value, { save = false, reaload = false } = {}) {
     }
   });
   if (initParams !== params.toString()) {
-    const url = urlParamToString(params);
-    _setURLParams(["replaceState", "pushState"][+save], url);
-    reload(reaload);
-    _updateParams();
+    _setURLParams(
+      ["replaceState", "pushState"][+save],
+      urlParamToString(params)
+    );
+    _reload(reload);
   }
 }
 
 function urlParamToString(params) {
-  const url = `${window.location.pathname}?${params.toString()}`;
-  return url;
+  const queryString = params.toString();
+  return [window.location.pathname, queryString].filter(Boolean).join("?");
 }
 
 function addParamListener(listener) {
@@ -81,26 +112,30 @@ export function subscribeParam(modelChange, context) {
   return handleListeners;
 }
 
-export function _updateParams() {
+function _updateListenerParams() {
   const newParams = getAllParams();
   paramListener.forEach((listener) => {
-    Object.entries(listener).forEach(([names, fn]) => {
-      names = names.replace(/\s/g, "").split(",");
-      names.forEach((name) => {
-        if (params[name] != newParams[name]) {
-          fn({ name, old_value: params[name], new_value: newParams[name] });
+    Object.entries(listener).forEach(([listParams, callback]) => {
+      for (const name of listParams.replace(/\s/g, "").split(",")) {
+        if (lastParams[name] != newParams[name]) {
+          callback({
+            name,
+            old_value: lastParams[name],
+            new_value: newParams[name],
+          });
+          break;
         }
-      });
+      }
     });
   });
-  Object.assign(params, newParams);
+  Object.assign(lastParams, newParams);
 }
 
 function getAllParams() {
   return Object.fromEntries(new URLSearchParams(window.location.search));
 }
 
-function reload(ms_reaload) {
+function _reload(ms_reaload) {
   if (ms_reaload == true) {
     ms_reaload = 0;
   }
@@ -111,10 +146,16 @@ function reload(ms_reaload) {
   }
 }
 
-export function _setURLParams(method, url, state = {}, title = document.title) {
+export function _setURLParams(
+  method,
+  url,
+  { updateListenerParams = true, state = {}, title = document.title } = {}
+) {
   if (method !== "pushState" && method !== "replaceState") {
     throw new Error(`Método inválido: ${method}`);
   }
   window.history[method](state, title, url);
-  _updateParams();
+  if (updateListenerParams) {
+    _updateListenerParams();
+  }
 }

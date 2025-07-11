@@ -68,56 +68,14 @@ export class Notifier extends React.Component {
     return (
       <ThemeProvider theme={getTheme()}>
         <CssBaseline />
-        <div className="theme-provider-notifier">
+        <div className="CamaleonAppThemeProvider">
           {children}
           <NotifierBox position="bottom-right" />
-          {/* <ToasterPart theme={theme} palette={palette} /> */}
           <PromptDialog />
         </div>
       </ThemeProvider>
     );
   }
-}
-
-function ToasterPart({ theme, palette }) {
-  return (
-    <></>
-    /* <Toaster
-      position="bottom-right"
-      toastOptions={{
-        style: {
-          borderRadius: "5px",
-          background: getColorBackground(theme),
-          color: (() => {
-            let cursor = palette;
-            if (cursor) {
-              if (cursor.text) {
-                cursor = cursor.text;
-                if (cursor.primary) {
-                  return cursor.primary;
-                }
-              }
-            }
-          })(),
-          border:
-            "1px solid " +
-            global.nullish(
-              (() => {
-                let cursor = palette;
-                if (cursor) {
-                  if (cursor.divider) {
-                    return cursor.divider;
-                  }
-                }
-              })(),
-              "gray"
-            ),
-          boxShadow: "5px 5px 5px 0px rgba(0, 0, 0, 0.1)",
-          animation: "fadeIn 1s ease, fadeOut 0.3s ease 9.7s forwards",
-        },
-      }}
-    /> */
-  );
 }
 
 export class AppThemeProvider extends Component {

@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
-import {DriverComponent} from "../../tools/tools.js"
+import {DriverComponent} from "../../tools/DriverComponent.js"
 
 const driverDialog = DriverComponent({
   dialog: {

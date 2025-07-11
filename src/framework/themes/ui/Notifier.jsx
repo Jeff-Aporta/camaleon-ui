@@ -8,7 +8,7 @@ import ErrorIcon from "@mui/icons-material/Error";
 import InfoIcon from "@mui/icons-material/Info";
 
 import { getSecondaryColor } from "../rules/manager/manager.selected.js";
-import { DriverComponent } from "../../tools/tools.js";
+import { DriverComponent } from "../../tools/DriverComponent.js";
 
 const SUCCESS_ICON = <CheckCircleIcon color="success" fontSize="small" />;
 const WARNING_ICON = <WarningAmberIcon color="warning" fontSize="small" />;
@@ -46,7 +46,10 @@ const driverNotifier = DriverComponent({
       if (this.existsNotifier()) {
         this.updateNotifier();
       } else {
-        return setTimeout(() => this.sendNotify({ duration, ...props }), 100);
+        return setTimeout(
+          () => this.sendNotify({ duration, id, ...props }),
+          100
+        );
       }
       setTimeout(() => {
         this.removeNotify(id);
@@ -169,13 +172,25 @@ export function showSuccess(txt, duration) {
   showJSX(txt, SUCCESS_ICON, duration);
 }
 
-export function showWarning(txt, details, duration) {
-  console.warn(...[txt, details].filter(Boolean));
+export function showWarning(
+  txt,
+  { showConsole = true, ...details } = {},
+  duration
+) {
+  if (showConsole) {
+    console.warn(...[txt, details].filter(Boolean));
+  }
   showJSX(txt, WARNING_ICON, duration);
 }
 
-export function showError(txt, details, duration) {
-  console.error(...[txt, details].filter(Boolean));
+export function showError(
+  txt,
+  { showConsole = true, ...details } = {},
+  duration
+) {
+  if (showConsole) {
+    console.error(...[txt, details].filter(Boolean));
+  }
   showJSX(txt, ERROR_ICON, duration);
 }
 
@@ -262,13 +277,13 @@ export function showPromise(
     }
     const notify = getNotify(loadingId);
     if (notify) {
-      notify.jsx = fromType(type, msg) || msg;
+      notify.jsx = fromType(msg, type) || msg;
       updateNotifier();
       setTimeout(() => removeNotify(loadingId), duration);
-    } 
+    }
   }
 
-  function fromType(type, msg) {
+  function fromType(msg, type) {
     if (typeof msg !== "string") {
       return;
     }

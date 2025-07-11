@@ -1,6 +1,6 @@
 {
   "name": "@jeff-aporta/camaleon",
-  "version": "0.0.228",
+  "version": "0.1.49",
   "main": "dist/index.js",
   "exports": {
     ".": "./dist/index.js",

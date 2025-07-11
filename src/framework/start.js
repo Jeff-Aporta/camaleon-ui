@@ -38,12 +38,10 @@ export function assignNullish(dst, src) {
   return dst;
 }
 
-export function initStart() {
-  [global, window].forEach((g) => {
-    Object.assign(g, {
-      nullish,
-      nullishNoF,
-      assignNullish,
-    });
+[global, window].forEach((g) => {
+  Object.assign(g, {
+    nullish,
+    nullishNoF,
+    assignNullish,
   });
-}
+});
