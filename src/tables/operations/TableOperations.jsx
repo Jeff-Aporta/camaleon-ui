@@ -1,3 +1,4 @@
+import React, { Component } from "react";
 import {
   IconButton,
   Paper,
@@ -9,105 +10,76 @@ import {
 } from "@mui/material";
 import TransactionsIcon from "@mui/icons-material/PriceChange";
 
-import { DynTable, driverParams, Delayer } from "@jeff-aporta/camaleon";
+import { driverTables, newTable } from "../tables.js";
 
 import mock_operation from "./mock-operation.json";
 import columns_operation from "./columns-operation.jsx";
 
 import { HTTPGET_USEROPERATION_PERIOD } from "@api";
 
-import { WaitSkeleton, DateRangeControls } from "@components/controls";
-import React, { Component } from "react";
+import { DateRangeControls } from "@components/controls";
+
 import dayjs from "dayjs";
 
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
-import { showError, IS_GITHUB, subscribeParam } from "@jeff-aporta/camaleon";
-import { driverTables } from "../tables.js";
+import {
+  showError,
+  IS_GITHUB,
+  subscribeParam,
+  showInfo,
+  DriverComponent,
+  DynTable,
+  driverParams,
+  Delayer,
+  WaitSkeleton,
+} from "@jeff-aporta/camaleon";
 
-let rows = [];
-let filterApply = false;
+let mock_default = (() => {
+  if (IS_GITHUB) {
+    return mock_operation;
+  }
+})();
 
-let SINGLETON;
-let SINGLETON_BUTTON_APPLY_FILTER;
-
-let loadingTableOperation = false;
-
-let mock_default = IS_GITHUB ? mock_operation : [];
-
-export const driverTableOperations = {
-  getTableData() {
-    return rows || mock_default;
+export const driverTableOperations = DriverComponent({
+  tableOperations: {},
+  buttonApplyFilter: {},
+  tableData: {
+    value: mock_default,
   },
-
-  setTableData(newRows) {
-    rows = newRows;
-    driverTableOperations.forceUpdate();
+  filterApply: {
+    value: false,
   },
-
-  getFilterApply() {
-    return filterApply;
+  loading: {
+    value: true,
   },
-
-  setFilterApply(newFilterApply) {
-    filterApply = newFilterApply;
-    driverTableOperations.forceUpdateButtonApplyFilter();
-  },
-
-  getLoadingTableOperation() {
-    return loadingTableOperation;
-  },
-
-  setLoadingTableOperation(newLoadingTableOperation) {
-    loadingTableOperation = newLoadingTableOperation;
-    driverTableOperations.forceUpdate();
-  },
-
-  forceUpdateButtonApplyFilter() {
-    if (!SINGLETON_BUTTON_APPLY_FILTER) {
-      setTimeout(
-        () => driverTableOperations.forceUpdateButtonApplyFilter(),
-        100
-      );
-      return;
-    }
-    SINGLETON_BUTTON_APPLY_FILTER.forceUpdate();
-  },
-
-  forceUpdate() {
-    if (!SINGLETON) {
-      setTimeout(() => driverTableOperations.forceUpdate(), 100);
-      return;
-    }
-    SINGLETON.forceUpdate();
-  },
-};
+});
 
 export default driverTables.newTable({
   name_table: driverTables.TABLE_OPERATIONS,
   user_id_required: true,
   paramsKeys: ["start_date", "end_date"],
   allParamsRequiredToFetch: true,
-  init() {},
-  componentDidMount() {
-    SINGLETON = this;
-  },
-  start_fetch() {
-    driverTableOperations.setLoadingTableOperation(true);
-    driverTableOperations.setFilterApply(false);
-  },
-  end_fetch({ error }) {
-    driverTableOperations.setLoadingTableOperation(false);
-  },
+  driver: driverTableOperations,
   fetchError() {
-    driverTableOperations.setTableData([]);
+    this.getDriver().setTableData([]);
   },
-  async fetchData({ user_id, start_date, end_date }) {
+  startFetch() {
+    this.getDriver().setFilterApply(false);
+  },
+  endFetch() {
+    this.getDriver().setFilterApply(false);
+  },
+  async fetchData({ user_id, start_date, end_date }, { driver }) {
     await HTTPGET_USEROPERATION_PERIOD({
+      user_id,
       start_date,
       end_date,
       // ---------------------
       successful: (data) => {
-        driverTableOperations.setTableData(data);
+        driver.setTableData(data);
+      },
+      failure() {
+        driver.setTableData([]);
       },
       mock_default,
       checkErrors: () => {
@@ -121,20 +93,22 @@ export default driverTables.newTable({
     });
   },
   render() {
-    const { useForUser, data, columns_config, ...rest } = this.props;
+    const { useForUser, data, ...rest } = this.props;
     const { user_id } = window["currentUser"];
+
+    const columns_config = columns_operation();
+
+    const DRIVER = this.getDriver();
 
     let [start_date, end_date] = driverParams.get("start_date", "end_date");
 
-    const base = user_id
-      ? driverTableOperations.getTableData()
-      : data?.content ?? [];
+    const base = user_id ? DRIVER.getTableData() : data?.content ?? [];
 
     const processedContent = Array.isArray(base)
       ? base.map((item) => ({ ...item, name_coin: item.name_coin ?? "FYX" }))
       : [];
 
-    let finalColumns = [...columns_operation];
+    let finalColumns = [...columns_config];
 
     if (useForUser) {
       finalColumns = [
@@ -173,7 +147,7 @@ export default driverTables.newTable({
             </Tooltip>
           ),
         },
-        ...columns_operation,
+        ...columns_config,
       ];
     }
 
@@ -195,25 +169,20 @@ export default driverTables.newTable({
             </Typography>
             <div
               className={`flex align-center justify-space-between flex-wrap gap-10px ${
-                ["mh-10px", ""][
-                  +driverTableOperations.getLoadingTableOperation()
-                ]
+                ["mh-10px", ""][+DRIVER.getLoading()]
               }`}
             >
-              <DateRangeControls
-                loading={driverTableOperations.getLoadingTableOperation()}
-                willPeriodChange={(period) =>
-                  driverTableOperations.setFilterApply(true)
-                }
-              />
+              <WaitSkeleton loading={DRIVER.getLoading()}>
+                <DateRangeControls />
+              </WaitSkeleton>
               {(() => {
-                const ButtonFilter = class extends React.Component {
+                const ButtonFilter = class extends Component {
                   constructor(props) {
                     super(props);
                     subscribeParam(
                       {
-                        "start_date, end_date": () => {
-                          driverTableOperations.setFilterApply(true);
+                        "start_date, end_date, period": () => {
+                          DRIVER.setFilterApply(true);
                         },
                       },
                       this
@@ -221,11 +190,12 @@ export default driverTables.newTable({
                   }
 
                   componentDidMount() {
-                    SINGLETON_BUTTON_APPLY_FILTER = this;
+                    DRIVER.addLinkFilterApply(this);
                     this.addParamListener();
                   }
 
                   componentWillUnmount() {
+                    DRIVER.removeLinkFilterApply(this);
                     this.removeParamListener();
                   }
 
@@ -235,11 +205,10 @@ export default driverTables.newTable({
                         variant="contained"
                         size="small"
                         onClick={() => {
-                          driverTables.refetch();
+                          driverTables.refetch(true);
                         }}
                         disabled={
-                          driverTableOperations.getLoadingTableOperation() ||
-                          !driverTableOperations.getFilterApply()
+                          DRIVER.getLoading() || !DRIVER.getFilterApply()
                         }
                         sx={{ mt: 1, mb: 1 }}
                         startIcon={<FilterAltIcon />}
@@ -252,10 +221,7 @@ export default driverTables.newTable({
                 return <ButtonFilter />;
               })()}
             </div>
-            <WaitSkeleton
-              loading={driverTableOperations.getLoadingTableOperation()}
-              h="auto"
-            >
+            <WaitSkeleton loading={DRIVER.getLoading()} h="auto">
               <div style={{ width: "100%", overflowX: "auto" }}>
                 <DynTable
                   {...rest}

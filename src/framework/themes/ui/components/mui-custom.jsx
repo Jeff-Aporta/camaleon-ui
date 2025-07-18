@@ -54,7 +54,7 @@ export function IconButtonWithTooltip({
         title={typeof title === "string" ? title : title()}
         placement="left"
       >
-        <div className="d-inline-block">
+        <div className="inline-block">
           <IconButton
             disabled={
               ["boolean", "string"].includes(typeof disabled)
@@ -89,7 +89,7 @@ export function CaptionWrapper({
   ...rest
 }) {
   return (
-    <div className={`d-flex-col jc-space-between ${className}`}>
+    <div className={`flex col-direction justify-space-between ${className}`}>
       <Typography variant="caption" color="secondary">
         <small>{label}</small>
       </Typography>
@@ -257,7 +257,7 @@ export function SelectFast(props) {
         style,
       }}
     >
-      <div className="d-flex align-end">
+      <div className="flex align-end">
         <InputLabel id={lblID}>{value ? "" : inputlbl}</InputLabel>
         <Select
           {...rest}

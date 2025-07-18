@@ -6,30 +6,37 @@ import {
   showError,
   sleep,
   Delayer,
+  getModelsFormat,
   addModelFormat,
   addNumberFormat,
   getNumberFormat,
+  TooltipGhost,
+  JS2CSS,
+  DriverComponent,
+  getSecondaryColor,
+  getAdjacentPrimaryColor,
 } from "@jeff-aporta/camaleon";
 
 import BenefitUplineIcon from "@mui/icons-material/TrendingUpOutlined";
 import BenefitDownlineIcon from "@mui/icons-material/TrendingDownOutlined";
 import BenefitConstantlineIcon from "@mui/icons-material/TrendingFlatOutlined";
-import { Chip } from "@mui/material";
+import { Chip, Tooltip, Typography } from "@mui/material";
+import { BorderBottom } from "@mui/icons-material";
 
 addNumberFormat({
   toCoin(value, local) {
     const { precision2SmallNumber, numberFormat } = getNumberFormat();
     const number_format = precision2SmallNumber({ value });
-    const { retorno } = numberFormat(number_format, value, local, "");
-    return retorno;
+    const { texto } = numberFormat(number_format, value, local, "");
+    return texto;
   },
   toCoinDifference(value1, value2, local) {
     const { precision2SmallNumber, numberFormat } = getNumberFormat();
     // No es necesario abs en diff, precision2SmallNumber lo infiere
     const diff = (value1 - value2) / 10;
     const number_format = precision2SmallNumber({ value: diff });
-    const { retorno } = numberFormat(number_format, value1, local, "");
-    return retorno;
+    const { texto } = numberFormat(number_format, value1, local, "");
+    return texto;
   },
   precision2SmallNumber({ value }) {
     const absValue = Math.abs(+value);
@@ -44,12 +51,35 @@ addNumberFormat({
   },
 });
 
+const currentCoin = currentSufix("name_coin", true);
+
+const {
+  renderInfo: renderInfoNameCoin, //
+  ...propsNameCoin
+} = currentCoin;
+
+JS2CSS.insertStyle({
+  id: "custom-tables-css",
+  ".MuiDataGrid-cell": {
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+  },
+});
+
 addModelFormat({
+  currentSufix,
+  currentCoin,
+  dateFormat2: dateFormat2(),
   profit_op: {
     ...propsNameCoin,
     extra_width: 30,
+    component: "ReserveLayer",
+    className: "fill",
     renderInfo: {
       ...renderInfoNameCoin,
+      className: null,
+      style: null,
       iconized: iconized_real_roi(true),
     },
   },
@@ -67,107 +97,151 @@ addModelFormat({
   },
 });
 
-const tablesLoaded = {};
-const delayers = {};
-
-const {
-  renderInfo: renderInfoNameCoin, //
-  ...propsNameCoin
-} = currentSufix("name_coin");
-
-export const driverTables = {
+export const driverTables = DriverComponent({
   TABLE_TRANSACTIONS: "transactions",
   TABLE_OPERATIONS: "operations",
-
-  setViewTable(newViewTable) {
-    driverParams.set({ view_table: newViewTable });
+  viewTable: {
+    nameParam: "view_table",
+    _setup_({ init, TABLE_OPERATIONS }) {
+      init(TABLE_OPERATIONS);
+    },
   },
 
-  getViewTable() {
-    return driverParams.init("view_table", driverTables.TABLE_OPERATIONS);
-  },
-
-  refetch() {
-    Object.values(tablesLoaded).forEach((table) => {
+  refetch(cb) {
+    Object.entries(this.getTables()).forEach(([name, table]) => {
+      const loadingEffect = cb === true;
+      const driver = this.getDriverTable(name);
+      if (typeof cb === "function") {
+        if (driver) {
+          const { loading } = cb({ name, driver, table });
+          if (loading) {
+            loadingEffect = loading;
+          }
+        }
+      }
+      if (driver && driver.setLoading && loadingEffect) {
+        driver.setLoading(!!loadingEffect);
+      }
       table.fetchData && table.fetchData();
     });
   },
 
-  getOperationRow() {
-    return driverTables.operation_row;
+  operationRow: {},
+
+  driverTable: {
+    isArray: true,
   },
 
-  setOperationRow(row) {
-    driverTables.operation_row = row;
+  tables: {
+    isArray: true,
   },
 
-  addTable(name, table) {
-    tablesLoaded[name] = table;
+  delayers: {
+    isArray: true,
   },
 
-  removeTable(name) {
-    delete tablesLoaded[name];
+  addTableAndDriver(name, table, driver) {
+    this.addDriverTable(name, driver);
+    this.addTables(name, table);
   },
+
+  deleteTableAndDriver(name) {
+    this.deleteDriverTable(name);
+    this.deleteTables(name);
+  },
+
   newTable,
-};
+});
 
 function newTable({
   componentDidMount = () => {},
+  componentWillUnmount = () => {},
+  componentDidUpdate = () => {},
   fetchData = () => {},
   prefetch = () => {},
   paramsKeys = [],
   user_id_required,
   cbErrorParams,
-  init,
   name_table,
   allParamsRequiredToFetch = false,
-  start_fetch = () => {},
-  end_fetch = () => {},
+  init = () => {},
+  startFetch = () => {},
+  endFetch = () => {},
   fetchError = () => {},
   render,
+  driver = {},
   ...props
 } = {}) {
-  delayers[name_table] ??= Delayer(1000);
-
-  const delayerFetch = delayers[name_table];
-
   let paramsValues;
   let params;
 
   return class extends Component {
     constructor(props) {
       super(props);
-      init.bind(this)();
+      init.bind(this)(this.contextGeneral());
+    }
+
+    getDriver() {
+      return driver;
+    }
+
+    setLoading(val) {
+      driver.setLoading && driver.setLoading(val);
+    }
+
+    contextGeneral() {
+      return {
+        driver,
+        data: driver.getTableData ? driver.getTableData() : [],
+      };
+    }
+
+    endFetchEnvolve(props) {
+      endFetch.bind(this)(props);
+      this.setLoading(false);
     }
 
     async fetchData({ deep = 0 } = {}) {
       loadParams();
-      start_fetch.bind(this)();
-      await prefetch.bind(this)(params);
+      startFetch.bind(this)(this.contextGeneral());
+      await prefetch.bind(this)(params, this.contextGeneral());
       if (!(await protocolFetch.bind(this)(deep))) {
-        return end_fetch.bind(this)({ error: true });
+        return this.endFetchEnvolve({ error: true });
       }
       try {
-        await fetchData.bind(this)(params);
+        await fetchData.bind(this)(params, this.contextGeneral());
       } catch (e) {
         showError(e.message || e);
         fetchError.bind(this)();
       }
-      end_fetch.bind(this)({ error: false });
+      this.endFetchEnvolve({ error: false, ...this.contextGeneral() });
+    }
+
+    componentDidUpdate(...args) {
+      componentDidUpdate.bind(this)(...args);
     }
 
     componentDidMount() {
       componentDidMount.bind(this)();
-      driverTables.addTable(name_table, this);
-      this.fetchData({ deep: 0 });
+      driverTables.addTableAndDriver(name_table, this, driver);
+      driverTables.addDelayers(name_table, Delayer(1000));
+      this.fetchData();
+      const { addLinkLoading, addLinkTableData } = driver;
+      addLinkLoading && addLinkLoading(this);
+      addLinkTableData && addLinkTableData(this);
     }
 
     componentWillUnmount() {
-      driverTables.removeTable(name_table);
+      driverTables.deleteTableAndDriver(name_table);
+      driverTables.deleteDelayers(name_table);
+      componentWillUnmount.bind(this)();
+      const { removeLinkLoading, removeLinkTableData } = driver;
+      removeLinkLoading && removeLinkLoading(this);
+      removeLinkTableData && removeLinkTableData(this);
     }
 
     render() {
-      return render.bind(this)();
+      return render.bind(this)(this.contextGeneral());
     }
   };
 
@@ -186,16 +260,17 @@ function newTable({
     if (allParamsRequiredToFetch && paramsValues.some((item) => !item)) {
       if (deep > 1) {
         showError("Problema al obtener datos en URLParams", params);
+        await sleep(1000);
       }
       if (cbErrorParams) {
         cbErrorParams();
         return false;
       } else {
-        await sleep(100);
         return await this.fetchData({ deep: deep + 1 });
       }
     }
-    if (!delayerFetch.isReady()) {
+    const delayer = driverTables.getDelayers(name_table);
+    if (delayer && !delayer.isReady()) {
       console.log("Fetch cancelado, tiempo de espera");
       return false;
     }
@@ -203,10 +278,69 @@ function newTable({
   }
 }
 
-function currentSufix(sufix) {
+function dateFormat2() {
+  const outenv = "layer fill padw-15px";
+  const inenv = "flex justify-space-between align-center gap-10px";
+  const {
+    renderInfo: renderInfoDatetime, //
+    ...propsDatetime
+  } = getModelsFormat().datetime;
+  return {
+    ...propsDatetime,
+    renderInfo: {
+      ...renderInfoDatetime,
+      className: `${outenv} ${inenv}`,
+      style: {},
+      styleEl2: ({ hour, minute, seconds }) => {
+        const hs = +hour + minute / 60 + seconds / 3600;
+        const t = hs / 24;
+        const colorTop = getAdjacentPrimaryColor({
+          a: 60,
+          light: true,
+        })[0];
+        const colorBottom = getAdjacentPrimaryColor({
+          a: 60,
+          light: false,
+        })[0];
+        return {
+          backgroundColor: `rgba(${colorBottom
+            .mix(colorTop, t)
+            .rgb()
+            .array()
+            .join(",")}, 0.5)`,
+          fontSize: "smaller",
+          borderRadius: "10px",
+          padding: "0 5px",
+          width: "fit-content",
+          height: "fit-content",
+        };
+      },
+    },
+  };
+}
+
+function currentSufix(sufix, space_between = true) {
+  const outenv = "layer fill padw-15px";
+  const inenv = "flex justify-space-between align-center gap-10px";
   return {
     fit_content: true,
     renderInfo: {
+      ...(space_between
+        ? {
+            className: `${outenv} ${inenv}`,
+            styleEl2: {
+              backgroundColor: `rgba(${getSecondaryColor()
+                .rgb()
+                .array()
+                .join(",")}, 0.5)`,
+              fontSize: "smaller",
+              borderRadius: "10px",
+              padding: "0 5px",
+              width: "fit-content",
+              height: "fit-content",
+            },
+          }
+        : {}),
       local: "es-ES",
       sufix,
       type: "number",
@@ -221,55 +355,67 @@ function iconized_real_roi(op = false) {
       return renderString;
     }
     let { value } = params;
-    const { real_roi } = params.row;
+    let { real_roi } = params.row;
+    let icon, color;
+
+    if (value == 0) {
+      icon = <BenefitConstantlineIcon />;
+      color = "warning";
+    }
+    if (value < 0) {
+      icon = <BenefitDownlineIcon />;
+      color = "error";
+    }
+    if (value > 0) {
+      icon = <BenefitUplineIcon />;
+      color = "ok";
+    }
+    if (real_roi) {
+      real_roi = +real_roi.toFixed(2);
+    }
 
     const texto = (() => {
-      if (op) {
-        return (
-          <div className="d-flex jc-space-between ai-center">
+      return (
+        <Typography
+          component="span"
+          color={color}
+          variant="body2"
+          className="layer fill padw-5px flex justify-space-between align-center gap-10px"
+        >
+          <span
+            style={{
+              display: "inline-flex",
+              gap: "10px",
+              alignItems: "center",
+            }}
+          >
+            {icon}
             {renderString}
-            {real_roi ? (
-              <Chip
-                label={`${real_roi.toFixed(2)}%`}
-                size="small"
-                variant="filled"
-                sx={{
-                  transform: "scale(0.8)",
-                  fontSize: "smaller",
-                }}
-              />
-            ) : (
-              ""
-            )}
-          </div>
-        );
-      }
-      return renderString;
+          </span>
+          {real_roi ? (
+            <Chip
+              label={`${real_roi}%`}
+              size="small"
+              variant="filled"
+              sx={{
+                transform: "scale(0.8)",
+                fontSize: "smaller",
+              }}
+            />
+          ) : (
+            ""
+          )}
+        </Typography>
+      );
     })();
     const tooltip = (() => {
-      if (op) {
-        const percent = ["", `(${real_roi.toFixed(2)}%)`][+!!real_roi];
+      if (op && real_roi) {
+        const percent = ["", `(${real_roi}%)`][+!!real_roi];
         return `${renderString} ${percent}`;
       }
       return renderString;
     })();
     const strings = { texto, tooltip };
-    if (value == 0) {
-      return {
-        ...strings,
-        icon: <BenefitConstantlineIcon />,
-        color: "warning",
-      };
-    }
-    if (value < 0) {
-      return {
-        ...strings,
-        icon: <BenefitDownlineIcon />,
-        color: "error",
-      };
-    }
-    if (value > 0) {
-      return { ...strings, icon: <BenefitUplineIcon />, color: "ok" };
-    }
+    return strings;
   };
 }

@@ -16,10 +16,12 @@ export function DriverComponent(modelProps) {
       Object.entries(modelProps).forEach(([key, props]) => {
         if (typeof props == "function") {
           this[key] = props.bind(this);
+          extra_context_global[key] = this[key];
           return;
         }
         if (typeof props != "object") {
           this[key] = props;
+          extra_context_global[key] = props;
           return;
         }
         const saneoKey = firstUppercase(key);
@@ -29,6 +31,7 @@ export function DriverComponent(modelProps) {
           digits,
           isArray,
           isInteger,
+          isBoolean,
           freeze,
           min,
           max,
@@ -40,6 +43,7 @@ export function DriverComponent(modelProps) {
           _getValidate_,
           update,
           links = [],
+          mapCase,
           ...rest
         } = props;
 
@@ -58,13 +62,12 @@ export function DriverComponent(modelProps) {
           BURN_PARAM_KEY,
           ARRAY_ADD_KEY,
           ARRAY_DELETE_KEY,
-          ARRAY_KEYS_KEY,
-          ARRAY_VALUES_KEY,
           ARRAY_PUSH_KEY,
-          ARRAY_FIND_KEY,
-          ARRAY_SOME_KEY,
-          ARRAY_EVERY_KEY,
-          ARRAY_FILTER_KEY,
+          ARRAY_POP_KEY,
+          ARRAY_REMOVEALL_KEY,
+          MAPCASE_KEY,
+          IS_EMPTY_KEY,
+          IS_BOOLEAN_KEY,
         ] = [
           "init",
           "get",
@@ -78,13 +81,12 @@ export function DriverComponent(modelProps) {
           "burnParam",
           "add",
           "delete",
-          "keys",
-          "values",
           "push",
-          "find",
-          "some",
-          "every",
-          "filter",
+          "pop",
+          "removeAll",
+          "mapCase",
+          "isEmpty",
+          "is",
         ].map((x) => `${x}${saneoKey}`);
 
         const extra_context = {};
@@ -95,12 +97,33 @@ export function DriverComponent(modelProps) {
           setValue: [this[SET_KEY], this[_SET_KEY]][+softSet],
           _setValue: this[_SET_KEY],
           setNullish: this[SET_NULLISH_KEY],
-          update: this[UPDATE_KEY],
           exists: this[EXISTS_KEY],
+          burnParam: this[BURN_PARAM_KEY],
+          mapCase: this[MAPCASE_KEY],
+          //--- Array methods
+          add: this[ARRAY_ADD_KEY],
+          delete: this[ARRAY_DELETE_KEY],
+          push: this[ARRAY_PUSH_KEY],
+          pop: this[ARRAY_POP_KEY],
+          removeAll: this[ARRAY_REMOVEALL_KEY],
+          ...(() => {
+            if (!isArray) {
+              return {};
+            }
+            return {
+              some: (cb) => this[GET_KEY]().some(cb),
+              every: (cb) => this[GET_KEY]().every(cb),
+              find: (cb) => this[GET_KEY]().find(cb),
+              filter: (cb) => this[GET_KEY]().filter(cb),
+              map: (cb) => this[GET_KEY]().map(cb),
+            };
+          })(),
+          //--- Component methods
+          notifyLinks,
+          update: this[UPDATE_KEY],
           addLink: this[ADD_LINK_KEY],
           removeLink: this[REMOVE_LINK_KEY],
-          burnParam: this[BURN_PARAM_KEY],
-          notifyLinks,
+          //--- Component props
           nameParam,
           getParam,
           nameStorage,
@@ -110,21 +133,15 @@ export function DriverComponent(modelProps) {
           digits,
           min,
           max,
-          arrayAdd: this[ARRAY_ADD_KEY],
-          arrayDelete: this[ARRAY_DELETE_KEY],
-          arrayKeys: this[ARRAY_KEYS_KEY],
-          arrayValues: this[ARRAY_VALUES_KEY],
-          arrayPush: this[ARRAY_PUSH_KEY],
-          arrayFind: this[ARRAY_FIND_KEY],
-          arraySome: this[ARRAY_SOME_KEY],
-          arrayEvery: this[ARRAY_EVERY_KEY],
-          arrayFilter: this[ARRAY_FILTER_KEY],
           ...extra_context_global,
           ...extra_context,
         });
 
         // burning keys
         this[GET_KEY] = GET.bind(this)();
+        if(isBoolean){
+          this[IS_BOOLEAN_KEY] = this[GET_KEY];
+        }
         this[INIT_KEY] = INIT.bind(this)();
         this[EXISTS_KEY] = EXISTS.bind(this)();
         this[UPDATE_KEY] = UPDATE.bind(this)();
@@ -136,19 +153,17 @@ export function DriverComponent(modelProps) {
         this[SET_NULLISH_KEY] = SET_NULLISH.bind(this)();
         this[ADD_LINK_KEY] = ADDLINK.bind(this)();
         this[REMOVE_LINK_KEY] = REMOVELINK.bind(this)();
+        this[MAPCASE_KEY] = MAPCASE.bind(this)();
         if (isArray) {
           if (!value || !Array.isArray(value)) {
             value = [];
           }
           this[ARRAY_ADD_KEY] = ADDARRAY.bind(this)();
           this[ARRAY_DELETE_KEY] = DELETEARRAY.bind(this)();
-          this[ARRAY_KEYS_KEY] = KEYSARRAY.bind(this)();
-          this[ARRAY_VALUES_KEY] = VALUESARRAY.bind(this)();
           this[ARRAY_PUSH_KEY] = PUSHARRAY.bind(this)();
-          this[ARRAY_FIND_KEY] = FINDARRAY.bind(this)();
-          this[ARRAY_SOME_KEY] = SOMEARRAY.bind(this)();
-          this[ARRAY_EVERY_KEY] = EVERYARRAY.bind(this)();
-          this[ARRAY_FILTER_KEY] = FILTERARRAY.bind(this)();
+          this[ARRAY_POP_KEY] = POPARRAY.bind(this)();
+          this[ARRAY_REMOVEALL_KEY] = REMOVEALLARRAY.bind(this)();
+          this[IS_EMPTY_KEY] = IS_EMPTY.bind(this)();
         }
         EXTRA_CONTEXT.bind(this)();
         // end burning keys
@@ -169,7 +184,7 @@ export function DriverComponent(modelProps) {
           if (_setup_) {
             listSetups.push({
               fn: _setup_.bind(this),
-              context: CONTEXT_GENERAL(true),
+              context: CONTEXT_GENERAL.bind(this),
             });
           }
         }
@@ -197,36 +212,60 @@ export function DriverComponent(modelProps) {
           );
         }
 
-        function FINDARRAY() {
-          return (callback) => {
-            return value.find(callback);
+        function IS_EMPTY() {
+          return () => {
+            return this[GET_KEY]().length === 0;
           };
         }
 
-        function SOMEARRAY() {
-          return (callback) => {
-            return value.some(callback);
+        function MAPCASE() {
+          return (key, value) => {
+            if (!mapCase) {
+              return "Define el mapCase";
+            }
+            if (!key) {
+              return "Define el key";
+            }
+            if (typeof key != "string") {
+              return `El key debe ser un string: ${key}`;
+            }
+            if (!mapCase[key]) {
+              return `El key no existe: ${key}`;
+            }
+            if (!value) {
+              value = this[GET_KEY]();
+            }
+            if (typeof value != "string") {
+              value = String(value);
+            }
+            let RETURN = mapCase[key][value];
+            if (RETURN == null || RETURN == undefined) {
+              RETURN = mapCase[key].default;
+            }
+            if (typeof RETURN == "function") {
+              RETURN = RETURN();
+            }
+            return RETURN;
           };
         }
 
-        function EVERYARRAY() {
-          return (callback) => {
-            return value.every(callback);
+        function REMOVEALLARRAY() {
+          return () => {
+            this[SET_KEY]([]);
           };
         }
 
-        function FILTERARRAY() {
-          return (callback) => {
-            return value.filter(callback);
+        function POPARRAY() {
+          return () => {
+            const arr = [...this[GET_KEY]()];
+            arr.pop();
+            this[SET_KEY](arr);
           };
         }
 
         function PUSHARRAY() {
           return (item) => {
-            const arr = this[GET_KEY]();
-            if (!arr) {
-              return;
-            }
+            const arr = [...this[GET_KEY]()];
             arr.push(item);
             this[SET_KEY](arr);
           };
@@ -234,7 +273,7 @@ export function DriverComponent(modelProps) {
 
         function ADDARRAY() {
           return (key, item) => {
-            const arr = this[GET_KEY]();
+            const arr = [...this[GET_KEY]()];
             if (!arr) {
               return;
             }
@@ -245,21 +284,13 @@ export function DriverComponent(modelProps) {
 
         function DELETEARRAY() {
           return (key) => {
-            const arr = this[GET_KEY]();
+            const arr = [...this[GET_KEY]()];
             if (!arr) {
               return;
             }
             delete arr[key];
             this[SET_KEY](arr);
           };
-        }
-
-        function KEYSARRAY() {
-          return () => Object.keys(this[GET_KEY]() || []);
-        }
-
-        function VALUESARRAY() {
-          return () => Object.values(this[GET_KEY]() || []);
         }
 
         function EXTRA_CONTEXT() {
@@ -301,7 +332,7 @@ export function DriverComponent(modelProps) {
 
               function case_function() {
                 value = (props) => {
-                  if (name.startsWith("get")) {
+                  if (["get", "is"].some((x) => name.startsWith(x))) {
                     if (props == null || props == undefined) {
                       return prop.bind(this)(CONTEXT_GENERAL());
                     }
@@ -344,8 +375,9 @@ export function DriverComponent(modelProps) {
 
         function GET() {
           return (param) => {
-            let RETURN = value || getStorage() || getParam();
+            let RETURN = global.nullish(value, getStorage(), getParam());
             RETURN = filterNumber(RETURN);
+            RETURN = filterBoolean(RETURN);
             RETURN = filterArray(RETURN);
             if (param && isArray) {
               RETURN = RETURN[param];
@@ -403,6 +435,7 @@ export function DriverComponent(modelProps) {
               });
             }
             newValue = filterNumber(newValue);
+            newValue = filterBoolean(newValue);
             newValue = filterArray(newValue);
             if (wasChange()) {
               BURN_STORAGE.bind(this)(newValue);
@@ -419,15 +452,27 @@ export function DriverComponent(modelProps) {
           };
         }
 
+        function filterBoolean(newValue) {
+          if (isBoolean) {
+            newValue = Boolean(newValue);
+          }
+          return newValue;
+        }
+
         function filterArray(newValue) {
           if (isArray) {
             if (typeof newValue == "string") {
               try {
                 newValue = JSON.parse(newValue);
-              } catch (error) {}
+              } catch (error) {
+                console.error("Error al parsear el array", error);
+              }
             }
             if (!Array.isArray(newValue)) {
               newValue = [newValue];
+            }
+            if (!newValue) {
+              newValue = [];
             }
           }
           return newValue;
@@ -448,6 +493,9 @@ export function DriverComponent(modelProps) {
             }
             if (typeof max == "number") {
               newValue = Math.min(newValue, max);
+            }
+            if (!newValue) {
+              newValue = 0;
             }
           }
           return newValue;
@@ -520,8 +568,9 @@ export function DriverComponent(modelProps) {
           });
         }
       });
+
       listSetups.forEach((setup) => {
-        setup.fn.bind(this)(setup.context);
+        setup.fn(setup.context(true));
       });
     }
   })();

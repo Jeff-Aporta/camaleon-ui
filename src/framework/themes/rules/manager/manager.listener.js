@@ -39,6 +39,7 @@ export function triggerThemeChange() {
       listener({
         luminance: getThemeLuminance(),
         name: getThemeName(),
+        pair: getThemeName() + getThemeLuminance(),
         index_listener: i,
         total_listeners: array.length,
       })

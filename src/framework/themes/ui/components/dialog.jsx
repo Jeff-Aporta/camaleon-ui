@@ -63,7 +63,7 @@ function VisiblePart({ className, handleClickOpen, children, ...rest }) {
   return (
     <div
       {...rest}
-      className={`d-inline-block ${global.nullish(className, "")}`}
+      className={`inline-block ${global.nullish(className, "")}`}
       onClick={handleClickOpen}
     >
       {children}

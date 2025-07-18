@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Box, Typography, Alert } from "@mui/material";
-import { DynTable } from "@jeff-aporta/camaleon";
-import { WaitSkeleton, DateRangeControls } from "@components/controls";
+import { DynTable, WaitSkeleton } from "@jeff-aporta/camaleon";
+import { DateRangeControls } from "@components/controls";
 import dayjs from "dayjs";
 import { HTTPGET_WITHDRAWALS } from "@api";
 
@@ -88,7 +88,7 @@ export default function TableWithdrawals({
           Usuario: {user_id}
         </Typography>
       )}
-      <WaitSkeleton h="auto" loading={loading}>
+      <WaitSkeleton loading={loading}>
         <div style={{ width: "100%", overflowX: "auto" }}>
           <DynTable
             columns={columns_config}

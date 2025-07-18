@@ -326,7 +326,7 @@ onMouseMove((e) => {
   percentMouseVec.set(pmx, pmy);
   percentMouseCenterVec.set(map(pmx, 0, 1, -1, 1), map(pmy, 0, 1, -1, 1));
   updateCSS();
-});
+}, document);
 
 onKeyDown((e) => {
   _isKeyPressed[e.key] = true;

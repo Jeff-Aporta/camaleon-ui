@@ -8,7 +8,7 @@ import {
   configUseViewId,
   getUseViewId,
   ToolsCustomizeInFooter,
-} from "@framework";
+} from "@jeff-aporta/camaleon";
 import {
   Box,
   Container,
@@ -109,14 +109,7 @@ function FooterNavSection() {
               >
                 Panel Resumen
               </NavigationLink>
-              <NavigationLink
-                color="inherit"
-                underline="hover"
-                to={{
-                  view: "/dev/bot",
-                  params: { "action-id": "main" },
-                }}
-              >
+              <NavigationLink color="inherit" underline="hover" to="@bot">
                 Panel robot
               </NavigationLink>
             </Box>
@@ -125,7 +118,7 @@ function FooterNavSection() {
           <Grid item xs={12} md={6}>
             <Box sx={{ textAlign: "right" }}>
               <ImageLocal
-                src="img/metadata/logo-hd.svg"
+                src="img/metadata/logo-main.svg"
                 alt="Logo"
                 style={{
                   width: "120px",

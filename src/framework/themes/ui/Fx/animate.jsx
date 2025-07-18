@@ -81,7 +81,8 @@ function drawComponentsAnimate() {
   if (!isAnimateComponentsInPause()) {
     components_animate.forEach((component) => {
       component.msCount += timeSteepRateAnimateComponents;
-      const unitRate = 1000 / component.frameRate;
+      let d = component.frameRate;
+      const unitRate = 1000 / d;
       if (component.msCount >= unitRate) {
         component.forceUpdate();
         component.msCount %= unitRate;
@@ -103,9 +104,12 @@ function removeAnimateComponent(component) {
 export class AnimateComponent extends Component {
   constructor(props) {
     super(props);
-    if (!this.frameRate) {
+    if (!this.props.frameRate) {
       this.frameRate = 15;
+    } else {
+      this.frameRate = this.props.frameRate;
     }
+    this.initFrameRate = this.frameRate;
     this.msCount = 0;
   }
 

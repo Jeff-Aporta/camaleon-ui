@@ -15,7 +15,7 @@ h6 {
   font-style: normal;
 }
 
-hr:not(:is(.MuiDivider-root)) {
+hr {
   width: 100%;
-  opacity: 0.7;
+  opacity: 0.4;
 }

@@ -37,6 +37,9 @@ export function init() {
       "--z-index-mouse-fx-minover": zIndex.MinOverMouseFx,
       "--z-index-minover-scroll": zIndex.MinOverscroll,
     },
+    ".z-ontopfx": {
+      "z-index": zIndex.mouseFxOverall,
+    },
     ".z-notifier": {
       "z-index": zIndex.notifier,
     },

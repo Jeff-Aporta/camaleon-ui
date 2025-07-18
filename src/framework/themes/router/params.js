@@ -3,6 +3,8 @@ import { VIEW_ID } from "../constants.js";
 const lastParams = {};
 const paramListener = [];
 
+Object.assign(lastParams, getAllParams());
+
 export const driverParams = {
   get,
   getOne,

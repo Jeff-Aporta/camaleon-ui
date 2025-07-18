@@ -15,6 +15,8 @@ import {
   getTheme,
   getSelectedPalette,
   getColorBackground,
+  addThemeChangeListener,
+  removeThemeChangeListener,
 } from "../rules/manager/index.js";
 import { initThemeCamaleon } from "../rules/loader.jsx";
 import { CursorLight } from "./Fx/index.js";
@@ -24,46 +26,32 @@ import { fluidCSS } from "../../fluidCSS/index.js";
 import { assignedPath } from "../router/router.jsx";
 import { PromptDialog } from "./PromptDialog.jsx";
 import { NotifierBox } from "./Notifier.jsx";
+import { SVGDefs } from "../../graphics/index.js";
 
 initThemeCamaleon();
 init();
 
-const themeSwitch_listener = [];
-
-export function addThemeSwitchListener(fn) {
-  themeSwitch_listener.push(fn);
-}
-
-export function removeThemeSwitchListener(fn) {
-  if (typeof fn != "number") {
-    fn = themeSwitch_listener.indexOf(fn);
-  }
-  if (fn > -1) {
-    themeSwitch_listener.splice(fn, 1);
-  }
-}
-
-export class Notifier extends React.Component {
+export class CamaleonAppThemeProvider extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
-    this.handleThemeSwitch = () => {
-      this.setState({ theme: getSelectedPalette() });
+    this.handleThemeSwitch = (T) => {
+      const { pair } = T;
+      this.setState({ theme: pair });
     };
   }
 
   componentDidMount() {
-    addThemeSwitchListener(this.handleThemeSwitch);
+    addThemeChangeListener(this.handleThemeSwitch);
   }
 
   componentWillUnmount() {
-    removeThemeSwitchListener(this.handleThemeSwitch);
+    removeThemeChangeListener(this.handleThemeSwitch);
   }
 
   render() {
     const { children } = this.props;
-    const { theme = {} } = this.state;
-    const { palette } = theme;
+    const { theme } = this.state;
 
     return (
       <ThemeProvider theme={getTheme()}>
@@ -72,6 +60,7 @@ export class Notifier extends React.Component {
           {children}
           <NotifierBox position="bottom-right" />
           <PromptDialog />
+          <SVGDefs />
         </div>
       </ThemeProvider>
     );
@@ -95,7 +84,6 @@ export class AppThemeProvider extends Component {
     if (theme_luminance !== getThemeLuminance()) {
       setThemeLuminance(theme_luminance);
     }
-    themeSwitch_listener.forEach((fn) => fn(theme_name, theme_luminance));
   }
 
   componentDidMount() {
@@ -138,7 +126,7 @@ export class AppThemeProvider extends Component {
     });
 
     return (
-      <Notifier>
+      <CamaleonAppThemeProvider>
         <FirstPart
           bgtype={bgtype}
           h_init={h_init}
@@ -153,7 +141,7 @@ export class AppThemeProvider extends Component {
           updateThemeName={(name) => this.setState({ theme_name: name })}
         />
         <CursorLight />
-      </Notifier>
+      </CamaleonAppThemeProvider>
     );
   }
 }

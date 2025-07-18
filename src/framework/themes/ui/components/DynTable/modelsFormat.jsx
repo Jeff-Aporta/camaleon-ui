@@ -87,5 +87,5 @@ function numberFormat(number_format, value, local, retorno) {
 
     retorno = numeroFormateado;
   }
-  return { retorno };
+  return { texto: retorno };
 }

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { DynTable } from "@jeff-aporta/camaleon";
+import { DynTable, WaitSkeleton } from "@jeff-aporta/camaleon";
 
 import columns_user_apis from "./columns-UserApis.jsx";
 import mock_UserApis from "./mock-UserApis.json"; // Corregido nombre archivo mock
 import { Box } from "@mui/material";
-import { WaitSkeleton } from "@components/controls"; // Sin controles de fecha
 
 export default function TableUserApis({
   data = mock_UserApis,
@@ -24,7 +23,7 @@ export default function TableUserApis({
   return (
     <Box>
       {/* Sin DateRangeControls para APIs */}
-      <WaitSkeleton loading={loading} h="300px">
+      <WaitSkeleton loading={loading}>
         <DynTable rows={data} columns={columns_config} {...rest} />
       </WaitSkeleton>
     </Box>

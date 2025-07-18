@@ -8,8 +8,12 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { getUseViewId } from "./storage.js";
-import { setSettingsView, href } from "../rules/manager/index.js";
-import { Link } from "@mui/material";
+import {
+  setSettingsView,
+  restartSettingsView,
+  href,
+} from "../rules/manager/index.js";
+import { Button, Link } from "@mui/material";
 import { subscribeParam, driverParams, _setURLParams } from "./params.js";
 import { buildHref, hrefManagement } from "./builder.js";
 import {
@@ -29,6 +33,7 @@ import {
 } from "./inference.js";
 import { JS2CSS } from "../../fluidCSS/JS2CSS/index.js";
 import { VIEW_ID } from "../constants.js";
+import { removeAllNotify } from "../ui/Notifier.jsx";
 
 let querypath = "";
 let assignedpath = "";
@@ -46,6 +51,10 @@ const fades = {
   fadeOut: {},
 };
 
+export function getFadeInfo() {
+  return fades;
+}
+
 export function setTransition({
   fadein = {},
   fadeout = {},
@@ -56,7 +65,7 @@ export function setTransition({
   Object.assign(fades.fadeOut, fadeout);
   Object.assign(fades.fadeIn, fade);
   Object.assign(fades.fadeOut, fade);
-  fades.time = time;
+  fades.time = time * 1.1;
 }
 
 export class RoutingManagement_ extends Component {
@@ -71,7 +80,13 @@ export class RoutingManagement_ extends Component {
               ".CamaleonAppThemeProvider": fades.fadeOut,
             });
           });
+          this.hidding = true;
+          removeAllNotify();
           this.forceUpdate();
+          setTimeout(() => {
+            this.hidding = false;
+            this.forceUpdate();
+          }, 0.5 * fades.time);
         },
       },
       this
@@ -84,6 +99,12 @@ export class RoutingManagement_ extends Component {
         id: "effect-change-view-id",
         ".CamaleonAppThemeProvider": fades.fadeIn,
       });
+      setTimeout(() => {
+        JS2CSS.insertStyle({
+          id: "effect-change-view-id",
+          ".CamaleonAppThemeProvider": {},
+        });
+      }, 1.3 * fades.time);
     }, fades.time);
   }
 
@@ -97,6 +118,9 @@ export class RoutingManagement_ extends Component {
 
   render() {
     const { ...props } = this.props;
+    if (this.hidding) {
+      return <></>;
+    }
     return (
       <Routes>
         <Route path="/" element={<RouteComponent {...props} />} />
@@ -150,14 +174,21 @@ function RouteComponent({
     return;
   }
 
-  const check = routeCheck({
+  let check = routeCheck({
     querypath,
   });
 
   if (check) {
-    driverParams.set("message", check);
+    if (typeof check != "object") {
+      check = { message: check };
+    }
+    check.message = check.message.replace(/\s+/g, " ");
     return (
-      componentError(check) || resolvePath(inferMAIN_FOLDER("unauthorize"))
+      componentError(check) ||
+      (() => {
+        const unauthEl = resolvePath(inferMAIN_FOLDER("unauthorize"));
+        return React.cloneElement(unauthEl, { ...check });
+      })()
     );
   }
 
@@ -202,20 +233,31 @@ export function NavigationLink({
   scrolltop = true,
   target = "_self",
   children,
+  disabled = false,
+  className = "",
+  underline = "hover",
+  color = "toPaperBOW50",
+  colorDisabled = "toGray25",
+  isButton = false,
+  startIcon,
   ...rest
 }) {
   const navigate = useNavigate();
   to = hrefManagement(to);
   const url = buildHref(to);
-  const view_Id = driverParams.getOne(VIEW_ID);
 
   const handleClick = (e) => {
     e.preventDefault();
+    if (disabled) {
+      return;
+    }
+    const view_Id = driverParams.getOne(VIEW_ID);
     if (to.view != view_Id) {
       if (view_Id) {
         _setURLParams("replaceState", url);
       } else {
-        if (target == "_self") {
+        const isExternal = url.startsWith("http");
+        if (target == "_self" || !isExternal) {
           navigate(url, { replace: true });
         } else {
           window.open(url, target);
@@ -225,8 +267,44 @@ export function NavigationLink({
     scrolltop && window.scrollTo(0, 0);
   };
 
+  let cursor = "";
+
+  if (disabled) {
+    cursor = "pointer-not-allowed";
+    underline = "always";
+    color = colorDisabled;
+  } else {
+    if (target != "_self") {
+      cursor = "pointer-alias";
+    }
+  }
+
+  if (isButton) {
+    return (
+      <Button
+        className={className}
+        variant="contained"
+        color={color}
+        startIcon={startIcon}
+        onClick={handleClick}
+        href={url}
+        disabled={disabled}
+        {...rest}
+      >
+        {children}
+      </Button>
+    );
+  }
+
   return (
-    <Link href={url} onClick={handleClick} {...rest}>
+    <Link
+      className={[cursor, className].filter(Boolean).join(" ")}
+      href={url}
+      onClick={handleClick}
+      underline={underline}
+      color={color}
+      {...rest}
+    >
       {children}
     </Link>
   );

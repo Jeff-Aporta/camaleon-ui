@@ -9,7 +9,7 @@ import StatusErrorIcon from "@mui/icons-material/UnpublishedOutlined";
 import TagFacesOutlinedIcon from "@mui/icons-material/TagFacesOutlined";
 import CurrencyExchangeIcon from "@mui/icons-material/CurrencyExchange";
 
-const retorno = [
+export default () => [
   {
     inTable: false,
     field: "idtransaction",
@@ -31,7 +31,7 @@ const retorno = [
     field: "profit",
     headerName: "Beneficio",
     description: "Ganancia obtenida.",
-    ...getModelsFormat().profit,
+    ...getModelsFormat().profit_op,
   },
   {
     field: "origin_transaction",
@@ -119,7 +119,6 @@ const retorno = [
     field: "create_time",
     headerName: "create_time",
     description: "Fecha de creación de la transacción (solo interno).",
-    ...getModelsFormat().datetime,
   },
   {
     field: "limit_to_buy",
@@ -137,14 +136,12 @@ const retorno = [
     field: "start_date_transaction",
     headerName: "Inicio",
     description: "Fecha y hora de inicio de la transacción.",
-    ...getModelsFormat().datetime,
+    ...getModelsFormat().dateFormat2,
   },
   {
     field: "end_date_transaction",
     headerName: "Final",
     description: "Fecha y hora de cierre de la transacción.",
-    ...getModelsFormat().datetime,
+    ...getModelsFormat().dateFormat2,
   },
 ];
-
-export default retorno;

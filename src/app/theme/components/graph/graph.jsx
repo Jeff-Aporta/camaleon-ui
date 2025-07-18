@@ -1,6 +1,6 @@
 import React from "react";
 import { LineChart, areaElementClasses } from "@mui/x-charts/LineChart";
-import { getTheme, isDark, idR } from "@framework";
+import { getTheme, isDark } from "@jeff-aporta/camaleon";
 
 export const CHART_HEIGHT = 300;
 
@@ -17,7 +17,7 @@ function ColorSwitch({ threshold, color1, color2, id }) {
 
 export function Graph({ i, ...props }) {
   const theme = getTheme();
-  const id = idR("id-");
+  const idR = Math.random().toString(36).replace("0.", "id-");
   const { xdata, series, zoomlevel } = props;
   const overlayer = i === series.length - 1;
   const enfasis = theme.palette.background.paper;
@@ -29,9 +29,7 @@ export function Graph({ i, ...props }) {
       } !important`,
     },
     "& .MuiChartsAxis-line": {
-      stroke: `${
-        overlayer ? theme.palette.secondary.main : "transparent"
-      } !important`,
+      stroke: `${overlayer ? theme.palette.secondary.main : "transparent"} !important`,
     },
     "& .MuiChartsAxis-root": {
       fill: overlayer ? theme.palette.secondary.main : "transparent",
@@ -46,7 +44,7 @@ export function Graph({ i, ...props }) {
       fontSize: 12,
     },
     [`& .${areaElementClasses.root}`]: {
-      fill: `url(#swich-color-${id})`,
+      fill: `url(#swich-color-${idR})`,
     },
   };
 
@@ -74,7 +72,7 @@ export function Graph({ i, ...props }) {
         {
           valueFormatter: (value) =>
             overlayer
-              ? new Intl.NumberFormat("es-ES", {
+              ? new Intl.NumberFormat("en-US", {
                   style: "currency",
                   currency: "USD",
                   minimumFractionDigits: 2,
@@ -91,7 +89,7 @@ export function Graph({ i, ...props }) {
           series.find((d) => d.area)?.color
         }
         color2={enfasis}
-        id={`swich-color-${id}`}
+        id={`swich-color-${idR}`}
       />
     </LineChart>
   );

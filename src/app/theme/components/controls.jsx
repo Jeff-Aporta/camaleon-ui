@@ -15,24 +15,19 @@ import dayjs from "dayjs";
 import es from "dayjs/locale/es";
 import { format } from "date-fns";
 import { es as esLocale } from "date-fns/locale";
-import { getPaletteConfig, fluidCSS, driverParams } from "@framework";
+import {
+  getPaletteConfig,
+  fluidCSS,
+  driverParams,
+  WaitSkeleton
+} from "@jeff-aporta/camaleon";
 import React, { useState, useEffect } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 
 export * from "./controls/DateRangeControls";
 
-export function WaitSkeleton({ loading, w = "100%", h = "5vh", ...rest }) {
-  if (loading == null || loading == undefined) {
-    return <></>;
-  }
-  return loading ? (
-    <Skeleton style={{ height: h, width: `max(100px, ${w})` }} />
-  ) : (
-    <div {...rest} />
-  );
-}
-
+// TO DO: revisar posibilidad de remover con nuevos desarrollos
 export function UserFilterControl({
   value = "",
   onChange,
@@ -70,7 +65,7 @@ export function UserFilterControl({
   };
 
   return (
-    <WaitSkeleton h="10vh" w={`${width}px`} loading={loading}>
+    <WaitSkeleton loading={loading}>
       <Box sx={{ display: "flex", alignItems: "center" }}>
         <TextField
           label={label}

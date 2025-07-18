@@ -17,7 +17,6 @@ import {
   isDark,
   getThemeLuminance,
   setThemeLuminance,
-  processSettingsView,
 } from "./manager.vars.js";
 import { millis } from "../../../tools/time.js";
 
@@ -55,11 +54,13 @@ export function muiColors(palette, darkMode) {
   const retorno = Object.entries(colors).reduce((acc, [key, value]) => {
     const bg = value.color;
     let color = value.text;
-    if (bg.isLight() && color.isLight()) {
-      color = color.invertnohue();
-    }
-    if (bg.isDark() && color.isDark()) {
-      color = color.invertnohue();
+    if(!value.inmutable){
+      if (bg.isLight() && color.isLight()) {
+        color = color.invertnohue();
+      }
+      if (bg.isDark() && color.isDark()) {
+        color = color.invertnohue();
+      }
     }
     acc[key] = {
       main: bg.hex(),
@@ -86,7 +87,6 @@ export function isBGDark() {
 }
 
 export function applyTheme() {
-  setTimeout(processSettingsView);
   const themeSelected = getPaletteConfig();
   const colorFont = ["#ffffff", "#000000"];
   themeSelected.willLoad(isDark());

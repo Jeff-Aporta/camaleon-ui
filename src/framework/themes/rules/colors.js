@@ -69,6 +69,7 @@ Object.entries({
 export function getPrimaryColors() {
   return {
     red: Color("rgb(255, 0, 0)"),
+    darkred: Color("rgb(128, 0, 0)"),
     green: Color("rgb(0, 255, 0)"),
     blue: Color("rgb(0, 0, 255)"),
     yellow: Color("rgb(255, 255, 0)"),

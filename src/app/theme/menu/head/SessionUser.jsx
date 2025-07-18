@@ -11,7 +11,7 @@ import {
   Avatar,
 } from "@mui/material";
 
-import { NavigationLink } from "@framework";
+import { NavigationLink } from "@jeff-aporta/camaleon";
 import { handleLogout, isLogged, isLoginPage, user } from "./head";
 import LogoutIcon from "@mui/icons-material/Logout";
 import LoginIcon from "@mui/icons-material/Login";

@@ -1,14 +1,12 @@
-// ---------------------------------------------
-// 1. Display Utilities
-// ---------------------------------------------
-@each $value in (flex, inline-flex, none, block, inline-block) {
-  .d-#{$value},
-  .d-#{$value}-col,
-  .#{$value} {
+@each $value in (none) {
+  .d-#{$value} {
     display: $value !important;
   }
-  .d-#{$value}-col {
-    flex-direction: column !important;
+}
+
+@each $value in (inline-flex, flex, block, inline-block) {
+  .#{$value} {
+    display: $value !important;
   }
 }
 
@@ -24,74 +22,46 @@
   flex-direction: column-reverse !important;
 }
 
-.flex-row {
-  @extend .flex;
-  @extend .row-direction;
-}
-
-.flex-col {
-  @extend .flex;
-  @extend .col-direction;
-}
-
 .wrap {
   flex-wrap: wrap !important;
 }
 
-.wflex {
-  @extend .flex;
-  @extend .wrap;
-}
-
-.wflex-row {
-  @extend .flex-row;
-  @extend .wrap;
-}
-
-.wflex-col {
-  @extend .flex-col;
-  @extend .wrap;
+.nowrap {
+  white-space: nowrap;
+  flex-wrap: nowrap;
 }
 
 .d-center {
-  @extend .flex;
+  display: flex !important;
   justify-content: center !important;
   align-items: center !important;
 }
 
 .d-end {
-  @extend .flex;
+  display: flex !important;
   justify-content: end !important;
   align-items: end !important;
 }
 
-@each $value in (center, space-between, space-evenly, space-around, end, start)
-{
-  .jc-#{$value},
+@each $value in (center, end, start) {
   .justify-#{$value} {
     justify-content: $value !important;
   }
 }
 
-.space-between {
-  @extend .jc-space-between;
-}
-
-.space-evenly {
-  @extend .jc-space-evenly;
-}
-
-.space-around {
-  @extend .jc-space-around;
+@each $value in (space-between, space-evenly, space-around) {
+  .justify-#{$value},
+  .#{$value} {
+    justify-content: $value !important;
+  }
 }
 
 @each $value in (center, end, start, stretch) {
-  .ai-#{$value},
   .align-#{$value} {
     align-items: $value !important;
   }
 }
 
 .stretch {
-  @extend .ai-stretch;
+  align-items: stretch !important;
 }

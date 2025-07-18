@@ -220,6 +220,9 @@ export function initializeThemesPolychroma() {
     red: {
       label: "Rojo",
     },
+    darkred: {
+      label: "Rojo oscuro",
+    },
     yellow: {
       label: "Amarillo",
       whiten: {

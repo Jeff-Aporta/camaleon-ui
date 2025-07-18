@@ -3,7 +3,7 @@ import { getModelsFormat } from "@jeff-aporta/camaleon";
 import StatusOpenIcon from "@mui/icons-material/HourglassTop";
 import StatusCloseIcon from "@mui/icons-material/HourglassBottom";
 
-const retorno = [
+export default () => [
   {
     inTable: false,
     field: "id_operation",
@@ -51,6 +51,7 @@ const retorno = [
   {
     field: "profit",
     headerName: "Beneficio",
+    fit_content: true,
     description: "Ganancia obtenida de la operación.",
     ...getModelsFormat().profit_op,
   },
@@ -69,6 +70,7 @@ const retorno = [
   {
     field: "price_buy",
     headerName: "Compra",
+    space_between: true,
     description: "Precio de compra de la moneda en USDC.",
     ...getModelsFormat().currentCoin,
   },
@@ -118,13 +120,13 @@ const retorno = [
     field: "start_date_operation",
     headerName: "Inicio",
     description: "Fecha y hora en que comenzó la operación.",
-    ...getModelsFormat().datetime,
+    ...getModelsFormat().dateFormat2,
   },
   {
     field: "end_date_operation",
     headerName: "Fin",
     description: "Fecha y hora en que finalizó la operación.",
-    ...getModelsFormat().datetime,
+    ...getModelsFormat().dateFormat2,
   },
   {
     inTable: false,
@@ -132,7 +134,6 @@ const retorno = [
     field: "create_date",
     headerName: "create_date",
     description: "Fecha de creación interna de la operación.",
-    ...getModelsFormat().datetime,
   },
   {
     field: "number_of_transactions",
@@ -141,5 +142,3 @@ const retorno = [
     inTable: false,
   },
 ];
-
-export default retorno;

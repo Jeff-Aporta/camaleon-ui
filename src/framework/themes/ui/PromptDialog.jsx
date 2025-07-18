@@ -16,7 +16,16 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
-import {DriverComponent} from "../../tools/DriverComponent.js"
+import { DriverComponent } from "../../tools/DriverComponent.js";
+import { TooltipGhost } from "./components/index.js";
+import { AddSVGFilter } from "../../graphics/index.js";
+import { Color } from "../rules/colors.js";
+
+import {
+  getPrimaryColor,
+  getSecondaryColor,
+  isDark,
+} from "../rules/manager/index.js";
 
 const driverDialog = DriverComponent({
   dialog: {
@@ -24,6 +33,7 @@ const driverDialog = DriverComponent({
     show(props) {
       return this.showPromptDialog({
         ...props,
+        dividerTitleBody: null,
         showCancelButton: false,
         input: "confirm",
       });
@@ -157,6 +167,34 @@ export class PromptDialog extends Component {
 
   componentDidMount() {
     driverDialog.setDialog(this);
+    AddSVGFilter(({ escapeSVGString }) => [
+      {
+        id: "effect-glass",
+        body: [
+          {
+            type: "feImage",
+            xlinkHref: escapeSVGString({
+              width: 9999,
+              height: 9999,
+              body: `<rect 
+                width="100%" 
+                height="100%" 
+                fill="black" 
+              />`,
+            }),
+            result: "img3",
+          },
+          {
+            type: "feDisplacementMap",
+            scale: "30",
+            xChannelSelector: "R",
+            yChannelSelector: "G",
+            in2: "img3",
+            in: "SourceGraphic",
+          },
+        ],
+      },
+    ]);
   }
 
   render() {
@@ -168,7 +206,7 @@ export class PromptDialog extends Component {
       validationError,
       onValidate,
       input = "text",
-      Actions,
+      Actions = () => null,
       footer,
       showConfirmButton = true,
       showCancelButton = true,
@@ -176,27 +214,42 @@ export class PromptDialog extends Component {
       confirmText = "aceptar",
       cancelText = "cancelar",
       label = "Valor",
+      variantConfirmButton = "contained",
+      colorConfirmButton = "contrastPaper",
+      variantCancelButton,
+      colorCancelButton = "secondary",
+      model,
+      dividerTitleBody = <Divider />,
+      ...rest
     } = this.state;
 
     return (
-      <Dialog open={open} onClose={this.handleCancel} disablePortal>
-        <DialogTitle sx={{ m: 0, p: 2, pr: 10 }}>
-          <Typography variant="h4" component="div">
+      <Dialog
+        open={open}
+        onClose={this.handleCancel}
+        disablePortal
+        container={document.body}
+        {...processModel({ model, ...rest })}
+      >
+        <DialogTitle sx={{ m: 0, pr: 10 }}>
+          <Typography variant="h5" component="div">
             {title}
           </Typography>
           {showCloseButton && (
-            <IconButton
-              aria-label="close"
-              color="secondary"
-              size="small"
-              onClick={this.handleCancel}
-              sx={{ position: "absolute", right: 8, top: 8 }}
-            >
-              <CloseIcon />
-            </IconButton>
+            <TooltipGhost title="Cerrar" onClick={this.handleCancel}>
+              <IconButton
+                aria-label="close"
+                color="contrastPaper"
+                size="small"
+                onClick={this.handleCancel}
+                sx={{ position: "absolute", right: "5px", top: "5px" }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </TooltipGhost>
           )}
         </DialogTitle>
-        <Divider />
+        {dividerTitleBody}
         <DialogContent>
           {validationError && (
             <Alert
@@ -211,7 +264,9 @@ export class PromptDialog extends Component {
               }
             </Alert>
           )}
-          <p>{description}</p>
+          <Typography variant="body2" component="div">
+            {description}
+          </Typography>
           {(() => {
             if (React.isValidElement(input)) {
               return (
@@ -297,15 +352,19 @@ export class PromptDialog extends Component {
             handleConfirm={this.handleConfirm}
           />
           {showCancelButton && (
-            <Button onClick={this.handleCancel} color="secondary">
+            <Button
+              onClick={this.handleCancel}
+              color={colorCancelButton}
+              variant={variantCancelButton}
+            >
               {cancelText}
             </Button>
           )}
           {showConfirmButton && (
             <Button
               onClick={this.handleConfirm}
-              variant="contained"
-              color="contrastpaperbow"
+              variant={variantConfirmButton}
+              color={colorConfirmButton}
             >
               {confirmText}
             </Button>
@@ -314,4 +373,48 @@ export class PromptDialog extends Component {
       </Dialog>
     );
   }
+}
+function processModel({ model, BackdropProps = {}, PaperProps = {} }) {
+  if (model) {
+    [BackdropProps, PaperProps].forEach((item) => {
+      if (!item.style) {
+        item.style = {};
+      }
+    });
+  }
+  switch (model) {
+    case "glass":
+      Object.assign(BackdropProps.style, {
+        background: `rgba(${[Color("white"), Color("black")][+isDark()]
+          .array()
+          .join(",")}, 0.4)`,
+      });
+      const op_lumin = [0.5, 1][+isDark()];
+      Object.assign(PaperProps.style, {
+        boxShadow: Array.from(
+          [{ radius: 3, color: Color("gray") }, { radius: 7 }, { radius: 20 }],
+          ({ radius, color }) =>
+            `inset 0 0 ${radius}px rgba(${(
+              color || [getPrimaryColor(), Color("white")][+isDark()]
+            )
+              .array()
+              .join(",")}, ${0.3 * op_lumin})`
+        ).join(","),
+        border: `2px solid rgba(${getSecondaryColor()
+          .rgb()
+          .array()
+          .join(",")},${op_lumin})`,
+        background: `rgba(${[Color("white"), getPrimaryColor()][+isDark()]
+          .rgb()
+          .array()
+          .join(",")},
+          0.2
+        )`,
+        backdropFilter: `url(#effect-glass) brightness(1.2) contrast(${
+          1 + 0.02 * [1, -1][+isDark()]
+        }) blur(1px)`,
+      });
+  }
+
+  return { BackdropProps, PaperProps };
 }

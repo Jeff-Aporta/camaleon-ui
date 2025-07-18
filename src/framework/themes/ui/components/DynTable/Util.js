@@ -10,7 +10,3 @@ export function genAllColumns(content) {
    description: "",
  }));
 }
-
-export function exclude(columns) {
- return columns.filter((x) => x.exclude != true);
-}

@@ -1,6 +1,7 @@
 import React from "react";
-import { Main } from "@theme/main";
-import { DivM, PaperP } from "@framework";
+
+import { Main } from "@theme/main.jsx";
+import { DivM, PaperP } from "@jeff-aporta/camaleon";
 import { Typography } from "@mui/material";
 
 export default State404;

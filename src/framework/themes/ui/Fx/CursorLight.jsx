@@ -14,7 +14,7 @@ import {
   mouseLeftPressed,
 } from "../../../events/events.base.js";
 
-import { zIndex } from "../../ui/constants.js";
+import { zIndex } from "../constants.js";
 
 import { getAdjacentPrimaryColor } from "../../rules/manager/index.js";
 

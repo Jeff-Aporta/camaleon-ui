@@ -1,6 +1,6 @@
 import { isDark } from "./manager.vars.js";
 import { Color } from "../colors.js";
-import { clamp, map } from "../../../tools/index.js";
+import { firstUppercase, map } from "../../../tools/index.js";
 import { buildHref } from "../../router/index.js";
 import { themeColors } from "../colors.js";
 
@@ -88,7 +88,7 @@ export class PaletteGeneral {
   colors(darkmode) {
     const blanco = Color("white");
     const negro = Color("black");
-    const color_contrast = [blanco, negro][+darkmode];
+    const color_contrast = [negro, blanco][+darkmode];
     return {
       cancel: {
         color: Color(["tomato", "crimson"][+darkmode]),
@@ -98,9 +98,15 @@ export class PaletteGeneral {
         color: Color(["darkorange", "orange"][+darkmode]),
         text: color_contrast,
       },
+      success: {
+        color: Color(["lightgreen", "limegreen"][+darkmode]),
+        text: color_contrast,
+        inmutable: true
+      },
       ok: {
         color: Color("#29A529"),
         text: blanco,
+        inmutable: true
       },
       ...Object.entries(themeColors()).reduce((acc, [key, value]) => {
         acc[key] = {
@@ -328,18 +334,18 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
   }
 
   getSecondaryColor() {
-    return this.secondary || this.primary.toGray(0.5);
+    return this.primary.toLerp(Color("slategray"), 0.5);
   }
 
   getTriadeColors() {
     const primary = this.getPrimaryColor();
-    const primary2 = primary.rotate(120); // right triade
-    const primary3 = primary.rotate(240); // left triade
-    return [primary, primary2, primary3];
+    const triade2 = primary.rotate(120); // right triade
+    const triade3 = primary.rotate(240); // left triade
+    return [primary, triade2, triade3];
   }
 
   getContrastPaper() {
-    return this.contrastpaper;
+    return this.contrastPaper;
   }
 
   getConstrast() {
@@ -347,11 +353,11 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
   }
 
   getContrastPaperBow() {
-    return this.contrastpaperbow;
+    return this.contrastPaperBOW;
   }
 
   getContrastBow() {
-    return this.contrastbow;
+    return this.contrastBOW;
   }
 
   getComplement() {
@@ -369,17 +375,17 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
 
     this.contrast = calculateContrastBG(primary, this.getbg(darkmode, false));
 
-    this.contrastpaper = calculateContrastBG(
+    this.contrastPaper = calculateContrastBG(
       primary,
       this.getbgPaper(darkmode, false)
     );
 
-    this.contrastbow = calculateContrastBG(
+    this.contrastBOW = calculateContrastBG(
       [Color("black"), Color("white")],
       this.getbg(darkmode, false)
     );
 
-    this.contrastpaperbow = calculateContrastBG(
+    this.contrastPaperBOW = calculateContrastBG(
       [Color("black"), Color("white")],
       this.getbgPaper(darkmode, false)
     );
@@ -419,19 +425,18 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
       return colorOver;
     }
 
-    const [, primary2, primary3] = this.getTriadeColors(primary);
+    const [triade1, triade2, triade3] = this.getTriadeColors(primary);
 
     this.complement = primary.rotate(180);
 
-    const [
-      [primaryl1, primaryl2, primaryl3, primaryl4],
-      [primaryd1, primaryd2, primaryd3, primaryd4],
-    ] = [
-      this.getAdjacentPrimaryColor({ n: 4 }), // adjacents lights
-      this.getAdjacentPrimaryColor({ n: 4, light: false }), // adjacents darks
+    const [[l1, l2, l3, l4], [d1, d2, d3, d4]] = [
+      this.getAdjacentPrimaryColor({ n: 5 }), // adjacents lights
+      this.getAdjacentPrimaryColor({ n: 5, light: false }), // adjacents darks
     ];
-    const secondary = this.getSecondaryColor();
-    this.secondary = secondary;
+    const [[l30, l60, l90, l120, l150], [d30, d60, d90, d120, d150]] = [
+      this.getAdjacentPrimaryColor({ n: 6 }), // adjacents lights
+      this.getAdjacentPrimaryColor({ n: 6, light: false }), // adjacents darks
+    ];
 
     function genObjMui(props) {
       const retorno = {};
@@ -444,26 +449,87 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
       return retorno;
     }
 
+    const colorsCamaleon = {
+      triade1,
+      triade2,
+      triade3,
+      l1,
+      l2,
+      l3,
+      l4,
+      l30,
+      l60,
+      l90,
+      l120,
+      l150,
+      d1,
+      d2,
+      d3,
+      d4,
+      d30,
+      d60,
+      d90,
+      d120,
+      d150,
+      primary,
+      white: Color("white"),
+      black: Color("black"),
+      gray: Color("slategray"),
+      pr: primary,
+      pri: primary.invert(),
+      prinh: primary.invertnohue(),
+      contrast: this.contrast,
+      contrastBOW: this.contrastBOW,
+      contrastPaper: this.contrastPaper,
+      contrastPaperBOW: this.contrastPaperBOW,
+      complement: this.complement,
+      secondary: this.getSecondaryColor(),
+      ...toColorSteep25.bind(this)("PaperBOW", primary),
+      ...toColorSteep25.bind(this)("BOW", primary),
+      ...toColorSteep25("gray", primary),
+      ...toColorSteep25("red", primary),
+      ...toColorSteep25("green", primary),
+      ...toColorSteep25("orange", primary),
+      ...toColorSteep25("slategray", primary, "secondary"),
+      ...toColorSteep25("crimson", primary, "danger"),
+      ...toColorSteep25("limegreen", primary, "safety"),
+      ...toColorSteep25("darkorange", primary, "caution"),
+      ...toColorSteep25("deepskyblue", primary, "info"),
+    };
+    this.colorsCamaleonKeys = Object.keys(colorsCamaleon);
+
     return {
       ...super.colors(darkmode),
-      ...genObjMui({
-        primary,
-        contrast: this.contrast,
-        contrastpaper: this.contrastpaper,
-        complement: this.complement,
-        primary2,
-        primary3,
-        primaryl1,
-        primaryl2,
-        primaryl3,
-        primaryl4,
-        primaryd1,
-        primaryd2,
-        primaryd3,
-        primaryd4,
-        secondary,
-      }),
+      ...genObjMui(colorsCamaleon),
     };
+
+    function toColorSteep25(name_color, from, mask_name_color, color) {
+      if (!mask_name_color) {
+        mask_name_color = name_color;
+      }
+      switch (name_color.toLowerCase()) {
+        case "paperbow":
+          color = this.contrastPaperBOW;
+          break;
+        case "bow":
+          color = this.contrastBOW;
+          break;
+      }
+      return {
+        [`to${firstUppercase(mask_name_color)}25`]: from.toLerp(
+          color || Color(name_color.toLowerCase()),
+          0.25
+        ),
+        [`to${firstUppercase(mask_name_color)}50`]: from.toLerp(
+          color || Color(name_color.toLowerCase()),
+          0.5
+        ),
+        [`to${firstUppercase(mask_name_color)}75`]: from.toLerp(
+          color || Color(name_color.toLowerCase()),
+          0.75
+        ),
+      };
+    }
   }
 
   willLoad(darkmode) {
@@ -505,21 +571,8 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
       Button: {
         ...Button,
         ...[
-          "primary",
-          "primaryi",
-          "primary2",
-          "primary3",
-          "primaryl1",
-          "primaryl2",
-          "primaryl3",
-          "primaryd1",
-          "primaryd2",
-          "primaryd3",
+          ...this.colorsCamaleonKeys,
           "secondary",
-          "error",
-          "warning",
-          "info",
-          "success",
         ]
           .map((state) => {
             if (!Button[state]) {

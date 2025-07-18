@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Typography, Button, Tooltip } from "@mui/material";
 import { ZoomIn, ZoomOut, RestartAlt } from "@mui/icons-material";
-import { fluidCSS, PaperP, isDark } from "@framework";
+import { fluidCSS, PaperP, isDark } from "@jeff-aporta/camaleon";
 import dayjs from "dayjs";
 
 import { useDrag, usePinch } from "@use-gesture/react";

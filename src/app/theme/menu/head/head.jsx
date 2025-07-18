@@ -47,7 +47,7 @@ import {
   Hm,
   LuminanceThemeSwitch,
   NavigationLink,
-} from "@framework";
+} from "@jeff-aporta/camaleon";
 
 import { SessionUser } from "./SessionUser";
 
@@ -215,7 +215,7 @@ function LogoHome() {
         className="d-center gap-10px c-pointer"
       >
         <ImageLocal
-          src={`img/metadata/logo-sd.svg`}
+          src={`img/metadata/logo-main.svg`}
           width="40"
           className={fluidCSS()
             .lerpX("responsive-min", { width: [30, 40] })
@@ -245,17 +245,17 @@ function LogoHome() {
               .lerpX("responsive-min", { fontSize: [15, 20] })
               .end()}
           >
-            Camaleón UI
+            Fyxtoken
           </Typography>
           <Typography
             style={{
               fontFamily: "lemonmilk-rg",
               fontSize: "45%",
             }}
-            color="primaryl3"
+            color="contrastPaper"
             sx={{ display: { xs: "none", sm: "block" } }}
           >
-            Interfaz de usuario
+            Futuro financiero
           </Typography>
         </Box>
       </NavigationLink>

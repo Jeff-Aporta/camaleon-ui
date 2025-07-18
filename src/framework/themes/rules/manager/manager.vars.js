@@ -1,15 +1,25 @@
 import { isReadyThemeChange } from "./manager.listener.js";
 import { applyTheme } from "./manager.js";
 
+import { getFadeInfo } from "../../router/router.jsx";
+
 let _name_;
 let _luminance_;
-let _settingsView_ = {};
+let _name_force_;
+let _luminance_force_;
+let _main_title_;
+let _main_subtitle_;
 const _createThemeName_ = []; // Filtro de nombre para creación
 const _excludeThemeName_ = []; // Filtro de nombre para excluir creación
 
 const MUIDefaultValues = {
   loadScrollsbar: {},
 };
+
+export function setMainTitle(title, subtitle) {
+  _main_title_ = title;
+  _main_subtitle_ = subtitle;
+}
 
 export function getCreateThemeName() {
   return _createThemeName_;
@@ -32,25 +42,24 @@ export function getMUIDefaultValues() {
 }
 
 export function setSettingsView(settingsView) {
-  Object.assign(_settingsView_, settingsView);
-}
-
-export function getSettingsView() {
-  return _settingsView_;
-}
-
-export function processSettingsView() {
-  const { title, theme = {} } = _settingsView_;
-  const { luminance, name } = theme;
-  if (title) {
-    document.title = title;
-  }
-  if (luminance) {
-    setThemeLuminance(luminance);
-  }
-  if (name) {
-    setThemeName(name);
-  }
+  setTimeout(() => {
+    const {
+      title = _main_title_,
+      subtitle = _main_subtitle_,
+      theme = {},
+    } = settingsView;
+    const { luminance, name } = theme;
+    _luminance_force_ = luminance;
+    _name_force_ = name;
+    const new_title = [title, subtitle]
+    .filter((x) => typeof x == "string")
+    .join(" | ");
+    console.log(title, subtitle, new_title);
+    if (new_title) {
+      document.title = new_title;
+    }
+    applyTheme();
+  }, 1.5 * getFadeInfo().time);
 }
 
 export function isDark() {
@@ -73,7 +82,7 @@ export function getAllThemesRegistered() {
 }
 
 export function defaultThemeName(name) {
-  if(localStorage.getItem("theme-name")) {
+  if (localStorage.getItem("theme-name")) {
     return;
   }
   localStorage.setItem("theme-name", name);
@@ -113,12 +122,12 @@ function initLuminance(luminance) {
 
 export function getThemeName() {
   initThemeName();
-  return _name_;
+  return _name_force_ || _name_;
 }
 
 export function getThemeLuminance() {
   initLuminance();
-  return _luminance_;
+  return _luminance_force_ || _luminance_;
 }
 
 export function setThemeName(name) {

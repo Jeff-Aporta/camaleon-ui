@@ -1,6 +1,13 @@
 import React, { Component } from "react";
 
-import { Typography, IconButton, Paper, CircularProgress } from "@mui/material";
+import {
+  Typography,
+  IconButton,
+  Paper,
+  CircularProgress,
+  Alert,
+  Button,
+} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
@@ -14,45 +21,42 @@ const SUCCESS_ICON = <CheckCircleIcon color="success" fontSize="small" />;
 const WARNING_ICON = <WarningAmberIcon color="warning" fontSize="small" />;
 const ERROR_ICON = <ErrorIcon color="error" fontSize="small" />;
 const INFO_ICON = <InfoIcon color="info" fontSize="small" />;
-const LOADING_ICON = <CircularProgress size={16} color="complement" />;
+const LOADING_ICON = <CircularProgress size={16} color="contrastPaperBOW" />;
 
 const driverNotifier = DriverComponent({
-  notifier: {},
+  DURATION: 10_000,
+  MAX_DURATION: 100_000_000,
+  notifierBox: {},
   notify: {
-    value: [],
-    getByID(id) {
-      return this.getNotify().find((item) => item.id == id);
+    isArray: true,
+    getByID(id, { getValue }) {
+      return getValue().find((item) => item.id == id);
     },
-    remove(id) {
-      const notification = this.getByIDNotify(id);
+    remove(id, { getValue, setValue, remove, getByID }) {
+      const notification = getByID(id);
       if (notification) {
-        if (notification.hover) {
-          return setTimeout(() => this.removeNotify(id), 2000);
-        }
-        const listNotify = this.getNotify();
+        const listNotify = [...getValue()];
         listNotify.splice(listNotify.indexOf(notification), 1);
-        this.updateNotifier();
+        setValue(listNotify);
       }
     },
-    send({ duration = 10000, id = Date.now(), ...props }) {
-      if (typeof duration !== "number") {
-        console.warn("sendNotify: duration must be a number", duration);
-        duration = 3000;
+    send(
+      { id = Date.now(), duration, ...props },
+      { getValue, exists, update, send, remove, DURATION, push }
+    ) {
+      if (!duration) {
+        duration = DURATION;
       }
-      this.getNotify().push({
+      if (typeof duration !== "number") {
+        console.warn("sendNotify: DURATION must be a number", DURATION);
+        duration = DURATION;
+      }
+      push({
         id,
         ...props,
       });
-      if (this.existsNotifier()) {
-        this.updateNotifier();
-      } else {
-        return setTimeout(
-          () => this.sendNotify({ duration, id, ...props }),
-          100
-        );
-      }
       setTimeout(() => {
-        this.removeNotify(id);
+        remove(id);
       }, duration);
     },
   },
@@ -62,12 +66,16 @@ export function getNotify(id) {
   return driverNotifier.getByIDNotify(id);
 }
 
-export function sendNotify({ duration = 10000, id = Date.now(), ...props }) {
-  driverNotifier.sendNotify({ duration, id, ...props });
+export function sendNotify(props) {
+  driverNotifier.sendNotify(props);
 }
 
 export function removeNotify(id) {
   driverNotifier.removeNotify(id);
+}
+
+export function removeAllNotify() {
+  driverNotifier.removeAllNotify();
 }
 
 export class NotifierBox extends Component {
@@ -76,15 +84,19 @@ export class NotifierBox extends Component {
     this.state = {};
   }
   componentDidMount() {
-    driverNotifier.setNotifier(this);
+    driverNotifier.addLinkNotify(this);
+    driverNotifier.setNotifierBox(this);
+  }
+  componentWillUnmount() {
+    driverNotifier.removeLinkNotify(this);
   }
   render() {
     const { position = "bottom-right" } = this.props;
+    const notifies = driverNotifier.getNotify();
     return (
       <div
-        className="flex col-direction-reverse gap-10px z-notifier"
+        className="NotifierBox fixed flex col-direction-reverse gap-10px z-notifier"
         style={{
-          position: "fixed",
           transition: "all 0.5s ease-in-out",
           interpolateSize: "allow-keywords",
           ...(() => {
@@ -104,47 +116,54 @@ export class NotifierBox extends Component {
           })(),
         }}
       >
-        {driverNotifier
-          .getNotify()
-          .map(
-            ({
-              id,
-              jsx,
-              icon,
-              duration,
-              classes,
-              style,
-              showCloseButton = true,
-            }) => {
-              return (
-                <Paper
-                  key={id}
-                  className={`Notify-item flex align-center justify-space-between gap-10px pad-5px ${classes}`}
-                  onMouseEnter={() => (getNotify(id).hover = true)}
-                  onMouseLeave={() => (getNotify(id).hover = false)}
-                  elevation={12}
-                  style={{
-                    border: `1px solid ${getSecondaryColor()}`,
-                    ...style,
-                  }}
-                >
-                  <div className="flex align-center gap-10px">
-                    {icon}
-                    {jsx}
-                  </div>
-                  {showCloseButton && (
-                    <IconButton
-                      color="secondary"
-                      size="small"
-                      onClick={() => removeNotify(id)}
-                    >
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                  )}
-                </Paper>
-              );
+        {notifies.length > 1 ? (
+          <Button variant="contained" onClick={() => {
+            const n = document.querySelector(".NotifierBox");
+            if (n) {
+              n.classList.add("fadeout-90", "ghost");
+              n.style["--animation-duration"] = "2s";
             }
-          )}
+            setTimeout(() => {
+              removeAllNotify()
+              n.classList.remove("fadeout-90", "ghost");
+            }, 3000);
+          }}>
+            <Typography variant="caption" className="uppercase">
+              Cerrar todo
+            </Typography>
+          </Button>
+        ) : null}
+        <div style={{ maxHeight: "calc(93dvh - 20px)", overflowY: "auto" }}>
+          {notifies.map(({ id, jsx, icon, duration, classes, style }) => {
+            return (
+              <Alert
+                icon={false}
+                key={id}
+                color="secondary"
+                className={`
+                  Notify-item 
+                  flex nowrap
+                  align-center justify-space-between 
+                  gap-10px padh-5px padw-15px
+                  fadeout-90
+                  ${classes}
+                `.replace(/\s+/g, " ")}
+                elevation={12}
+                style={{
+                  "--animation-duration": `${duration}ms`,
+                  border: `1px solid ${getSecondaryColor()}`,
+                  ...style,
+                }}
+                onClose={() => removeNotify(id)}
+              >
+                <div className="flex align-center gap-10px">
+                  {icon}
+                  {jsx}
+                </div>
+              </Alert>
+            );
+          })}
+        </div>
       </div>
     );
   }
@@ -168,39 +187,55 @@ export function showJSX(jsx, icon, duration) {
   });
 }
 
-export function showSuccess(txt, duration) {
-  showJSX(txt, SUCCESS_ICON, duration);
+export function showSuccess(text, duration) {
+  showJSX(
+    GenerateNotificationMessage({ text, icon: SUCCESS_ICON }),
+    null,
+    duration
+  );
 }
 
 export function showWarning(
-  txt,
+  text,
   { showConsole = true, ...details } = {},
   duration
 ) {
   if (showConsole) {
-    console.warn(...[txt, details].filter(Boolean));
+    console.warn(...[text, details].filter(Boolean));
   }
-  showJSX(txt, WARNING_ICON, duration);
+  showJSX(
+    GenerateNotificationMessage({ text, icon: WARNING_ICON }),
+    null,
+    duration
+  );
 }
 
 export function showError(
-  txt,
+  text,
   { showConsole = true, ...details } = {},
   duration
 ) {
   if (showConsole) {
-    console.error(...[txt, details].filter(Boolean));
+    console.error(...[text, details].filter(Boolean));
   }
-  showJSX(txt, ERROR_ICON, duration);
+  showJSX(
+    GenerateNotificationMessage({ text, icon: ERROR_ICON }),
+    null,
+    duration
+  );
 }
 
-export function showInfo(txt, duration) {
-  showJSX(txt, INFO_ICON, duration);
+export function showInfo(text, duration) {
+  showJSX(
+    GenerateNotificationMessage({ text, icon: INFO_ICON }),
+    null,
+    duration
+  );
 }
 
-function DefaultSchemaJSXPromise({ text, icon }) {
+function GenerateNotificationMessage({ text, icon }) {
   return (
-    <div className="flex align-center gap-10px">
+    <div className="flex align-center gap-10px min-w-300px">
       {icon}
       <TextNotify>{text}</TextNotify>
     </div>
@@ -208,30 +243,26 @@ function DefaultSchemaJSXPromise({ text, icon }) {
 }
 
 function LoadingJSXPromise(text) {
-  return DefaultSchemaJSXPromise({ text, icon: LOADING_ICON });
+  return GenerateNotificationMessage({ text, icon: LOADING_ICON });
 }
 
 function SuccessJSXPromise(text) {
-  return DefaultSchemaJSXPromise({ text, icon: SUCCESS_ICON });
+  return GenerateNotificationMessage({ text, icon: SUCCESS_ICON });
 }
 
 function ErrorJSXPromise(text) {
-  return DefaultSchemaJSXPromise({ text, icon: ERROR_ICON });
+  return GenerateNotificationMessage({ text, icon: ERROR_ICON });
 }
 
 function WarningJSXPromise(text) {
-  return DefaultSchemaJSXPromise({ text, icon: WARNING_ICON });
+  return GenerateNotificationMessage({ text, icon: WARNING_ICON });
 }
 
 function InfoJSXPromise(text) {
-  return DefaultSchemaJSXPromise({ text, icon: INFO_ICON });
+  return GenerateNotificationMessage({ text, icon: INFO_ICON });
 }
 
-export function showPromise(
-  loading = "Procesando...",
-  promise,
-  duration = 10000
-) {
+export function showPromise(loading = "Procesando...", promise, duration) {
   if (!promise) {
     console.error("showPromise: 'promise' es requerido");
     return;
@@ -248,16 +279,18 @@ export function showPromise(
   const loadingId = Date.now();
   sendNotify({
     id: loadingId,
-    duration: 1_000_000_000,
+    duration: driverNotifier.MAX_DURATION,
     jsx: typeof loading === "string" ? LoadingJSXPromise(loading) : loading,
     showCloseButton: true,
   });
 
   // Cuando la promesa finalice, actualizamos la MISMA notificación
-  const { updateNotifier } = driverNotifier;
 
   promise
     .then((msg) => {
+      if (msg && msg.error) {
+        return fromMsg(msg, "error");
+      }
       fromMsg(msg, "success");
     })
     .catch((msg) => {
@@ -278,8 +311,9 @@ export function showPromise(
     const notify = getNotify(loadingId);
     if (notify) {
       notify.jsx = fromType(msg, type) || msg;
-      updateNotifier();
-      setTimeout(() => removeNotify(loadingId), duration);
+      driverNotifier.updateNotifierBox();
+      notify.duration = driverNotifier.DURATION;
+      setTimeout(() => removeNotify(loadingId), driverNotifier.DURATION);
     }
   }
 

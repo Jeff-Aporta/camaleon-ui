@@ -1,4 +1,4 @@
-import { MAKE_PATCH, AUTO_PARAMS } from "@framework";
+import { MAKE_PATCH, AUTO_PARAMS } from "@jeff-aporta/camaleon";
 
 import { httpdebug } from "./index.js";
 

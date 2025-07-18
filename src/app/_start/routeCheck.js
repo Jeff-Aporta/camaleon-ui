@@ -1,8 +1,29 @@
-function authError(path) {
-  const [first, second] = path;
-  const strpath = path.join("/");
-  if (strpath.includes("not-access-test")) {
-    return "Prueba de automatización en unauth";
+function authError([first, second]) {
+  const user = window["currentUser"];
+  if (!user) {
+    if (first === "users") {
+      if (second !== "login") {
+        return `
+          Debes iniciar sesión,
+          para acceder al módulo de usuarios (/users)
+        `;
+      }
+    }
+    if (first === "dev") {
+      return `
+        Debes iniciar sesión,
+        para acceder al módulo de desarrolladores (/dev)
+      `;
+    }
+  } else {
+    if (first === "users") {
+      if (second == "login") {
+        return `
+          Ya se inició sesión, 
+          no puedes acceder al módulo de inicio de sesión (/users/login)
+        `;
+      }
+    }
   }
 }
 

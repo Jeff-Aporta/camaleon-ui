@@ -14,7 +14,7 @@ import {
   getColorPaperTheme,
   Color,
   getContrastPaper,
-} from "@framework";
+} from "@jeff-aporta/camaleon";
 
 import { lighten, Paper } from "@mui/material";
 import { Box } from "@mui/material";

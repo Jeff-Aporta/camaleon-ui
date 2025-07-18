@@ -20,6 +20,18 @@
   cursor: wait !important;
 }
 
+.pointer-progress {
+  cursor: progress !important;
+}
+
+.pointer-alias {
+  cursor: alias !important;
+}
+
+.pointer-not-allowed {
+  cursor: not-allowed !important;
+}
+
 .transition-filter {
   transition: filter 0.2s;
 }
@@ -47,16 +59,15 @@
   --brightness: 10;
 }
 
-.titiling {
-  animation: titiling 1s infinite alternate !important;
-}
-
-@keyframes titiling {
-  from {
-    filter: opacity(0.2);
+.text-hide-unhover-container {
+  --w: 0;
+  &:hover {
+    --w: auto;
   }
-
-  to {
-    filter: opacity(0.7);
+  .text-hide-unhover {
+    transition: width 0.2s;
+    interpolate-size: allow-keywords;
+    overflow: hidden;
+    width: var(--w);
   }
 }

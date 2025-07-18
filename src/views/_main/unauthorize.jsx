@@ -1,5 +1,11 @@
 import React, { useState, useEffect, Component } from "react";
-import { PaperP, driverParams, Notifier, href, showError } from "@framework";
+import {
+  PaperP,
+  driverParams,
+  href,
+  showError,
+  NavigationLink,
+} from "@jeff-aporta/camaleon";
 import {
   Button,
   CircularProgress,
@@ -7,75 +13,74 @@ import {
   Box,
   Alert,
 } from "@mui/material";
+import { Main } from "@theme/main.jsx";
 import HomeIcon from "@mui/icons-material/Home";
 
-export default function () {
-  return <Unauthorize />;
-}
+export default (props) => <Unauthorize {...props} />;
+
+export const settings = {
+  subtitle: "Sin acceso",
+  theme: { name: "darkred", luminance: "dark" },
+};
 
 class Unauthorize extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      message: driverParams.get("message") || "Acceso denegado",
-    };
   }
   componentDidMount() {
-    showError(this.state.message);
+    if (this.props.message) {
+      showError(this.props.message, { showConsole: false });
+    }
   }
   render() {
     return (
-      <Notifier>
-        <CountdownRedirect message={this.state.message} />
-      </Notifier>
+      <Main bgtype="portal" h_init="0">
+        <CountdownRedirect message={this.props.message || "Acceso denegado"} />
+      </Main>
     );
   }
 }
 
 function CountdownRedirect({ message }) {
-  const [counter, setCounter] = useState(10);
+  const [counter, setCounter] = useState(15);
 
   useEffect(() => {
     if (counter > 0) {
       const timer = setTimeout(() => setCounter((prev) => prev - 1), 1000);
       return () => clearTimeout(timer);
     }
-    window.location.href = href({ view: "/" });
+    document.getElementById("goto-home").click();
   }, [counter]);
 
   return (
-    <>
-      <Alert severity="error" sx={{ width: "100%", mb: 2 }}>
+    <div
+      className="flex col-direction justify-space-between align-center"
+      style={{
+        minHeight: "80vh",
+      }}
+    >
+      <Alert variant="filled" severity="error" sx={{ width: "100%", mb: 2 }}>
         {message}. Será redirigido en {counter} segundos.
       </Alert>
-      <PaperP
-        sx={{
-          position: "fixed",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          display: "inline-flex",
-          justifyContent: "center",
-          alignItems: "center",
-          flexDirection: "column",
-          gap: 2,
-        }}
-      >
+      <PaperP className="flex align-center fit-content col-direction wrap">
         <CircularProgressWithLabel
           value={counter}
-          maxvalue={10}
+          maxvalue={15}
           label={counter.toString().padStart(2, "0") + "s"}
         />
-        <Button
-          variant="contained"
-          color="primary"
+        <br />
+        <NavigationLink
+          isButton
+          color="error"
           startIcon={<HomeIcon />}
-          onClick={() => (window.location.href = href({ view: "/" }))}
+          to={"@home"}
+          id="goto-home"
         >
           Ir al inicio
-        </Button>
+        </NavigationLink>
       </PaperP>
-    </>
+      <span />
+    </div>
   );
 }
 
@@ -89,6 +94,7 @@ function CircularProgressWithLabel(props) {
       <CircularProgress
         size="100px"
         variant="determinate"
+        color="error"
         {...{
           ...props,
           value: (props.value / props.maxvalue) * 100,

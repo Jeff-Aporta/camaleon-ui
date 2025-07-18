@@ -4,9 +4,11 @@ import {
   initThemeCamaleon,
   addThemeChangeListener,
   removeThemeChangeListener,
-} from "@framework";
+} from "@jeff-aporta/camaleon";
 
 import { Footer, HeadMain } from "./menu/index.js";
+
+import "./temp.scss";
 
 initThemeCamaleon();
 

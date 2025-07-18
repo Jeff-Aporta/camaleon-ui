@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 
+import "./DynTable.css";
+
 import { DataGrid } from "@mui/x-data-grid";
 import { Chip, Paper, Tooltip } from "@mui/material";
-
-import "./DynTable.css";
 
 import { JS2CSS } from "../../../../fluidCSS/JS2CSS/index.js";
 
@@ -15,145 +15,169 @@ import {
 } from "../../../rules/index.js";
 
 import { localeTextES } from "./localeTextES.js";
-import { exclude } from "./Util.js";
+
 import { rendersTemplate } from "./rendersTemplate.jsx";
+import { idR } from "../../../../tools/math/math.js";
+
+function burnCSS(table, props) {
+  const { rowHoverColor } = props;
+  JS2CSS.insertStyle({
+    id: "DynTable-js2css",
+    [`.DynTable-container.${table.R}`]: {
+      "& .MuiDataGrid-row:hover": {
+        backgroundColor: rowHoverColor,
+      },
+    },
+  });
+}
+
+function resizeColumnsFromWindowWidth(table, props) {
+  const { innerWidth } = window;
+  const { rows = [], columns = [] } = props;
+  let autoWidth = (0.96 * innerWidth - 120) / columns.length;
+  if (autoWidth < 150) {
+    autoWidth = 150;
+  }
+  table.columns = columns.map((c) => {
+    const {
+      headerName,
+      fit_content,
+      renderString,
+      renderInfo,
+      extra_width = 0,
+    } = c;
+    const extra_buttons = 30;
+    const extra_padding = 20;
+    c.minWidth =
+      str2width(headerName) + extra_buttons + extra_padding + extra_width;
+    c.width = Math.max(autoWidth, c.minWidth, c.width || 1);
+    if (fit_content) {
+      c.width = Math.max(c.width, ...props.rows.map((row) => Row2width(row)));
+    }
+    return c;
+
+    function Row2width(row) {
+      const value = row[c.field];
+      let texto = value;
+      let { iconized, label } = renderInfo || {};
+      const extra_render = 60 * +!!(iconized || label);
+      if (renderString) {
+        let { texto: t_ } = renderString({ value, row });
+        if (t_) {
+          texto = t_;
+        }
+      } else {
+        if (iconized) {
+          let { texto: t_ } = iconized({ value, row }, value);
+          if (t_) {
+            texto = t_;
+          }
+        }
+      }
+
+      return str2width(texto) + extra_padding + extra_render + extra_width;
+    }
+
+    function str2width(str) {
+      return (str || "---").toString().length * (14 * 0.55);
+    }
+  });
+}
+
+function genColor2CSSAlpha(color, alpha = 0.2) {
+  return `rgba(${color
+    .rgb()
+    .array()
+    .map((c) => parseInt(c))
+    .join(",")}, ${alpha}) !important`;
+}
+
+export function columnsExclude(columns) {
+  return columns.filter((c) => c.inTable != false && c.exclude != true);
+}
 
 export class DynTable extends Component {
   constructor(props) {
     super(props);
-    const { elevation, background, headercolor, rowHoverColor } = props;
-    this.elevation = elevation || 1;
-    this.background = background || "none !important";
-    this.headercolor =
-      headercolor ||
-      `rgba(${getPrimaryColor()
-        .toGray(0.6)
-        .rgb()
-        .array()
-        .map((c) => parseInt(c))
-        .join(",")}, 0.2) !important`;
-    this.rowHoverColor =
-      rowHoverColor ||
-      `rgba(${getPrimaryColor()
-        .rgb()
-        .array()
-        .map((c) => parseInt(c))
-        .join(",")}, 0.1) !important`;
     this.apiRef = React.createRef();
     this.refDataGrid = React.createRef();
-    this.rsz = this.rsz.bind(this);
-    this.R = Math.random().toString(36).replace("0.", "R-");
-    JS2CSS.insertStyle({
-      id: "DynTable-js2css",
-      [`.DynTable-container.${this.R}`]: {
-        "& .MuiDataGrid-row:hover": {
-          backgroundColor: this.rowHoverColor,
-        },
-      },
-    });
+    this.R = idR();
+    // Definir color de hover de fila para CSS dinámico
+    burnCSS(this, this.props);
+    this.resizeColumns = () => {
+      resizeColumnsFromWindowWidth(this, this.props);
+    };
   }
 
   componentDidUpdate() {
-    this.rsz();
+    this.props.componentDidUpdate && this.props.componentDidUpdate.bind(this)();
   }
 
   componentDidMount() {
-    window.addEventListener("resize", this.rsz);
+    window.addEventListener("resize", this.resizeColumns);
+    this.props.componentDidMount && this.props.componentDidMount.bind(this)();
   }
 
   componentWillUnmount() {
-    window.removeEventListener("resize", this.rsz);
-  }
-
-  rsz() {
-    // Copiar columnas de props a variable mutable
-    let columns = this.props.columns;
-    let autoWidth = (0.96 * window.innerWidth - 120) / columns.length;
-    if (autoWidth < 150) {
-      autoWidth = 150;
-    }
-    columns = columns.map((c) => {
-      const {
-        headerName,
-        fit_content,
-        renderString,
-        renderInfo,
-        extra_width = 0,
-      } = c;
-      let { iconized, label } = renderInfo || {};
-      const render = Boolean(global.nullishNoF(iconized, label));
-      c.minWidth = str2width(headerName) + 50;
-      c.width = Math.max(autoWidth, c.minWidth, c.width || 1);
-      if ((fit_content && renderString) || render) {
-        c.width = Math.max(
-          c.width,
-          ...this.props.rows.map((r) => Row2width(r))
-        );
-      }
-      return c;
-
-      function Row2width(row) {
-        const value = row[c.field];
-        let texto = value;
-        if (!renderString) {
-          if (iconized) {
-            ({ texto } = iconized({ value, row }, value));
-          }
-        } else {
-          ({ texto } = renderString({ value, row }));
-        }
-        return str2width(texto) + 20 + 60 * render + extra_width;
-      }
-
-      function str2width(str) {
-        return str.length * (14 * 0.55);
-      }
-    });
+    window.removeEventListener("resize", this.resizeColumns);
+    this.props.componentWillUnmount &&
+      this.props.componentWillUnmount.bind(this)();
   }
 
   render() {
-    const { ...restProps } = this.props;
-    // Variables locales
-    let columns = exclude(this.props.columns).filter(
-      (c) => c.inTable !== false
-    );
-    let rows = this.props.rows.map((row, i) => ({ id: i, ...row }));
-    let paginationModel = global.nullishNoF(this.props.paginationModel, {
-      page: 0,
-      pageSize: 20,
-    });
+    this.resizeColumns();
+    const { columns = [] } = this;
+    const {
+      rows = [],
+      density = "compact",
+      elevation = 1,
+      background = "none !important",
+      headercolor = genColor2CSSAlpha(getPrimaryColor().toGray(0.6), 0.2),
+      rowHoverColor = genColor2CSSAlpha(getPrimaryColor(), 0.1),
+      pageSizeOptions = [20, 50, 100],
+      paginationModel = {
+        page: 0,
+        pageSize: 20,
+      },
+      className = "",
+      style = {},
+    } = this.props;
 
-    rendersTemplate(columns);
+    // Variables locales
+    let columnsFiltered = columnsExclude(columns);
+    let rowsWithID = rows.map((row, i) => ({ id: i, ...row }));
+
+    rendersTemplate(columnsFiltered);
 
     return (
-      <Paper elevation={this.elevation}>
+      <Paper elevation={elevation}>
         <div
-          className={`DynTable-container ${this.R}`}
+          className={`DynTable-container ${this.R} ${className}`}
           style={{
             height: "auto",
             width: "100%",
+            ...style,
           }}
         >
           <DataGrid
-            density="standard"
+            columns={columnsFiltered}
+            rows={rowsWithID}
+            density={density}
             disableRowSelectionOnClick
-            {...restProps}
             ref={this.refDataGrid}
-            rows={rows}
-            columns={columns}
             initialState={{
               pagination: {
                 paginationModel,
               },
             }}
-            pageSizeOptions={[20, 50, 100]}
+            pageSizeOptions={pageSizeOptions}
             autoHeight
             disableExtendRowFullWidth={false}
             localeText={localeTextES}
             sx={{
-              "--DataGrid-t-color-background-base": this.background,
-              "--DataGrid-t-header-background-base": this.headercolor,
-              "--DataGrid-containerBackground": this.headercolor,
+              "--DataGrid-t-color-background-base": background,
+              "--DataGrid-t-header-background-base": headercolor,
+              "--DataGrid-containerBackground": headercolor,
             }}
           />
         </div>

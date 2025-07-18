@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { DynTable } from "@jeff-aporta/camaleon";
+import { DynTable, WaitSkeleton } from "@jeff-aporta/camaleon";
 
 import columns_investments from "./columns-investments.jsx";
 import mock_investments from "./mock-investments.json";
 import { Box, Typography, Grid } from "@mui/material";
-import {
-  WaitSkeleton,
-  DateRangeControls,
-  UserFilterControl,
-} from "@components/controls";
+import { DateRangeControls, UserFilterControl } from "@components/controls";
 import dayjs from "dayjs";
 
 export default function TableInvestments({
@@ -103,7 +99,7 @@ export default function TableInvestments({
         </Grid>
       </Grid>
       <br />
-      <WaitSkeleton loading={loading} h="300px">
+      <WaitSkeleton loading={loading}>
         <DynTable rows={filteredData} columns={columns_config} {...rest} />
       </WaitSkeleton>
     </Box>

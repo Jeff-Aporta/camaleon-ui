@@ -1,7 +1,13 @@
-import { HTTP_GET, HTTP_POST, HTTP_PUT, HTTP_PATH, HTTP_PATCH } from "./base";
-import { failureDefault, getMessageError } from "./utils";
+import {
+  HTTP_GET,
+  HTTP_POST,
+  HTTP_PUT,
+  HTTP_PATH,
+  HTTP_PATCH,
+} from "./base.js";
+import { failureDefault, getMessageError } from "./utils.js";
 import { driverParams } from "../themes/router/index.js";
-import { rejectPromise, HTTP_IS_ERROR } from "./base";
+import { rejectPromise, HTTP_IS_ERROR } from "./base.js";
 
 export function AUTO_PARAMS(props) {
   const { currentUser = {} } = window;
@@ -39,10 +45,7 @@ function PROCESS_REQUEST_HTTP(data) {
   };
 }
 
-export async function MAKE_PUT({
-  failure = failureDefault,
-  ...rest
-}) {
+export async function MAKE_PUT({ failure = failureDefault, ...rest }) {
   try {
     const putResult = await HTTP_PUT({
       failure,
@@ -89,10 +92,7 @@ export async function MAKE_PATCH({
   }
 }
 
-export async function MAKE_POST({
-  failure = failureDefault,
-  ...rest
-}) {
+export async function MAKE_POST({ failure = failureDefault, ...rest }) {
   try {
     const postResult = await HTTP_POST({
       failure,
@@ -111,10 +111,7 @@ export async function MAKE_POST({
   }
 }
 
-export async function MAKE_GET({
-  failure = failureDefault,
-  ...rest
-}) {
+export async function MAKE_GET({ failure = failureDefault, ...rest }) {
   try {
     const respuesta = await HTTP_GET({
       failure,
