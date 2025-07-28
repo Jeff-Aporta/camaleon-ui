@@ -24,6 +24,7 @@ const INFO_ICON = <InfoIcon color="info" fontSize="small" />;
 const LOADING_ICON = <CircularProgress size={16} color="contrastPaperBOW" />;
 
 const driverNotifier = DriverComponent({
+  idDriver: "notifier-camaleon",
   DURATION: 10_000,
   MAX_DURATION: 100_000_000,
   notifierBox: {},
@@ -117,23 +118,32 @@ export class NotifierBox extends Component {
         }}
       >
         {notifies.length > 1 ? (
-          <Button variant="contained" onClick={() => {
-            const n = document.querySelector(".NotifierBox");
-            if (n) {
-              n.classList.add("fadeout-90", "ghost");
-              n.style["--animation-duration"] = "2s";
-            }
-            setTimeout(() => {
-              removeAllNotify()
-              n.classList.remove("fadeout-90", "ghost");
-            }, 3000);
-          }}>
+          <Button
+            variant="contained"
+            onClick={() => {
+              const n = document.querySelector(".NotifierBox");
+              if (n) {
+                n.classList.add("fadeout-90", "ghost");
+                n.style["--animation-duration"] = "2s";
+              }
+              setTimeout(() => {
+                removeAllNotify();
+                n.classList.remove("fadeout-90", "ghost");
+              }, 3000);
+            }}
+          >
             <Typography variant="caption" className="uppercase">
               Cerrar todo
             </Typography>
           </Button>
         ) : null}
-        <div style={{ maxHeight: "calc(93dvh - 20px)", overflowY: "auto" }}>
+        <div
+          style={{
+            maxHeight: "calc(93dvh - 20px)",
+            overflowY: "auto",
+            overflowX: "hidden",
+          }}
+        >
           {notifies.map(({ id, jsx, icon, duration, classes, style }) => {
             return (
               <Alert

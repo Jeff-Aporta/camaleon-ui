@@ -6,10 +6,10 @@ import {
   ButtonGroup,
 } from "@mui/material";
 import UpdateIcon from "@mui/icons-material/Cached";
-import PauseIcon from "@mui/icons-material/Pause";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import HourglassBottomIcon from "@mui/icons-material/HourglassBottom";
 import StopIcon from "@mui/icons-material/Stop";
+import SettingsIcon from "@mui/icons-material/Settings";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import {
   fluidCSS,
   TooltipGhost,
@@ -22,112 +22,98 @@ import {
   AnimateComponent,
   showPromise,
   WaitSkeleton,
-  DriverComponent,
 } from "@jeff-aporta/camaleon";
 import { HTTPPUT_COINS_START, HTTPPUT_COINS_STOP } from "@api";
-import { driverPanelRobot } from "../../../bot.jsx";
 
-import { driverActionMain } from "../ActionMain.jsx";
 import { driverTables } from "@tables/tables.js";
-
-let SINGLETON_UPDATE_BUTTON;
-
-export const driverActionButtons = DriverComponent({
-  autoOpEnabled: {
-    isBoolean: true,
-  },
-  paused: {
-    isBoolean: true,
-    mapCase: {
-      textButtonPause: {
-        false: () => "Pausar",
-        true: () => "Reanudar",
-      },
-      colorButtonPause: {
-        false: () => "warning",
-        true: () => "success",
-      },
-      iconButtonPause: {
-        false: () => <PauseIcon fontSize="small" />,
-        true: () => <PlayArrowIcon fontSize="small" />,
-      },
-    },
-  },
-});
+import { driverPanelRobot } from "../../../bot.driver.js";
+import { driverCoinsOperating } from "./CoinsOperating.driver.js";
+import { driverPanelOfProjections } from "./PanelOfProjections.driver.js";
+import { driverActionButtons } from "./ActionButtons.driver.js";
 
 export default (props) => <ActionButtons {...props} />;
 
 class ActionButtons extends Component {
+  componentDidMount() {
+    driverCoinsOperating.addLinkActionInProcess(this);
+    driverPanelOfProjections.addLinkLoading(this);
+    driverPanelRobot.addLinkCoinsToDelete(this);
+    driverPanelRobot.addLinkCoinsOperating(this);
+  }
+
+  componentWillUnmount() {
+    driverCoinsOperating.removeLinkActionInProcess(this);
+    driverPanelOfProjections.removeLinkLoading(this);
+    driverPanelRobot.removeLinkCoinsToDelete(this);
+    driverPanelRobot.removeLinkCoinsOperating(this);
+  }
+
   render() {
-    const { settingIcon, onSellCoin, actionInProcess, setActionInProcess } =
-      this.props;
-
-    const {
-      findCurrencyInCoinsToOperate,
-      getCurrency,
-      getCoinsToDelete,
-      getLoadingCoinsToOperate,
-      existsCurrency,
-      pushCoinsOperating,
-      isCurrencyInCoinsOperating,
-      isCurrencyInCoinsToDelete,
-      isEmptyCoinsOperating,
-    } = driverPanelRobot;
-
-    const {
-      setPaused, //
-      isPaused,
-      mapCasePaused,
-      setAutoOpEnabled,
-    } = driverActionButtons;
-
-    console.log(driverActionButtons);
-
     const { user_id } = window.currentUser;
+    const actualCurrency = driverPanelRobot.getCurrency();
+    const isPendingDelete =
+      driverPanelRobot.isPendingInCoinsToDelete(actualCurrency);
+
+    const loadingGeneral = driverActionButtons.loadingGeneral();
 
     return (
       <div className="inline-flex align-end col-direction gap-10px">
-        <div className="flex">
-          <UpdateButton frameRate={5} />
-          {settingIcon()}
+        <div className="d-end">
+          <UpdateButton frameRate={2} />
+          <TooltipGhost title="Configurar">
+            <div>
+              <Button
+                color="inherit"
+                size="small"
+                onClick={driverPanelRobot.setToSettingsViewBot}
+              >
+                <div className="flex col-direction align-center">
+                  <SettingsIcon />
+                  <Typography variant="caption">
+                    <small>Configurar</small>
+                  </Typography>
+                </div>
+              </Button>
+            </div>
+          </TooltipGhost>
         </div>
-        <div className="flex wrap gap-10px d-end" style={{ minWidth: "180px" }}>
-          <ButtonGroup variant="contained" size="small">
-            <ButtonOperate />
-            <ButtonStop />
-            <ButtonPauseResume />
-          </ButtonGroup>
-        </div>
-        <hr />
-        <div className="flex wrap gap-10px">
-          <ButtonAutoOp />
-        </div>
+        <WaitSkeleton loading={driverPanelRobot.getLoadingCoinsToOperate()}>
+          <div className="d-end wrap gap-10px" style={{ minWidth: "180px" }}>
+            <ButtonGroup variant="contained" size="small">
+              <ButtonOperate />
+              <ButtonStop />
+              <ButtonPauseResume />
+            </ButtonGroup>
+          </div>
+          <hr />
+          <div className="d-end wrap gap-10px">
+            <ButtonAutoOp />
+          </div>
+        </WaitSkeleton>
       </div>
     );
 
     function ButtonPauseResume() {
-      const pauseDisabled =
-        !getCurrency() ||
-        !isCurrencyInCoinsOperating() ||
-        isCurrencyInCoinsToDelete() ||
-        actionInProcess;
       return (
-        <TooltipGhost title={mapCasePaused("textButtonPause")}>
-          <div>
+        <TooltipGhost
+          title={driverActionButtons.mapCasePaused("textButtonPause")}
+        >
+          <span>
             <Button
               className="text-hide-unhover-container"
               variant="contained"
-              color={mapCasePaused("colorButtonPause")}
-              disabled={pauseDisabled}
+              color={driverActionButtons.mapCasePaused("colorButtonPause")}
+              disabled={driverActionButtons.disableStoper()}
+              loading={loadingGeneral}
               size="small"
               onClick={async () => {
-                const coinObj = findCurrencyInCoinsToOperate();
+                const coinObj = driverPanelRobot.findCurrencyInCoinsToOperate();
                 const { symbol: symbol_coin, id: id_coin } = coinObj;
                 if (!coinObj) {
                   return;
                 }
-                setActionInProcess(true);
-                if (!isPaused()) {
+                driverCoinsOperating.setActionInProcess(true);
+                if (!driverActionButtons.isPaused()) {
                   await HTTPPUT_COINS_STOP({
                     user_id,
                     id_coin,
@@ -154,16 +140,18 @@ class ActionButtons extends Component {
                     },
                   });
                 }
-                setPaused((x) => !x);
-                setActionInProcess(false);
+                driverActionButtons.setPaused((x) => !x);
+                driverCoinsOperating.setActionInProcess(false);
               }}
             >
-              {mapCasePaused("iconButtonPause")}
+              {driverActionButtons.mapCasePaused("iconButtonPause")}
               <div className="text-hide-unhover">
-                <small>{mapCasePaused("textButtonPause")}</small>
+                <small>
+                  {driverActionButtons.mapCasePaused("textButtonPause")}
+                </small>
               </div>
             </Button>
-          </div>
+          </span>
         </TooltipGhost>
       );
     }
@@ -171,16 +159,18 @@ class ActionButtons extends Component {
     function ButtonAutoOp() {
       return (
         <TooltipGhost title="Auto-op">
-          <div>
+          <span>
             <Button
+              disabled={driverActionButtons.disableGeneral()}
+              loading={loadingGeneral}
               variant="contained"
               color="primary"
               size="small"
-              onClick={() => setAutoOpEnabled((x) => !x)}
+              onClick={() => driverActionButtons.setAutoOpEnabled((x) => !x)}
             >
               <small>Auto-op</small>
             </Button>
-          </div>
+          </span>
         </TooltipGhost>
       );
     }
@@ -189,83 +179,87 @@ class ActionButtons extends Component {
       return (
         <TooltipGhost
           title={(() => {
-            if (!existsCurrency()) {
+            if (!driverPanelRobot.existsCurrency()) {
               return "Seleccione una moneda";
             }
-            if (isEmptyCoinsOperating()) {
+            if (driverPanelRobot.isEmptyCoinsOperating()) {
               return "No hay monedas operando";
             }
-            if (!isCurrencyInCoinsOperating()) {
+            if (!driverPanelRobot.isCurrencyInCoinsOperating()) {
               return "Moneda no operando";
             }
-            if (isCurrencyInCoinsToDelete()) {
+            if (driverPanelRobot.isCurrencyInCoinsToDelete()) {
               return "Moneda en proceso de borrado";
             }
-            if (actionInProcess) {
+            if (driverCoinsOperating.getActionInProcess()) {
               return "Espere...";
             }
             return "Detener";
           })()}
         >
-          <div>
-            <Detener
-              disabled={
-                !existsCurrency() ||
-                isEmptyCoinsOperating() ||
-                !isCurrencyInCoinsOperating() ||
-                isCurrencyInCoinsToDelete() ||
-                actionInProcess ||
-                getLoadingCoinsToOperate()
-              }
-            />
-          </div>
+          <span>
+            <Detener />
+          </span>
         </TooltipGhost>
       );
+
+      function Detener() {
+        return (
+          <Button
+            disabled={driverActionButtons.disableStoper()}
+            loading={loadingGeneral}
+            className="text-hide-unhover-container"
+            variant="contained"
+            color="cancel"
+            size="small"
+            onClick={(e) => {
+              e.preventDefault();
+              driverCoinsOperating.deleteCoinFromAPI(actualCurrency);
+            }}
+          >
+            {<StopIcon fontSize="small" />}
+            <div className="text-hide-unhover">
+              <small>Detener</small>
+            </div>
+          </Button>
+        );
+      }
     }
 
     function ButtonOperate() {
       return (
         <TooltipGhost
           title={(() => {
-            if (!existsCurrency()) {
+            if (!driverPanelRobot.existsCurrency()) {
               return "Seleccione una moneda";
             }
-            if (isCurrencyInCoinsOperating()) {
+            if (driverPanelRobot.isCurrencyInCoinsOperating()) {
               return "Moneda ya operando";
             }
-            if (actionInProcess) {
+            if (loadingGeneral) {
               return "Espere...";
             }
             return "Operar";
           })()}
         >
-          <div>
-            <Operar
-              disabled={
-                !existsCurrency() ||
-                isCurrencyInCoinsOperating() ||
-                actionInProcess ||
-                getLoadingCoinsToOperate()
-              }
-            />
-          </div>
+          <span>
+            <Operar />
+          </span>
         </TooltipGhost>
       );
 
-      function Operar(props) {
+      function Operar() {
         return (
-          <WaitSkeleton loading={getLoadingCoinsToOperate()}>
+          <WaitSkeleton loading={driverPanelRobot.getLoadingCoinsToOperate()}>
             <Button
-              {...props}
               className="text-hide-unhover-container"
               variant="contained"
               color="ok"
               size="small"
+              disabled={driverActionButtons.disableOperate()}
+              loading={loadingGeneral}
               onClick={async () => {
-                if (!getCurrency()) {
-                  return;
-                }
-                const coinObj = findCurrencyInCoinsToOperate();
+                const coinObj = driverPanelRobot.findCurrencyInCoinsToOperate();
                 const { symbol: symbol_coin, id: id_coin } = coinObj;
                 if (!coinObj) {
                   return;
@@ -276,13 +270,13 @@ class ActionButtons extends Component {
                     HTTPPUT_COINS_START({
                       id_coin,
                       willStart() {
-                        setActionInProcess(true);
+                        driverCoinsOperating.setActionInProcess(true);
                       },
                       willEnd() {
-                        setActionInProcess(false);
+                        driverCoinsOperating.setActionInProcess(false);
                       },
                       successful: (json, info) => {
-                        pushCoinsOperating(coinObj);
+                        driverPanelRobot.pushCoinsOperating(coinObj);
                         resolve(`Se empieza a operar (${symbol_coin})`);
                       },
                       failure: (info, rejectPromise) => {
@@ -306,43 +300,23 @@ class ActionButtons extends Component {
         );
       }
     }
-
-    function Detener(props) {
-      return (
-        <WaitSkeleton loading={getLoadingCoinsToOperate()}>
-          <Button
-            {...props}
-            className="text-hide-unhover-container"
-            variant="contained"
-            color="cancel"
-            size="small"
-            onClick={() => {
-              setActionInProcess(true);
-              onSellCoin(getCurrency());
-            }}
-          >
-            {<StopIcon fontSize="small" />}
-            <div className="text-hide-unhover">
-              <small>Detener</small>
-            </div>
-          </Button>
-        </WaitSkeleton>
-      );
-    }
   }
 }
 
 class UpdateButton extends AnimateComponent {
   componentDidMount() {
+    super.componentDidMount();
     driverPanelRobot.addLinkUpdateAvailable(this);
   }
+
   componentWillUnmount() {
+    super.componentWillUnmount();
     driverPanelRobot.removeLinkUpdateAvailable(this);
   }
 
   smartFramerate() {
     if (driverPanelRobot.isUpdateAvailable()) {
-      this.frameRate = 1;
+      this.frameRate = 0.1;
     } else {
       this.frameRate = this.props.frameRate;
     }
@@ -350,40 +324,39 @@ class UpdateButton extends AnimateComponent {
 
   render() {
     this.smartFramerate();
-    const {
-      isUpdateAvailable,
-      getPercentToUpdateAvailable,
-      setUpdateAvailable,
-      mapCaseUpdateAvailable,
-    } = driverPanelRobot;
+
+    console.log(this.frameRate);
 
     return (
       <Design>
-        <IconButtonWithTooltip
-          title={mapCaseUpdateAvailable("textButtonUpdate")}
-          icon={
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
+        <TooltipGhost
+          title={driverPanelRobot.mapCaseUpdateAvailable("textButtonUpdate")}
+        >
+          <div>
+            <Button
+              color="inherit"
+              size="small"
+              disabled={!driverPanelRobot.isUpdateAvailable()}
+              onClick={() => {
+                driverPanelRobot.setUpdateAvailable(false);
+                driverTables.refetch(true);
+                setTimeout(() => {
+                  driverPanelRobot.setUpdateAvailable(true);
+                }, driverPanelRobot.SECONDS_TO_UPDATE_AGAIN);
               }}
             >
-              <UpdateIcon />
-              <Typography variant="caption">
-                <small>Actualizar</small>
-              </Typography>
-            </div>
-          }
-          disabled={!isUpdateAvailable()}
-          onClick={() => {
-            setUpdateAvailable(false);
-            driverTables.refetch(true);
-          }}
-        />
-        {!isUpdateAvailable() &&
+              <div className="flex col-direction align-center">
+                <UpdateIcon />
+                <Typography variant="caption">
+                  <small>Actualizar</small>
+                </Typography>
+              </div>
+            </Button>
+          </div>
+        </TooltipGhost>
+        {!driverPanelRobot.isUpdateAvailable() &&
           (() => {
-            if (isUpdateAvailable()) {
+            if (driverPanelRobot.isUpdateAvailable()) {
               return;
             }
             return (
@@ -392,7 +365,7 @@ class UpdateButton extends AnimateComponent {
                   <CircularProgress
                     color="l2"
                     variant="determinate"
-                    value={100 * getPercentToUpdateAvailable()}
+                    value={100 * driverPanelRobot.getPercentToUpdateAvailable()}
                   />
                 </Layer>
                 <Layer centercentralized ghost>

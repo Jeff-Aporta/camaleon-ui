@@ -50,6 +50,7 @@ import { Button } from "@mui/material";
 import DisabledByDefaultIcon from "@mui/icons-material/DisabledByDefault";
 
 const driverTableTransactions = DriverComponent({
+  idDriver: "table-transactions",
   tableTransactions: {},
   tableData: {
     value: IS_GITHUB ? mock_transaction : [],

@@ -16,6 +16,7 @@ import CurrencyBitcoinIcon from "@mui/icons-material/CurrencyBitcoin";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import CandlestickChartIcon from "@mui/icons-material/CandlestickChart";
 import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
+import ExpandIcon from "@mui/icons-material/Expand";
 
 import { PaperP, driverParams } from "@jeff-aporta/camaleon";
 import { APIKeyView, exchanges_withdrawal } from "./tabs/APIKey";
@@ -24,8 +25,9 @@ import { CriptomonedasView } from "./tabs/Cripto";
 import { AutoView } from "./tabs/Auto";
 import { CandlestickView } from "./tabs/Candle";
 import { AutomatizacionView } from "./tabs/Auto";
+import { PIPView } from "./tabs/PIP";
 
-import { driverPanelRobot } from "../../bot.jsx";
+import { driverPanelRobot } from "../../bot.driver.js";
 
 export const driverSettings = {
   setViewSetting: (view) => driverParams.set("view_setting_bot", view),
@@ -42,6 +44,7 @@ export default function Settings() {
     },
     { id: "rsi", label: "RSI", icon: <ShowChartIcon /> },
     { id: "candlestick", label: "Candlestick", icon: <CandlestickChartIcon /> },
+    { id: "pips", label: "Pips", icon: <ExpandIcon /> },
   ];
   const initialView = driverSettings.getViewSetting();
   const [selectedViewSetting, setSelectedViewSetting] = useState(initialView);
@@ -72,7 +75,7 @@ export default function Settings() {
           color="error"
           size="small"
           endIcon={<DisabledByDefaultIcon />}
-          onClick={() => driverPanelRobot.setToMainViewBot()}
+          onClick={driverPanelRobot.setToMainViewBot}
         >
           Cerrar configuración
         </Button>
@@ -111,6 +114,7 @@ export default function Settings() {
               {selectedViewSetting === "criptomonedas" && <CriptomonedasView />}
               {selectedViewSetting === "rsi" && <RSIView />}
               {selectedViewSetting === "candlestick" && <CandlestickView />}
+              {selectedViewSetting === "pips" && <PIPView />}
             </PaperP>
           </Box>
         </Box>

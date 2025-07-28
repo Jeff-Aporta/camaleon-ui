@@ -8,6 +8,7 @@ import StatusOkIcon from "@mui/icons-material/CheckCircleOutline";
 import StatusErrorIcon from "@mui/icons-material/UnpublishedOutlined";
 import TagFacesOutlinedIcon from "@mui/icons-material/TagFacesOutlined";
 import CurrencyExchangeIcon from "@mui/icons-material/CurrencyExchange";
+import ExpandIcon from "@mui/icons-material/Expand";
 
 export default () => [
   {
@@ -49,6 +50,11 @@ export default () => [
         E: {
           text: "Exchange",
           icon: <CurrencyExchangeIcon />,
+          color: "secondary",
+        },
+        P: {
+          text: "Pip",
+          icon: <ExpandIcon />,
           color: "secondary",
         },
       },

@@ -60,7 +60,7 @@ export function rendersTemplate(columns_config) {
               }
               const date = new Date(value);
               const formattedDate = date.toLocaleString(
-                global.nullishNoF(local, "es-ES"),
+                global.nullishFlat(local, "es-ES"),
                 date_format
               );
               const [datePart, timePart] = formattedDate
@@ -244,11 +244,11 @@ function processSufix(
   }
   const simple_text = [texto, sufix].filter(Boolean).join(join);
   if (style || className) {
-    if(typeof styleEl2 == "function"){
-      styleEl2 = styleEl2({row, ...rest});
+    if (typeof styleEl2 == "function") {
+      styleEl2 = styleEl2({ row, ...rest });
     }
-    if(typeof styleEl1 == "function"){
-      styleEl1 = styleEl1({row, ...rest});
+    if (typeof styleEl1 == "function") {
+      styleEl1 = styleEl1({ row, ...rest });
     }
     texto = (
       <div className={className} style={style}>

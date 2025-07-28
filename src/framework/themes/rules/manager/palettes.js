@@ -101,12 +101,12 @@ export class PaletteGeneral {
       success: {
         color: Color(["lightgreen", "limegreen"][+darkmode]),
         text: color_contrast,
-        inmutable: true
+        inmutable: true,
       },
       ok: {
         color: Color("#29A529"),
         text: blanco,
-        inmutable: true
+        inmutable: true,
       },
       ...Object.entries(themeColors()).reduce((acc, [key, value]) => {
         acc[key] = {
@@ -333,8 +333,10 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
     return this.primary || this.main_color;
   }
 
-  getSecondaryColor() {
-    return this.primary.toLerp(Color("slategray"), 0.5);
+  getSecondaryColor(darkmode) {
+    return this.primary
+      .toLerp(Color("slategray"), 0.5)
+      .toLerp(Color(["black", "white"][+darkmode]), 0.4);
   }
 
   getTriadeColors() {
@@ -483,7 +485,7 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
       contrastPaper: this.contrastPaper,
       contrastPaperBOW: this.contrastPaperBOW,
       complement: this.complement,
-      secondary: this.getSecondaryColor(),
+      secondary: this.getSecondaryColor(darkmode),
       ...toColorSteep25.bind(this)("PaperBOW", primary),
       ...toColorSteep25.bind(this)("BOW", primary),
       ...toColorSteep25("gray", primary),
@@ -570,10 +572,7 @@ export class PaletteBaseMonochrome extends PaletteMonochrome {
       },
       Button: {
         ...Button,
-        ...[
-          ...this.colorsCamaleonKeys,
-          "secondary",
-        ]
+        ...[...this.colorsCamaleonKeys, "secondary"]
           .map((state) => {
             if (!Button[state]) {
               Button[state] = {};

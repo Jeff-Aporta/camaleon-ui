@@ -54,7 +54,6 @@ export function setSettingsView(settingsView) {
     const new_title = [title, subtitle]
     .filter((x) => typeof x == "string")
     .join(" | ");
-    console.log(title, subtitle, new_title);
     if (new_title) {
       document.title = new_title;
     }

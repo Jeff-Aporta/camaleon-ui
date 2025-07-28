@@ -32,27 +32,62 @@ export function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function ellapsed(delay) {
+  return Date.now() - delay;
+}
+
 export function Delayer(timedelay) {
+  let delay = -1;
+  let id = 0;
+
   return new (class {
-    constructor() {
-      this.delay = -1;
-      this.timedelay = timedelay;
+    setDelay(newTimedelay) {
+      timedelay = newTimedelay;
     }
 
-    setDelay(timedelay) {
-      this.timedelay = timedelay;
+    incrementId() {
+      id++;
     }
 
-    ellapsed() {
-      return Date.now() - this.delay;
+    getId() {
+      return id;
     }
 
-    isReady() {
-      if (this.ellapsed() < this.timedelay) {
-        return false;
+    isTheId(id_, reset = false) {
+      const isTheId = id == id_;
+      if (reset) {
+        this.resetId();
       }
-      this.delay = Date.now();
-      return true;
+      return isTheId;
+    }
+
+    resetId() {
+      id = 0;
+    }
+
+    getDelay() {
+      return timedelay;
+    }
+
+    isReady(cbIncrement = false, id) {
+      const ready = ellapsed(delay) >= timedelay;
+      if (ready) {
+        if (id) {
+          if (!this.isTheId(id)) {
+            return false;
+          }
+        }
+        this.resetId();
+        delay = Date.now();
+      } else {
+        if (cbIncrement) {
+          this.incrementId();
+          if (typeof cbIncrement == "function") {
+            setTimeout(() => cbIncrement(id), timedelay);
+          }
+        }
+      }
+      return ready;
     }
   })();
 }

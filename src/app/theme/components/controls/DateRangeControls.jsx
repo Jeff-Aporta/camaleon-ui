@@ -32,6 +32,7 @@ const modelDate = {
 };
 
 const driverDateRangeControls = DriverComponent({
+  idDriver: "date-range-control",
   startDate: {
     nameParam: "start_date",
     ...modelDate,

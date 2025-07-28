@@ -1,8 +1,12 @@
+import { isNullish, nullish } from "../start.js";
 import { driverParams, subscribeParam } from "../themes/router/params.js";
 
 import { firstUppercase } from "./tools.js";
 
+const allDrivers = { noId: [] };
+
 export function DriverComponent(modelProps) {
+  const { idDriver, ...modelRest } = modelProps;
   const RETURN = new (class {
     constructor() {
       const listSetups = [];
@@ -13,18 +17,10 @@ export function DriverComponent(modelProps) {
           burnParam();
         });
       };
-      Object.entries(modelProps).forEach(([key, props]) => {
-        if (typeof props == "function") {
-          this[key] = props.bind(this);
-          extra_context_global[key] = this[key];
-          return;
-        }
-        if (typeof props != "object") {
-          this[key] = props;
-          extra_context_global[key] = props;
-          return;
-        }
+      Object.entries(modelRest).forEach(([key, props]) => {
         const saneoKey = firstUppercase(key);
+        let links = [];
+        const extra_context = {};
         let {
           value,
           isNumber,
@@ -32,138 +28,224 @@ export function DriverComponent(modelProps) {
           isArray,
           isInteger,
           isBoolean,
-          freeze,
+          isObject,
+          noSet,
           min,
           max,
           nameParam,
           nameStorage,
-          _setValidate_,
+          update,
+          mapCase,
           _willSet_,
           _setup_,
+          _validate_,
+          _setValidate_,
           _getValidate_,
-          update,
-          links = [],
-          mapCase,
           ...rest
         } = props;
+        [
+          "_willSet_",
+          "_setup_",
+          "_validate_",
+          "_setValidate_",
+          "_getValidate_",
+        ].forEach((key) => {
+          eval(`if(${key}){
+              ${key} = ${key}.bind(this);
+            }`);
+        });
+        const KEY = Object.entries({
+          INIT: "init",
+          GET: "get",
+          _SET: "_set",
+          SET: "set",
+          SET_NULLISH: "setNullish",
+          UPDATE: "update",
+          EXISTS: "exists",
+          ADD_LINK: "addLink",
+          REMOVE_LINK: "removeLink",
+          BURN_PARAM: "burnParam",
+          ARRAY_ADD: "add",
+          DELETE: "delete",
+          ARRAY_PUSH: "push",
+          ARRAY_POP: "pop",
+          ARRAY_REMOVEALL: "removeAll",
+          MAPCASE: "mapCase",
+          IS_EMPTY: "isEmpty",
+          IS_BOOLEAN: "is",
+          ASSING: "assign",
+          GET_KEYS: "getKeys",
+          GET_VALUES: "getValues",
+          STRINGIFY: "stringify",
+          ENTRIES: "entries",
+          MIN: "getMin2",
+          MAX: "getMax2",
+          DIGITS: "getDigits2",
+          CLAMP: "clamp2",
+        }).reduce((acc, [key, value]) => {
+          acc[key] = `${value}${saneoKey}`;
+          return acc;
+        }, {});
+        const get = () => this[KEY.GET]();
+        const set = (value, config) => this[KEY.SET](value, config);
+        const CONTEXT_GENERAL = ((softSet = false) => {
+          return {
+            idDriver,
+            driverId,
+            init: this[KEY.INIT],
+            getValue: get,
+            setValue: [set, this[KEY._SET]][+softSet],
+            _setValue: this[KEY._SET],
+            setNullish: this[KEY.SET_NULLISH],
+            exists: this[KEY.EXISTS],
+            burnParam: this[KEY.BURN_PARAM],
+            mapCase: this[KEY.MAPCASE],
+            //--- Array methods
+            add: this[KEY.ARRAY_ADD],
+            delete: this[KEY.DELETE],
+            push: this[KEY.ARRAY_PUSH],
+            pop: this[KEY.ARRAY_POP],
+            removeAll: this[KEY.ARRAY_REMOVEALL],
+            stringify: this[KEY.STRINGIFY],
+            ...(() => {
+              const r = {};
+              if (isArray || isObject) {
+                if (isArray) {
+                  Object.assign(r, {
+                    some: (cb) => get().some(cb),
+                    every: (cb) => get().every(cb),
+                    find: (cb) => get().find(cb),
+                    filter: (cb) => get().filter(cb),
+                    map: (cb) => get().map(cb),
+                  });
+                }
+                if (isObject) {
+                  Object.assign(r, {
+                    assign: this[KEY.ASSING],
+                    getKeys: this[KEY.GET_KEYS],
+                    getValues: this[KEY.GET_VALUES],
+                    entries: this[KEY.ENTRIES],
+                  });
+                }
+              }
+              return r;
+            })(),
+            //--- Component methods
+            notifyLinks,
+            update: this[KEY.UPDATE],
+            addLink: this[KEY.ADD_LINK],
+            removeLink: this[KEY.REMOVE_LINK],
+            //--- Component props
+            nameParam,
+            nameStorage,
+            isNumber,
+            isInteger,
+            digits: this[KEY.DIGITS],
+            min: this[KEY.MIN],
+            max: this[KEY.MAX],
+            clamp: this[KEY.CLAMP],
+            ...extra_context_global,
+            ...extra_context,
+          };
+        }).bind(this);
+
+        {
+          const isFunction = typeof props == "function";
+          const isObjectComplex_ = notIsObjectAnonimus(props);
+
+          const isVar = isFunction || isObjectComplex_;
+
+          if (isVar) {
+            if (isFunction) {
+              const isAsync = props.constructor.name === "AsyncFunction";
+              if (isAsync) {
+                this[key] = async (val) =>
+                  await props.bind(this)(val, CONTEXT_GENERAL());
+              } else {
+                this[key] = (val) => props.bind(this)(val, CONTEXT_GENERAL());
+              }
+            } else {
+              this[key] = props;
+            }
+            extra_context_global[key] = this[key];
+            return;
+          }
+        }
 
         initValue();
 
-        const [
-          INIT_KEY,
-          GET_KEY,
-          _SET_KEY,
-          SET_KEY,
-          SET_NULLISH_KEY,
-          UPDATE_KEY,
-          EXISTS_KEY,
-          ADD_LINK_KEY,
-          REMOVE_LINK_KEY,
-          BURN_PARAM_KEY,
-          ARRAY_ADD_KEY,
-          ARRAY_DELETE_KEY,
-          ARRAY_PUSH_KEY,
-          ARRAY_POP_KEY,
-          ARRAY_REMOVEALL_KEY,
-          MAPCASE_KEY,
-          IS_EMPTY_KEY,
-          IS_BOOLEAN_KEY,
-        ] = [
-          "init",
-          "get",
-          "_set",
-          "set",
-          "setNullish",
-          "update",
-          "exists",
-          "addLink",
-          "removeLink",
-          "burnParam",
-          "add",
-          "delete",
-          "push",
-          "pop",
-          "removeAll",
-          "mapCase",
-          "isEmpty",
-          "is",
-        ].map((x) => `${x}${saneoKey}`);
-
-        const extra_context = {};
-
-        const CONTEXT_GENERAL = (softSet = false) => ({
-          init: this[INIT_KEY],
-          getValue: this[GET_KEY],
-          setValue: [this[SET_KEY], this[_SET_KEY]][+softSet],
-          _setValue: this[_SET_KEY],
-          setNullish: this[SET_NULLISH_KEY],
-          exists: this[EXISTS_KEY],
-          burnParam: this[BURN_PARAM_KEY],
-          mapCase: this[MAPCASE_KEY],
-          //--- Array methods
-          add: this[ARRAY_ADD_KEY],
-          delete: this[ARRAY_DELETE_KEY],
-          push: this[ARRAY_PUSH_KEY],
-          pop: this[ARRAY_POP_KEY],
-          removeAll: this[ARRAY_REMOVEALL_KEY],
-          ...(() => {
-            if (!isArray) {
-              return {};
-            }
-            return {
-              some: (cb) => this[GET_KEY]().some(cb),
-              every: (cb) => this[GET_KEY]().every(cb),
-              find: (cb) => this[GET_KEY]().find(cb),
-              filter: (cb) => this[GET_KEY]().filter(cb),
-              map: (cb) => this[GET_KEY]().map(cb),
-            };
-          })(),
-          //--- Component methods
-          notifyLinks,
-          update: this[UPDATE_KEY],
-          addLink: this[ADD_LINK_KEY],
-          removeLink: this[REMOVE_LINK_KEY],
-          //--- Component props
-          nameParam,
-          getParam,
-          nameStorage,
-          getStorage,
-          isNumber,
-          isInteger,
-          digits,
-          min,
-          max,
-          ...extra_context_global,
-          ...extra_context,
-        });
-
         // burning keys
-        this[GET_KEY] = GET.bind(this)();
-        if(isBoolean){
-          this[IS_BOOLEAN_KEY] = this[GET_KEY];
+        this[KEY.GET] = GET.bind(this)();
+        if (isNumber) {
+          if (typeof value != "number") {
+            value = 0;
+          }
+          if (min || max) {
+            if (min) {
+              this[KEY.MIN] = () => smartVar.bind(this)(min);
+            }
+            if (max) {
+              this[KEY.MAX] = () => smartVar.bind(this)(max);
+            }
+            this[KEY.CLAMP] = (v) => {
+              if (isNullish(v)) {
+                return v;
+              }
+              v = +v;
+              if (min) {
+                v = Math.max(v, this[KEY.MIN]());
+              }
+              if (max) {
+                v = Math.min(v, this[KEY.MAX]());
+              }
+              return v;
+            };
+          }
+          if (digits) {
+            this[KEY.DIGITS] = () => smartVar.bind(this)(digits);
+          }
         }
-        this[INIT_KEY] = INIT.bind(this)();
-        this[EXISTS_KEY] = EXISTS.bind(this)();
-        this[UPDATE_KEY] = UPDATE.bind(this)();
-        this[BURN_PARAM_KEY] = BURN_PARAM.bind(this)();
-        this[SET_KEY] = SET.bind(this)();
-        this[_SET_KEY] = (newValue, config = {}) => {
-          this[SET_KEY](newValue, { burnParam: false, ...config });
+        if (isBoolean) {
+          if (typeof value != "boolean") {
+            value = false;
+          }
+          this[KEY.IS_BOOLEAN] = get;
+        }
+        this[KEY.INIT] = INIT.bind(this)();
+        this[KEY.EXISTS] = EXISTS.bind(this)();
+        this[KEY.UPDATE] = UPDATE.bind(this)();
+        this[KEY.BURN_PARAM] = BURN_PARAM.bind(this)();
+        this[KEY.SET] = SET.bind(this)();
+        this[KEY._SET] = (newValue, config = {}) => {
+          set(newValue, { burnParam: false, ...config });
         };
-        this[SET_NULLISH_KEY] = SET_NULLISH.bind(this)();
-        this[ADD_LINK_KEY] = ADDLINK.bind(this)();
-        this[REMOVE_LINK_KEY] = REMOVELINK.bind(this)();
-        this[MAPCASE_KEY] = MAPCASE.bind(this)();
+        this[KEY.SET_NULLISH] = SET_NULLISH.bind(this)();
+        this[KEY.ADD_LINK] = ADDLINK.bind(this)();
+        this[KEY.REMOVE_LINK] = REMOVELINK.bind(this)();
+        this[KEY.MAPCASE] = MAPCASE.bind(this)();
+        this[KEY.STRINGIFY] = () => JSON.stringify(get());
         if (isArray) {
-          if (!value || !Array.isArray(value)) {
+          if (!Array.isArray(value)) {
             value = [];
           }
-          this[ARRAY_ADD_KEY] = ADDARRAY.bind(this)();
-          this[ARRAY_DELETE_KEY] = DELETEARRAY.bind(this)();
-          this[ARRAY_PUSH_KEY] = PUSHARRAY.bind(this)();
-          this[ARRAY_POP_KEY] = POPARRAY.bind(this)();
-          this[ARRAY_REMOVEALL_KEY] = REMOVEALLARRAY.bind(this)();
-          this[IS_EMPTY_KEY] = IS_EMPTY.bind(this)();
+          this[KEY.ARRAY_ADD] = ADDARRAY.bind(this)();
+          this[KEY.DELETE] = DELETEARRAY.bind(this)();
+          this[KEY.ARRAY_PUSH] = PUSHARRAY.bind(this)();
+          this[KEY.ARRAY_POP] = POPARRAY.bind(this)();
+          this[KEY.ARRAY_REMOVEALL] = () => set([]);
+          this[KEY.IS_EMPTY] = () => get().length == 0;
+        }
+        if (isObject) {
+          if (notIsObjectAnonimus(value)) {
+            value = {};
+          }
+          this[KEY.ARRAY_ADD] = ADDOBJECT.bind(this)();
+          this[KEY.DELETE] = DELETEOBJECT.bind(this)();
+          this[KEY.ASSING] = ASSING.bind(this)();
+          this[KEY.GET_KEYS] = () => Object.keys(get());
+          this[KEY.GET_VALUES] = () => Object.values(get());
+          this[KEY.ENTRIES] = () => Object.entries(get());
+          this[KEY.IS_EMPTY] = () => Object.keys(get()).length == 0;
         }
         EXTRA_CONTEXT.bind(this)();
         // end burning keys
@@ -171,20 +253,35 @@ export function DriverComponent(modelProps) {
         prepareSetup.bind(this)();
 
         if (nameParam) {
-          listBurnParams.push(this[BURN_PARAM_KEY]);
+          listBurnParams.push(this[KEY.BURN_PARAM]);
           const { addParamListener } = subscribeParam({
             [nameParam]: ({ new_value }) => {
-              this[SET_KEY](new_value);
+              set(new_value);
             },
           });
           addParamListener();
         }
 
+        const getValueDefault = (newValue) => {
+          if (isNullish(newValue)) {
+            console.log("newValue isNullish:", newValue);
+            newValue = get();
+          }
+          return newValue;
+        };
+
+        const getStringifyRequired = (newValue) => {
+          if (isArray || isObject) {
+            return JSON.stringify(newValue);
+          }
+          return newValue;
+        };
+
         function prepareSetup() {
           if (_setup_) {
             listSetups.push({
-              fn: _setup_.bind(this),
-              context: CONTEXT_GENERAL.bind(this),
+              fn: _setup_,
+              context: CONTEXT_GENERAL,
             });
           }
         }
@@ -205,16 +302,11 @@ export function DriverComponent(modelProps) {
           }
         }
 
-        function conserveName(key) {
-          return (
-            key == key.toUpperCase() ||
-            ["$", "_"].some((s) => key.startsWith(s))
-          );
-        }
-
-        function IS_EMPTY() {
-          return () => {
-            return this[GET_KEY]().length === 0;
+        function ASSING() {
+          return (newProps) => {
+            const value = { ...get() };
+            Object.assign(value, newProps);
+            set(value);
           };
         }
 
@@ -226,70 +318,98 @@ export function DriverComponent(modelProps) {
             if (!key) {
               return "Define el key";
             }
-            if (typeof key != "string") {
-              return `El key debe ser un string: ${key}`;
-            }
             if (!mapCase[key]) {
-              return `El key no existe: ${key}`;
+              return "El key no existe";
             }
             if (!value) {
-              value = this[GET_KEY]();
+              value = get();
             }
-            if (typeof value != "string") {
-              value = String(value);
+
+            return case_functional.bind(this)() || case_keys.bind(this)();
+
+            function findInKeysJoined(keyFind) {
+              return Object.keys(mapCase[key]).find((x) =>
+                x
+                  .split(",")
+                  .map((x) => x.trim())
+                  .includes(keyFind)
+              );
             }
-            let RETURN = mapCase[key][value];
-            if (RETURN == null || RETURN == undefined) {
-              RETURN = mapCase[key].default;
+
+            function case_keys() {
+              if (typeof mapCase[key] != "object") {
+                return `mapCase[key] no es un objeto, key:${key}`;
+              }
+              const valueStr = String(value);
+              let RETURN = mapCase[key][valueStr];
+              if (isNullish(RETURN)) {
+                RETURN =
+                  mapCase[key][
+                    findInKeysJoined(valueStr) || findInKeysJoined("default")
+                  ];
+              }
+              return smartVar.bind(this)(RETURN); // Siempre retorna
             }
-            if (typeof RETURN == "function") {
-              RETURN = RETURN();
+
+            function case_functional() {
+              if (typeof mapCase[key] == "function") {
+                let RETURN = mapCase[key](value, CONTEXT_GENERAL());
+                return smartVar.bind(this)(RETURN); // Sólo retorna si es función
+              }
             }
-            return RETURN;
           };
         }
 
-        function REMOVEALLARRAY() {
-          return () => {
-            this[SET_KEY]([]);
-          };
-        }
+        // Array methods
 
         function POPARRAY() {
           return () => {
-            const arr = [...this[GET_KEY]()];
+            const arr = [...get()];
             arr.pop();
-            this[SET_KEY](arr);
+            set(arr);
           };
         }
 
         function PUSHARRAY() {
           return (item) => {
-            const arr = [...this[GET_KEY]()];
+            const arr = [...get()];
             arr.push(item);
-            this[SET_KEY](arr);
+            set(arr);
+          };
+        }
+
+        function ADDOBJECT() {
+          return (key, item) => {
+            const obj = { ...get() };
+            obj[key] = item;
+            set(obj);
           };
         }
 
         function ADDARRAY() {
           return (key, item) => {
-            const arr = [...this[GET_KEY]()];
+            const arr = [...get()];
             if (!arr) {
               return;
             }
             arr[key] = item;
-            this[SET_KEY](arr);
+            set(arr);
+          };
+        }
+
+        function DELETEOBJECT() {
+          return (key) => {
+            const obj = { ...get() };
+            delete obj[key];
+            set(obj);
           };
         }
 
         function DELETEARRAY() {
           return (key) => {
-            const arr = [...this[GET_KEY]()];
-            if (!arr) {
-              return;
-            }
+            const arr = [...get()];
             delete arr[key];
-            this[SET_KEY](arr);
+            set(arr);
           };
         }
 
@@ -333,7 +453,7 @@ export function DriverComponent(modelProps) {
               function case_function() {
                 value = (props) => {
                   if (["get", "is"].some((x) => name.startsWith(x))) {
-                    if (props == null || props == undefined) {
+                    if (isNullish(props)) {
                       return prop.bind(this)(CONTEXT_GENERAL());
                     }
                   }
@@ -343,6 +463,13 @@ export function DriverComponent(modelProps) {
                 extra_context[originalKey] = value;
               }
             });
+
+          function conserveName(key) {
+            return (
+              key == key.toUpperCase() ||
+              ["$", "_"].some((s) => key.startsWith(s))
+            );
+          }
         }
 
         function ADDLINK() {
@@ -357,58 +484,84 @@ export function DriverComponent(modelProps) {
           };
         }
 
+        function findNotNullish(newValue) {
+          return newValue.find((x) => !isNullish(smartVar.bind(this)(x)));
+        }
+
+        function smartVar(value) {
+          if (typeof value == "function") {
+            return value.bind(this)(CONTEXT_GENERAL());
+          }
+          return value;
+        }
+
         function INIT() {
           return (...inits) => {
-            if (this[EXISTS_KEY]()) {
+            if (this[KEY.EXISTS]()) {
               return;
             }
-            this[SET_KEY](
-              inits.find((x) => x != null && x != undefined),
-              {
-                burnParam: false,
-                notifyLinks: false,
-                force: true,
-              }
-            );
+            set(findNotNullish.bind(this)(inits), {
+              burnParam: false,
+              notifyLinks: false,
+              force: true,
+            });
           };
         }
 
         function GET() {
           return (param) => {
-            let RETURN = global.nullish(value, getStorage(), getParam());
-            RETURN = filterNumber(RETURN);
-            RETURN = filterBoolean(RETURN);
-            RETURN = filterArray(RETURN);
-            if (param && isArray) {
+            let RETURN = nullish(value, getParam, getStorage);
+            RETURN = filterFromType.bind(this)(RETURN, {
+              validateType: _getValidate_,
+              applyFilters: true,
+            });
+            if (RETURN && param && (isArray || isObject)) {
               RETURN = RETURN[param];
-            }
-            if (_getValidate_ && typeof _getValidate_ == "function") {
-              RETURN = _getValidate_.bind(this)(RETURN, CONTEXT_GENERAL());
             }
             return RETURN;
           };
+
+          function getStorage() {
+            if (!nameStorage) {
+              return;
+            }
+            return processPersistantString(localStorage.getItem(nameStorage));
+          }
+
+          function getParam() {
+            if (!nameParam) {
+              return;
+            }
+            return processPersistantString(driverParams.getOne(nameParam));
+          }
         }
 
-        function getStorage() {
-          if (!nameStorage) {
-            return;
+        function processPersistantString(RETURN) {
+          if (typeof RETURN == "string") {
+            if (isNumber) {
+              return +RETURN;
+            }
+            if (isBoolean) {
+              return ["true", "1"].includes(RETURN.toLowerCase());
+            }
+            if (isArray || isObject) {
+              try {
+                return JSON.parse(RETURN);
+              } catch (error) {
+                console.error("Error al parsear el objeto", RETURN, error);
+              }
+            }
           }
-          return localStorage.getItem(nameStorage);
-        }
-
-        function getParam() {
-          if (!nameParam) {
-            return;
-          }
-          return driverParams.getOne(nameParam);
+          return RETURN;
         }
 
         function SET_NULLISH() {
-          return (newValue) => {
-            if (newValue == null || newValue == undefined) {
+          return (...newValue) => {
+            const notNullish = findNotNullish(newValue);
+            if (isNullish(notNullish)) {
               return;
             }
-            this[SET_KEY](newValue);
+            set(notNullish);
           };
         }
 
@@ -417,88 +570,42 @@ export function DriverComponent(modelProps) {
             newValue,
             { burnParam = true, notifyLinks: notify = true, force = false } = {}
           ) => {
-            if (freeze && !force) {
+            if (noSet && !force) {
               return;
             }
-            let getValue = this[GET_KEY]();
+            let getValue = get();
             if (typeof newValue == "function") {
               newValue = newValue(getValue);
             }
-            const wasChange = () => newValue !== getValue;
+            const wasChange = () => {
+              try {
+                const str1 = JSON.stringify(newValue);
+                const str2 = JSON.stringify(getValue);
+                const was = str1 != str2;
+                return was;
+              } catch (error) {
+                return newValue != getValue;
+              }
+            };
             if (!wasChange()) {
               return;
             }
-            if (_setValidate_ && typeof _setValidate_ == "function") {
-              newValue = _setValidate_.bind(this)(newValue, {
-                ...CONTEXT_GENERAL(),
-                oldValue: getValue,
-              });
-            }
-            newValue = filterNumber(newValue);
-            newValue = filterBoolean(newValue);
-            newValue = filterArray(newValue);
+            newValue = filterFromType.bind(this)(newValue, {
+              validateType: _setValidate_,
+              applyFilters: false,
+            });
             if (wasChange()) {
               BURN_STORAGE.bind(this)(newValue);
-              burnParam && this[BURN_PARAM_KEY](newValue);
+              burnParam && this[KEY.BURN_PARAM](newValue);
               notify && notifyLinks({ oldValue: getValue, newValue });
-              if (_willSet_ && typeof _willSet_ == "function") {
-                _willSet_.bind(this)(newValue, {
+              _willSet_ &&
+                _willSet_(newValue, {
                   ...CONTEXT_GENERAL(),
                   oldValue: getValue,
                 });
-              }
               value = newValue;
             }
           };
-        }
-
-        function filterBoolean(newValue) {
-          if (isBoolean) {
-            newValue = Boolean(newValue);
-          }
-          return newValue;
-        }
-
-        function filterArray(newValue) {
-          if (isArray) {
-            if (typeof newValue == "string") {
-              try {
-                newValue = JSON.parse(newValue);
-              } catch (error) {
-                console.error("Error al parsear el array", error);
-              }
-            }
-            if (!Array.isArray(newValue)) {
-              newValue = [newValue];
-            }
-            if (!newValue) {
-              newValue = [];
-            }
-          }
-          return newValue;
-        }
-
-        function filterNumber(newValue) {
-          if (isNumber || isInteger) {
-            if (isInteger) {
-              newValue = parseInt(newValue);
-            } else {
-              newValue = +newValue;
-              if (typeof digits == "number") {
-                newValue = +newValue.toFixed(digits);
-              }
-            }
-            if (typeof min == "number") {
-              newValue = Math.max(newValue, min);
-            }
-            if (typeof max == "number") {
-              newValue = Math.min(newValue, max);
-            }
-            if (!newValue) {
-              newValue = 0;
-            }
-          }
-          return newValue;
         }
 
         function BURN_STORAGE() {
@@ -506,12 +613,8 @@ export function DriverComponent(modelProps) {
             if (!nameStorage) {
               return;
             }
-            if (newValue == null || newValue == undefined) {
-              newValue = this[GET_KEY]();
-            }
-            if (isArray) {
-              newValue = JSON.stringify(newValue);
-            }
+            newValue = getValueDefault(newValue);
+            newValue = getStringifyRequired(newValue);
             localStorage.setItem(nameStorage, newValue);
           };
         }
@@ -521,12 +624,8 @@ export function DriverComponent(modelProps) {
             if (!nameParam) {
               return;
             }
-            if (newValue == null || newValue == undefined) {
-              newValue = this[GET_KEY]();
-            }
-            if (isArray) {
-              newValue = JSON.stringify(newValue);
-            }
+            newValue = getValueDefault(newValue);
+            newValue = getStringifyRequired(newValue);
             driverParams.set({ [nameParam]: newValue });
           };
         }
@@ -534,7 +633,7 @@ export function DriverComponent(modelProps) {
         function UPDATE() {
           const RETURN = [
             async () => {
-              const component = this[GET_KEY]();
+              const component = get();
               if (component && component.forceUpdate) {
                 component.forceUpdate();
               }
@@ -548,8 +647,8 @@ export function DriverComponent(modelProps) {
 
         function EXISTS() {
           return () => {
-            let value = this[GET_KEY]();
-            if (value == null || value == undefined) {
+            let value = get();
+            if (isNullish(value)) {
               return false;
             }
             return true;
@@ -567,12 +666,135 @@ export function DriverComponent(modelProps) {
             }
           });
         }
+
+        function filterFromType(
+          newValue,
+          {
+            validateType, // get or set validation
+            applyFilters = true,
+          }
+        ) {
+          newValue = processPersistantString(newValue);
+          newValue = filterNumber.bind(this)(newValue, applyFilters);
+          newValue = filterBoolean.bind(this)(newValue);
+          newValue = filterArray.bind(this)(newValue);
+          newValue = filterObject.bind(this)(newValue);
+          if (validateType || _validate_) {
+            newValue = validateValue.bind(this)(newValue, validateType);
+          }
+          return newValue;
+
+          function validateValue(value, validateType) {
+            if (_validate_ || validateType) {
+              const CONTEXT = CONTEXT_GENERAL();
+              if (_validate_) {
+                value = _validate_.bind(this)(value, CONTEXT);
+              }
+              if (validateType) {
+                value = validateType.bind(this)(value, CONTEXT);
+              }
+            }
+            return value;
+          }
+
+          function filterBoolean(newValue) {
+            if (isBoolean) {
+              newValue = Boolean(newValue);
+            }
+            return newValue;
+          }
+
+          function filterObject(newValue) {
+            if (isObject) {
+              if (!newValue || typeof newValue != "object") {
+                return {};
+              }
+            }
+            return newValue;
+          }
+
+          function filterArray(newValue) {
+            if (isArray) {
+              if (!Array.isArray(newValue)) {
+                newValue = [newValue];
+              }
+              if (!newValue) {
+                newValue = [];
+              }
+            }
+            return newValue;
+          }
+
+          function filterNumber(newValue, filtering = true) {
+            if (isNumber || isInteger) {
+              if (!newValue) {
+                newValue = 0;
+              }
+              if (isInteger && filtering) {
+                newValue = parseInt(newValue);
+              } else {
+                newValue = +newValue;
+                if (digits && filtering) {
+                  newValue = +newValue.toFixed(smartVar.bind(this)(digits));
+                }
+              }
+              try {
+                if (min && filtering) {
+                  const _min_ = smartVar.bind(this)(min);
+                  if (newValue < _min_) {
+                    newValue = _min_;
+                  }
+                }
+                if (max && filtering) {
+                  const _max_ = smartVar.bind(this)(max);
+                  if (newValue > _max_) {
+                    newValue = _max_;
+                  }
+                }
+              } catch (error) {
+                console.error(error);
+              }
+            }
+            return newValue;
+          }
+        }
       });
 
       listSetups.forEach((setup) => {
-        setup.fn(setup.context(true));
+        try {
+          setup.fn(setup.context(true));
+        } catch (error) {
+          console.error(error);
+        }
       });
     }
   })();
+  if (idDriver) {
+    allDrivers[idDriver] = RETURN;
+  } else {
+    allDrivers.noId.push(RETURN);
+  }
   return RETURN;
+}
+
+export function driverId(id) {
+  return allDrivers[id];
+}
+
+export function getAllDrivers() {
+  const { noId, ...rest } = allDrivers;
+  return [...noId, ...Object.values(rest)];
+}
+
+function notIsObjectAnonimus(obj) {
+  if (!obj) {
+    return true;
+  }
+  if (typeof obj != "object") {
+    return true;
+  }
+  if (obj.constructor && obj.constructor.name != "Object") {
+    return true;
+  }
+  return false;
 }

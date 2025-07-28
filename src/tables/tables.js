@@ -98,6 +98,7 @@ addModelFormat({
 });
 
 export const driverTables = DriverComponent({
+  idDriver: "tables",
   TABLE_TRANSACTIONS: "transactions",
   TABLE_OPERATIONS: "operations",
   viewTable: {
@@ -107,21 +108,13 @@ export const driverTables = DriverComponent({
     },
   },
 
-  refetch(cb) {
+  refetch(effectBool = false) {
     Object.entries(this.getTables()).forEach(([name, table]) => {
-      const loadingEffect = cb === true;
       const driver = this.getDriverTable(name);
-      if (typeof cb === "function") {
-        if (driver) {
-          const { loading } = cb({ name, driver, table });
-          if (loading) {
-            loadingEffect = loading;
-          }
-        }
+      if (driver && driver.setLoading) {
+        driver.setLoading(effectBool);
       }
-      if (driver && driver.setLoading && loadingEffect) {
-        driver.setLoading(!!loadingEffect);
-      }
+      console.log({driver})
       table.fetchData && table.fetchData();
     });
   },
@@ -129,18 +122,18 @@ export const driverTables = DriverComponent({
   operationRow: {},
 
   driverTable: {
-    isArray: true,
+    isObject: true,
   },
 
   tables: {
-    isArray: true,
+    isObject: true,
   },
 
   delayers: {
     isArray: true,
   },
 
-  addTableAndDriver(name, table, driver) {
+  addTableAndDriver({name, table, driver}) {
     this.addDriverTable(name, driver);
     this.addTables(name, table);
   },
@@ -170,7 +163,6 @@ function newTable({
   fetchError = () => {},
   render,
   driver = {},
-  ...props
 } = {}) {
   let paramsValues;
   let params;
@@ -198,7 +190,7 @@ function newTable({
 
     endFetchEnvolve(props) {
       endFetch.bind(this)(props);
-      this.setLoading(false);
+      driver.setLoading && driver.setLoading(false);
     }
 
     async fetchData({ deep = 0 } = {}) {
@@ -223,7 +215,7 @@ function newTable({
 
     componentDidMount() {
       componentDidMount.bind(this)();
-      driverTables.addTableAndDriver(name_table, this, driver);
+      driverTables.addTableAndDriver({name: name_table, table: this, driver});
       driverTables.addDelayers(name_table, Delayer(1000));
       this.fetchData();
       const { addLinkLoading, addLinkTableData } = driver;
@@ -271,7 +263,6 @@ function newTable({
     }
     const delayer = driverTables.getDelayers(name_table);
     if (delayer && !delayer.isReady()) {
-      console.log("Fetch cancelado, tiempo de espera");
       return false;
     }
     return true;

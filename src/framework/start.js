@@ -1,39 +1,28 @@
-export const nullish = (value, ...rest) => {
-  if (value === null || value === undefined) {
-    return rest.find((r) => {
-      if (typeof r === "function") {
-        r = r();
-      }
-      if (r !== null && r !== undefined) {
-        return r;
-      }
-    });
-  }
-  if (typeof value === "function") {
-    value = value();
-  }
-  if (value !== null && value !== undefined) {
-    return value;
-  }
-  if (rest.length > 0) {
-    return nullish(...rest);
-  }
-};
+function modelNullish({ evalFn = true } = {}) {
+  return F;
 
-export const nullishNoF = (value, ...rest) => {
-  if (value === null || value === undefined) {
-    return rest.find((r) => {
-      if (r !== null && r !== undefined) {
-        return r;
-      }
-    });
+  function F(value, ...rest) {
+    if (typeof value === "function" && evalFn) {
+      value = value();
+    }
+    if (!isNullish(value)) {
+      return value;
+    }
+    if (rest.length > 0) {
+      return F(...rest);
+    }
   }
-  return value;
-};
+}
+
+export function isNullish(value){
+  return value === null || value === undefined;
+}
+export const nullish = modelNullish();
+export const nullishFlat = modelNullish({ evalFn: false });
 
 export function assignNullish(dst, src) {
   for (const key in src) {
-    dst[key] = nullishNoF(dst[key], src[key]);
+    dst[key] = nullishFlat(dst[key], src[key]);
   }
   return dst;
 }
@@ -41,7 +30,7 @@ export function assignNullish(dst, src) {
 [global, window].forEach((g) => {
   Object.assign(g, {
     nullish,
-    nullishNoF,
+    nullishFlat,
     assignNullish,
   });
 });

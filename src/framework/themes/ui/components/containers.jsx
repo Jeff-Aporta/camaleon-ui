@@ -234,9 +234,10 @@ export function PaperF({
 }
 
 export function PaperP({
-  p_min = 10,
-  p_max = 20,
+  p_min = 5,
+  p_max = 10,
   className = "",
+  pad,
   zOverall,
   children,
   nobr,
@@ -252,6 +253,22 @@ export function PaperP({
     nobr,
     balance,
   }));
+  switch (pad) {
+    case "small":
+      p_min = 2;
+      p_max = 5;
+      break;
+    case "medium":
+      p_min = 5;
+      p_max = 10;
+      break;
+    case "large":
+      p_min = 10;
+      p_max = 20;
+      break;
+    default:
+      break;
+  }
   return (
     <Paper
       {...props}

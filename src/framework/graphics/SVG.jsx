@@ -2,6 +2,7 @@ import React from "react";
 import { DriverComponent } from "../tools/index.js";
 
 const driverSvgFilter = DriverComponent({
+  idDriver: "svg-camaleon",
   svgFilterList: {
     isArray: true,
     getComponent({ getValue }) {

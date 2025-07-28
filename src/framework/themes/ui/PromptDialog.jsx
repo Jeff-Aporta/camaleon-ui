@@ -28,6 +28,7 @@ import {
 } from "../rules/manager/index.js";
 
 const driverDialog = DriverComponent({
+  idDriver: "prompt-dialog-camaleon",
   dialog: {
     isComponent: true,
     show(props) {

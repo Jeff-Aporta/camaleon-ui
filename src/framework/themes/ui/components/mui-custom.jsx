@@ -54,7 +54,7 @@ export function IconButtonWithTooltip({
         title={typeof title === "string" ? title : title()}
         placement="left"
       >
-        <div className="inline-block">
+        <span className="inline-block">
           <IconButton
             disabled={
               ["boolean", "string"].includes(typeof disabled)
@@ -67,7 +67,7 @@ export function IconButtonWithTooltip({
           >
             {icon}
           </IconButton>
-        </div>
+        </span>
       </TooltipGhost>
     </div>
   );
