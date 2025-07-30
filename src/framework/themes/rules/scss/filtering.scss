@@ -59,11 +59,32 @@
   --brightness: 10;
 }
 
+.backdropfilter {
+  --brightness: 1;
+  &.brightnesshover-1-5 {
+    &:hover {
+      --brightness: 1.5;
+    }
+  }
+  backdrop-filter: brightness(var(--brightness));
+}
+
 .text-hide-unhover-container {
   --w: 0;
+  --t: 0;
+
   &:hover {
     --w: auto;
+    --t: 1;
   }
+  &:focus-within {
+    --t: 1;
+  }
+  .text-hide-opacity-unhover {
+    transition: opacity 0.2s;
+    opacity: var(--t);
+  }
+
   .text-hide-unhover {
     transition: width 0.2s;
     interpolate-size: allow-keywords;

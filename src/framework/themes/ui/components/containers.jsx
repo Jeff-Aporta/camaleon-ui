@@ -55,51 +55,16 @@ export function Design({
   );
 }
 
-export function Layer({
-  className = "",
-  fill,
-  fullw,
-  center,
-  centralized,
-  hiddenflow,
-  hinherit,
-  centercentralized,
-  ghost,
-  ...rest
-} = {}) {
-  ({
-    hiddenflow,
-    fill,
-    fullw,
-    center,
-    centralized,
-    centercentralized,
-    ghost,
-    hinherit,
-  } = inferSuggar({
-    hiddenflow,
-    fill,
-    fullw,
-    center,
-    centralized,
-    hinherit,
-    centercentralized,
-    ghost,
-  }));
+export function Layer({ className = "", ...rest } = {}) {
+  const extraClasses = inferSuggar(rest);
+  Object.keys(extraClasses).forEach((k) => {
+    delete rest[k];
+  });
 
   return (
     <div
       {...rest}
-      className={[
-        "layer",
-        className,
-        fill,
-        fullw,
-        hiddenflow,
-        hinherit,
-        ghost,
-        ...[[center, centralized], [centercentralized]][+!!centercentralized],
-      ]
+      className={["layer", className, ...Object.values(extraClasses)]
         .filter(Boolean)
         .join(" ")}
     />
@@ -170,40 +135,43 @@ function inferSuggar({
   hiddenflow,
   fill,
   fullw,
+  fullh,
   center,
   centralized,
   centercentralized,
   hinherit,
   rhm,
   ghost,
+  top,
+  right,
+  bottom,
+  left,
+  centery,
+  centerx,
 }) {
-  nobr = ["", "br-0"][+!!nobr];
-  zOverall = ["", "z-ontopall"][+!!zOverall];
-  hm = ["", <Hm r={rhm} />][+!!hm];
-  balance = ["", "tw-balance"][+!!balance];
-  hiddenflow = ["", "overflow-hidden"][+!!hiddenflow];
-  fill = ["", "fill"][+!!fill];
-  fullw = ["", "full-w"][+!!fullw];
-  center = ["", "center"][+!!center];
-  centralized = ["", "centralized"][+!!centralized];
   centercentralized = ["", "center-centralized"][
     +!!((center && centralized) || centercentralized)
   ];
-  hinherit = ["", "h-inherit"][+!!hinherit];
-  ghost = ["", "ghost"][+!!ghost];
   return {
-    nobr,
-    zOverall,
-    hm,
-    balance,
-    hiddenflow,
-    fill,
-    fullw,
-    center,
-    centralized,
+    nobr: ["", "br-0"][+!!nobr],
+    zOverall: ["", "z-ontopall"][+!!zOverall],
+    hm: ["", <Hm r={rhm} />][+!!hm],
+    balance: ["", "tw-balance"][+!!balance],
+    hiddenflow: ["", "overflow-hidden"][+!!hiddenflow],
+    fill: ["", "fill"][+!!fill],
+    fullw: ["", "full-w"][+!!fullw],
+    fullh: ["", "full-h"][+!!fullh],
+    center: ["", "center"][+!!(center && !centercentralized)],
+    centralized: ["", "centralized"][+!!(centralized && !centercentralized)],
     centercentralized,
-    hinherit,
-    ghost,
+    hinherit: ["", "h-inherit"][+!!hinherit],
+    ghost: ["", "ghost"][+!!ghost],
+    top: ["", "top"][+!!top],
+    right: ["", "right"][+!!right],
+    bottom: ["", "bottom"][+!!bottom],
+    left: ["", "left"][+!!left],
+    centerx: ["", "center-x"][+!!centerx],
+    centery: ["", "center-y"][+!!centery],
   };
 }
 

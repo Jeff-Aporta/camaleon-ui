@@ -16,7 +16,6 @@ export const driverCoinsOperating = DriverComponent({
       console.log(driverPanelRobot.getCoinsOperating())
       coin = driverPanelRobot.getCoinsOperating().find((c) => c.symbol == coin);
     }
-    console.log(coin)
     driverPanelRobot.pushCoinsToDelete(coin);
     this.setActionInProcess(true);
 
@@ -36,7 +35,6 @@ export const driverCoinsOperating = DriverComponent({
           (resolve) => {
             HTTPGET_USEROPERATION_OPEN({
               id_coin: coin.id,
-              resolve,
               successful([data], info) {
                 if (data) {
                   Object.assign(operationOpen, data);

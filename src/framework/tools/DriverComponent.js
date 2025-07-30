@@ -5,6 +5,28 @@ import { firstUppercase } from "./tools.js";
 
 const allDrivers = { noId: [] };
 
+export function inferStringData(val) {
+  // Boolean
+  if (val === "true") {
+    return true;
+  }
+  if (val === "false") {
+    return false;
+  }
+
+  // Number
+  if (
+    (!val.startsWith("0") || val.startsWith("0.")) &&
+    val !== "" &&
+    !isNaN(+val)
+  ) {
+    return +val;
+  }
+
+  // String (default)
+  return val;
+}
+
 export function DriverComponent(modelProps) {
   const { idDriver, ...modelRest } = modelProps;
   const RETURN = new (class {
@@ -23,6 +45,7 @@ export function DriverComponent(modelProps) {
         const extra_context = {};
         let {
           value,
+          isString,
           isNumber,
           digits,
           isArray,
@@ -55,6 +78,8 @@ export function DriverComponent(modelProps) {
             }`);
         });
         const KEY = Object.entries({
+          FROM_FORM: "setFromIdForm",
+          CHECK_EMAIL_RULE: "checkEmailRule",
           INIT: "init",
           GET: "get",
           _SET: "_set",
@@ -139,6 +164,7 @@ export function DriverComponent(modelProps) {
             nameParam,
             nameStorage,
             isNumber,
+            isString,
             isInteger,
             digits: this[KEY.DIGITS],
             min: this[KEY.MIN],
@@ -176,41 +202,9 @@ export function DriverComponent(modelProps) {
 
         // burning keys
         this[KEY.GET] = GET.bind(this)();
-        if (isNumber) {
-          if (typeof value != "number") {
-            value = 0;
-          }
-          if (min || max) {
-            if (min) {
-              this[KEY.MIN] = () => smartVar.bind(this)(min);
-            }
-            if (max) {
-              this[KEY.MAX] = () => smartVar.bind(this)(max);
-            }
-            this[KEY.CLAMP] = (v) => {
-              if (isNullish(v)) {
-                return v;
-              }
-              v = +v;
-              if (min) {
-                v = Math.max(v, this[KEY.MIN]());
-              }
-              if (max) {
-                v = Math.min(v, this[KEY.MAX]());
-              }
-              return v;
-            };
-          }
-          if (digits) {
-            this[KEY.DIGITS] = () => smartVar.bind(this)(digits);
-          }
-        }
-        if (isBoolean) {
-          if (typeof value != "boolean") {
-            value = false;
-          }
-          this[KEY.IS_BOOLEAN] = get;
-        }
+        processStringType.bind(this)();
+        processNumberType.bind(this)();
+        processBooleanType.bind(this)();
         this[KEY.INIT] = INIT.bind(this)();
         this[KEY.EXISTS] = EXISTS.bind(this)();
         this[KEY.UPDATE] = UPDATE.bind(this)();
@@ -224,29 +218,8 @@ export function DriverComponent(modelProps) {
         this[KEY.REMOVE_LINK] = REMOVELINK.bind(this)();
         this[KEY.MAPCASE] = MAPCASE.bind(this)();
         this[KEY.STRINGIFY] = () => JSON.stringify(get());
-        if (isArray) {
-          if (!Array.isArray(value)) {
-            value = [];
-          }
-          this[KEY.ARRAY_ADD] = ADDARRAY.bind(this)();
-          this[KEY.DELETE] = DELETEARRAY.bind(this)();
-          this[KEY.ARRAY_PUSH] = PUSHARRAY.bind(this)();
-          this[KEY.ARRAY_POP] = POPARRAY.bind(this)();
-          this[KEY.ARRAY_REMOVEALL] = () => set([]);
-          this[KEY.IS_EMPTY] = () => get().length == 0;
-        }
-        if (isObject) {
-          if (notIsObjectAnonimus(value)) {
-            value = {};
-          }
-          this[KEY.ARRAY_ADD] = ADDOBJECT.bind(this)();
-          this[KEY.DELETE] = DELETEOBJECT.bind(this)();
-          this[KEY.ASSING] = ASSING.bind(this)();
-          this[KEY.GET_KEYS] = () => Object.keys(get());
-          this[KEY.GET_VALUES] = () => Object.values(get());
-          this[KEY.ENTRIES] = () => Object.entries(get());
-          this[KEY.IS_EMPTY] = () => Object.keys(get()).length == 0;
-        }
+        processArrayType.bind(this)();
+        processObjectType.bind(this)();
         EXTRA_CONTEXT.bind(this)();
         // end burning keys
 
@@ -277,6 +250,87 @@ export function DriverComponent(modelProps) {
           return newValue;
         };
 
+        function processObjectType() {
+          if (isObject) {
+            if (notIsObjectAnonimus(value)) {
+              value = {};
+            }
+            this[KEY.ARRAY_ADD] = ADDOBJECT.bind(this)();
+            this[KEY.DELETE] = DELETEOBJECT.bind(this)();
+            this[KEY.ASSING] = ASSING.bind(this)();
+            this[KEY.GET_KEYS] = () => Object.keys(get());
+            this[KEY.GET_VALUES] = () => Object.values(get());
+            this[KEY.ENTRIES] = () => Object.entries(get());
+            this[KEY.IS_EMPTY] = () => Object.keys(get()).length == 0;
+            this[KEY.FROM_FORM] = FROMFORM.bind(this)();
+          }
+        }
+
+        function processArrayType() {
+          if (isArray) {
+            if (!Array.isArray(value)) {
+              value = [];
+            }
+            this[KEY.ARRAY_ADD] = ADDARRAY.bind(this)();
+            this[KEY.DELETE] = DELETEARRAY.bind(this)();
+            this[KEY.ARRAY_PUSH] = PUSHARRAY.bind(this)();
+            this[KEY.ARRAY_POP] = POPARRAY.bind(this)();
+            this[KEY.ARRAY_REMOVEALL] = () => set([]);
+            this[KEY.IS_EMPTY] = () => get().length == 0;
+          }
+        }
+
+        function processStringType() {
+          if (isString) {
+            this[KEY.CHECK_EMAIL_RULE] = () => {
+              return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(
+                get()
+              );
+            };
+          }
+        }
+
+        function processBooleanType() {
+          if (isBoolean) {
+            if (typeof value != "boolean") {
+              value = false;
+            }
+            this[KEY.IS_BOOLEAN] = get;
+          }
+        }
+
+        function processNumberType() {
+          if (isNumber) {
+            if (typeof value != "number") {
+              value = 0;
+            }
+            if (min || max) {
+              if (min) {
+                this[KEY.MIN] = () => smartVar.bind(this)(min);
+              }
+              if (max) {
+                this[KEY.MAX] = () => smartVar.bind(this)(max);
+              }
+              this[KEY.CLAMP] = (v) => {
+                if (isNullish(v)) {
+                  return v;
+                }
+                v = +v;
+                if (min) {
+                  v = Math.max(v, this[KEY.MIN]());
+                }
+                if (max) {
+                  v = Math.min(v, this[KEY.MAX]());
+                }
+                return v;
+              };
+            }
+            if (digits) {
+              this[KEY.DIGITS] = () => smartVar.bind(this)(digits);
+            }
+          }
+        }
+
         function prepareSetup() {
           if (_setup_) {
             listSetups.push({
@@ -300,6 +354,39 @@ export function DriverComponent(modelProps) {
               }
             }
           }
+        }
+
+        function FROMFORM() {
+          return (idForm) => {
+            const form = document.getElementById(idForm);
+            if (!form) {
+              return "Formulario no encontrado";
+            }
+            const formData = new FormData(form);
+
+            const newData = { ...get() };
+
+            for (const [key, value] of formData.entries()) {
+              if (key.includes(".")) {
+                const [parent, child, child2] = key.split(".");
+                if (!newData[parent]) {
+                  newData[parent] = {};
+                }
+                if(!child2){
+                  newData[parent][child] = inferStringData(value);
+                }else{
+                  if(!newData[parent][child]){
+                    newData[parent][child] = {};
+                  }
+                  newData[parent][child][child2] = inferStringData(value);
+                }
+              } else {
+                newData[key] = inferStringData(value);
+              }
+            }
+
+            set(newData);
+          };
         }
 
         function ASSING() {
@@ -675,16 +762,15 @@ export function DriverComponent(modelProps) {
           }
         ) {
           newValue = processPersistantString(newValue);
-          newValue = filterNumber.bind(this)(newValue, applyFilters);
-          newValue = filterBoolean.bind(this)(newValue);
+          newValue = filterNumber.bind(this)(newValue);
           newValue = filterArray.bind(this)(newValue);
           newValue = filterObject.bind(this)(newValue);
-          if (validateType || _validate_) {
-            newValue = validateValue.bind(this)(newValue, validateType);
-          }
+          newValue = filterBoolean.bind(this)(newValue);
+          newValue = filterString.bind(this)(newValue);
+          newValue = validateValue.bind(this)(newValue);
           return newValue;
 
-          function validateValue(value, validateType) {
+          function validateValue(value) {
             if (_validate_ || validateType) {
               const CONTEXT = CONTEXT_GENERAL();
               if (_validate_) {
@@ -693,8 +779,16 @@ export function DriverComponent(modelProps) {
               if (validateType) {
                 value = validateType.bind(this)(value, CONTEXT);
               }
+              value = value;
             }
             return value;
+          }
+
+          function filterString(newValue) {
+            if (isString) {
+              newValue = String(newValue);
+            }
+            return newValue;
           }
 
           function filterBoolean(newValue) {
@@ -725,27 +819,27 @@ export function DriverComponent(modelProps) {
             return newValue;
           }
 
-          function filterNumber(newValue, filtering = true) {
+          function filterNumber(newValue) {
             if (isNumber || isInteger) {
               if (!newValue) {
                 newValue = 0;
               }
-              if (isInteger && filtering) {
+              if (isInteger) {
                 newValue = parseInt(newValue);
               } else {
                 newValue = +newValue;
-                if (digits && filtering) {
+                if (digits && applyFilters) {
                   newValue = +newValue.toFixed(smartVar.bind(this)(digits));
                 }
               }
               try {
-                if (min && filtering) {
+                if (min && applyFilters) {
                   const _min_ = smartVar.bind(this)(min);
                   if (newValue < _min_) {
                     newValue = _min_;
                   }
                 }
-                if (max && filtering) {
+                if (max && applyFilters) {
                   const _max_ = smartVar.bind(this)(max);
                   if (newValue > _max_) {
                     newValue = _max_;

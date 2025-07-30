@@ -9,6 +9,7 @@ import {
   fluidCSS,
   TooltipGhost,
 } from "@jeff-aporta/camaleon";
+
 import { Typography } from "@mui/material";
 import PanelOfProjections from "./PanelOfProjections.jsx";
 import { driverPanelOfProjections } from "./PanelOfProjections.driver.js";

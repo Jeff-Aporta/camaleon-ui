@@ -228,7 +228,7 @@ function LogoHome() {
         <Box
           className={fluidCSS()
             .lerpX("responsive-min", { fontSize: [15, 20] })
-            .end("flex-col")}
+            .end("flex col-direction")}
         >
           <Typography
             style={{

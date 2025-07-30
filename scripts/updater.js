@@ -9,9 +9,9 @@ const __dirname = path.dirname(__filename);
 
 packageJson_updater_cmd(packageJson);
 config_updater_cmd({
-  framework: path.resolve(__dirname, "..", "framework"),
+  framework: path.resolve(__dirname, "..", "src", "framework"),
   dist: path.resolve(__dirname, "..", "dist"),
-  sass_framework: path.resolve(__dirname, "..", "framework"),
+  sass_framework: path.resolve(__dirname, "..", "src", "framework"),
   sass_dist: path.resolve(__dirname, "..", "dist")
 });
 

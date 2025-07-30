@@ -167,35 +167,18 @@ export default class PanelBalance extends Component {
             </div>
             <ActionButtons />
           </div>
-          {hayMoneda && (
-            <>
-              <br />
-              <CoinsOperating />
-            </>
-          )}
+          {(() => {
+            if (hayMoneda) {
+              return (
+                <>
+                  <br />
+                  <CoinsOperating />
+                </>
+              );
+            }
+          })()}
         </PaperP>
       </div>
     );
   }
 }
-
-window.calculateTimeToUpdate = function () {
-  // MInutos actuales (en el sistema local)
-  const currentMinute = calculate_minute_test();
-
-  const next5MinMultiple = (() => {
-    const nextMultiple = Math.ceil(currentMinute / 5);
-    return 5 * nextMultiple - 1;
-  })();
-
-  window.msToUpdate = next5MinMultiple * 60 * 1000;
-
-  function calculate_minute_test() {
-    // MInutos actuales (en el sistema local)
-    const currentMinute = new Date().getMinutes();
-    // Porcentaje de minutos transcurridos para el multiplo de 5
-    const percentDecimalTime = (currentMinute / 5) % 1;
-    const inMultiple = +(percentDecimalTime == 0);
-    return currentMinute + inMultiple;
-  }
-};

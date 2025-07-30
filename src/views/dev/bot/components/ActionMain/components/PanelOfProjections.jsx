@@ -5,21 +5,18 @@ import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import TrendingFlatIcon from "@mui/icons-material/TrendingFlat";
 import CurrencyExchangeIcon from "@mui/icons-material/CurrencyExchange";
 
-import { Chip, Paper } from "@mui/material";
+import { Chip } from "@mui/material";
 import Typography from "@mui/material/Typography";
 
 import {
   getThemeLuminance,
   getNumberFormat,
   TooltipGhost,
-  fluidCSS,
   PaperP,
   WaitSkeleton,
 } from "@jeff-aporta/camaleon";
 import { driverPanelBalance } from "./PanelBalance.driver.js";
 import { driverPanelOfProjections } from "./PanelOfProjections.driver.js";
-
-import { HTTPGET_COINS_METRICS, HTTPGET_BALANCECOIN } from "@api";
 
 function getPriceProjectionIcon(diff) {
   if (diff > 0) {
@@ -32,10 +29,6 @@ function getPriceProjectionIcon(diff) {
 }
 
 export default class PanelOfProjections extends Component {
-  constructor(props) {
-    super(props);
-  }
-
   componentDidMount() {
     driverPanelOfProjections.addLinkCoinMetric(this);
     driverPanelBalance.addLinkLoadingCoinMetric(this);
@@ -49,16 +42,11 @@ export default class PanelOfProjections extends Component {
   render() {
     const coinMetrics = driverPanelOfProjections.getCoinMetric();
     const {
-      price_buy: priceBuy,
       current_price: currentPrice,
       projected_price: projectedPrice,
       total_bought: totalBought,
-      total_sold: totalSold,
-      total_tokens: totalTokens,
       roi_real: roiReal,
       roi_proy: roiProy,
-      profit_project: profitProject,
-      mensaje,
       clase = "D",
       etiqueta,
     } = coinMetrics;
@@ -77,12 +65,6 @@ export default class PanelOfProjections extends Component {
     const hasReal = !!roiReal;
 
     const displayedRoi = [roiProy, roiReal][+hasReal];
-    const diffPrice = projectedPrice - currentPrice;
-
-    const tokensIn100usd = [0, 100 / currentPrice][+(currentPrice > 0)];
-    const projectedGain = [0, (projectedPrice - currentPrice) * tokensIn100usd][
-      +(projectedPrice != null && currentPrice > 0)
-    ];
 
     return (
       <WaitSkeleton loading={driverPanelBalance.getLoadingCoinMetric()}>
@@ -149,7 +131,7 @@ class PriceCard extends Component {
   render() {
     const { title, value, value2, icon, color } = this.props;
     return (
-      <PaperP pad="small" className="flex-col" elevation={3}>
+      <PaperP pad="small" className="flex col-direction" elevation={3}>
         <Typography color="text.secondary" variant="caption">
           <small>{title}</small>
         </Typography>
@@ -181,7 +163,7 @@ class ROICard extends Component {
     const label = "ROI " + (valid ? (isReal ? "Real" : "Proyectado") : "");
     const computedColor = (() => {
       // Color según ROI proyectado (abierta) o real (cerrada)
-      if (roi == 0) {
+      if (roi === 0) {
         return;
       }
       if (!isReal) {

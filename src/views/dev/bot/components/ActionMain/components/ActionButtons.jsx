@@ -250,53 +250,51 @@ class ActionButtons extends Component {
 
       function Operar() {
         return (
-          <WaitSkeleton loading={driverPanelRobot.getLoadingCoinsToOperate()}>
-            <Button
-              className="text-hide-unhover-container"
-              variant="contained"
-              color="ok"
-              size="small"
-              disabled={driverActionButtons.disableOperate()}
-              loading={loadingGeneral}
-              onClick={async () => {
-                const coinObj = driverPanelRobot.findCurrencyInCoinsToOperate();
-                const { symbol: symbol_coin, id: id_coin } = coinObj;
-                if (!coinObj) {
-                  return;
+          <Button
+            className="text-hide-unhover-container"
+            variant="contained"
+            color="ok"
+            size="small"
+            disabled={driverActionButtons.disableOperate()}
+            loading={loadingGeneral}
+            onClick={async () => {
+              const coinObj = driverPanelRobot.findCurrencyInCoinsToOperate();
+              const { symbol: symbol_coin, id: id_coin } = coinObj;
+              if (!coinObj) {
+                return;
+              }
+              await showPromise(
+                `Solicitando al backend inicio de operación (${symbol_coin})`,
+                (resolve) => {
+                  HTTPPUT_COINS_START({
+                    id_coin,
+                    willStart() {
+                      driverCoinsOperating.setActionInProcess(true);
+                    },
+                    willEnd() {
+                      driverCoinsOperating.setActionInProcess(false);
+                    },
+                    successful: (json, info) => {
+                      driverPanelRobot.pushCoinsOperating(coinObj);
+                      resolve(`Se empieza a operar (${symbol_coin})`);
+                    },
+                    failure: (info, rejectPromise) => {
+                      rejectPromise(
+                        `Algo salió mal al operar en ${symbol_coin}`,
+                        resolve,
+                        info
+                      );
+                    },
+                  });
                 }
-                await showPromise(
-                  `Solicitando al backend inicio de operación (${symbol_coin})`,
-                  (resolve) => {
-                    HTTPPUT_COINS_START({
-                      id_coin,
-                      willStart() {
-                        driverCoinsOperating.setActionInProcess(true);
-                      },
-                      willEnd() {
-                        driverCoinsOperating.setActionInProcess(false);
-                      },
-                      successful: (json, info) => {
-                        driverPanelRobot.pushCoinsOperating(coinObj);
-                        resolve(`Se empieza a operar (${symbol_coin})`);
-                      },
-                      failure: (info, rejectPromise) => {
-                        rejectPromise(
-                          `Algo salió mal al operar en ${symbol_coin}`,
-                          resolve,
-                          info
-                        );
-                      },
-                    });
-                  }
-                );
-              }}
-            >
-              {<PlayArrowIcon fontSize="small" />}
-              <div className="text-hide-unhover">
-                <small>Operar</small>
-              </div>
-            </Button>
-          </WaitSkeleton>
+              );
+            }}
+          >
+            <PlayArrowIcon fontSize="small" />
+            <div className="text-hide-unhover">
+              <small>Operar</small>
+            </div>
+          </Button>
         );
       }
     }

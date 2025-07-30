@@ -4,15 +4,24 @@ import DoDisturbOnIcon from "@mui/icons-material/DoDisturbOn";
 import PendingIcon from "@mui/icons-material/Pending";
 import CircularProgress from "@mui/material/CircularProgress";
 
-import { Tooltip, Chip, Autocomplete, TextField } from "@mui/material";
+import {
+  Tooltip,
+  Chip,
+  Autocomplete,
+  TextField,
+  Typography,
+} from "@mui/material";
 import {
   PaperP,
   HTTP_IS_ERROR,
   showPromise,
   sleep,
+  showSuccess,
+  showWarning,
+  showError,
+  TooltipGhost,
 } from "@jeff-aporta/camaleon";
 
-import { showSuccess, showWarning, showError } from "@jeff-aporta/camaleon";
 import { driverCoinsOperating } from "./CoinsOperating.driver.js";
 import { driverPanelRobot } from "../../../bot.driver.js";
 
@@ -35,6 +44,14 @@ class CoinsOperating extends Component {
     driverPanelRobot.removeLinkCoinsToDelete(this);
   }
 
+  renderEmptyMessage() {
+    return (
+      <Typography variant="caption" color="secondary">
+        No hay monedas en operación.
+      </Typography>
+    );
+  }
+
   render() {
     return (
       <PaperP
@@ -49,20 +66,31 @@ class CoinsOperating extends Component {
           p: 2,
         }}
       >
-        {driverPanelRobot.getCoinsOperating().length === 0 ? (
-          <span style={{ color: "#888", fontSize: 14 }}>
-            No hay monedas en operación.
-          </span>
-        ) : (
-          driverPanelRobot.getCoinsOperating().map((optionCurrency, index) => {
+        {(() => {
+          const coinsOperating = driverPanelRobot.getCoinsOperating();
+
+          if (coinsOperating.length === 0) {
+            return this.renderEmptyMessage();
+          }
+
+          return coinsOperating.map((optionCurrency, index) => {
             const symbol = driverPanelRobot.getCoinKey(optionCurrency);
-            const isPendingDelete = driverPanelRobot.isPendingInCoinsToDelete(
-              symbol
+            const isPendingDelete =
+              driverPanelRobot.isPendingInCoinsToDelete(symbol);
+
+            const [colorChip, textColor, deleteIcon, tooltipTitle] = [
+              "colorChip",
+              "textColor",
+              "deleteIcon",
+              "tooltipTitle",
+            ].map((key) =>
+              driverPanelRobot.mapCaseCoinsToDelete(key, !isPendingDelete)
             );
+
             return (
-              <Tooltip
+              <TooltipGhost
                 key={`tooltip-${symbol}-${index}`}
-                title={isPendingDelete ? "Pronto dejará de ser operada" : ""}
+                title={tooltipTitle}
               >
                 <Chip
                   label={symbol}
@@ -73,21 +101,15 @@ class CoinsOperating extends Component {
                   disabled={
                     isPendingDelete || driverCoinsOperating.getActionInProcess()
                   }
-                  color={isPendingDelete ? "cancel" : "primary"}
-                  style={{ color: !isPendingDelete ? "white" : undefined }}
-                  deleteIcon={
-                    isPendingDelete ? (
-                      <CircularProgress size="20px" color="white" />
-                    ) : (
-                      <DoDisturbOnIcon style={{ color: "white" }} />
-                    )
-                  }
+                  color={colorChip}
+                  style={{ color: textColor }}
+                  deleteIcon={deleteIcon}
                   sx={{ m: 0.5 }}
                 />
-              </Tooltip>
+              </TooltipGhost>
             );
-          })
-        )}
+          });
+        })()}
       </PaperP>
     );
   }

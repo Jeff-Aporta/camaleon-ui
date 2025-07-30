@@ -5,6 +5,8 @@ import {
 } from "@api";
 import { driverTables } from "@tables/tables.js";
 import { DriverComponent, clamp, Delayer } from "@jeff-aporta/camaleon";
+import DoDisturbOnIcon from "@mui/icons-material/DoDisturbOn";
+import CircularProgress from "@mui/material/CircularProgress";
 import { driverPanelOfProjections } from "./components/ActionMain/components/PanelOfProjections.driver.js";
 import { driverPanelBalance } from "./components/ActionMain/components/PanelBalance.driver.js";
 
@@ -17,7 +19,6 @@ export const driverPanelRobot = DriverComponent({
   SEARCH_COIN_KEY({ coin, currency }) {
     const coinKey = this.getCoinKey(coin);
     const coinCurrency = currency || this.getCurrency();
-    console.log({ coinKey, coinCurrency });
     return coinKey === coinCurrency;
   },
   async fetchCoinMetrics(_) {
@@ -126,6 +127,24 @@ export const driverPanelRobot = DriverComponent({
     isPendingIn(symbol, { someKey }) {
       console.log({ symbol, someKey });
       return someKey(symbol);
+    },
+    mapCase: {
+      colorChip: {
+        true: () => "primary",
+        false: () => "toRed50",
+      },
+      textColor: {
+        true: () => "white",
+        false: () => undefined,
+      },
+      deleteIcon: {
+        true: () => <DoDisturbOnIcon style={{ color: "white" }} />,
+        false: () => <CircularProgress size="20px" color="white" />,
+      },
+      tooltipTitle: {
+        true: () => "",
+        false: () => "Pronto dejará de ser operada",
+      },
     },
   },
   currency: {

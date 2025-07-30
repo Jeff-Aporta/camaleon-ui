@@ -1,15 +1,8 @@
 import React, { Component } from "react";
 import { Typography, TextField, Slider, Button, Paper } from "@mui/material";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-import { HTTPPUT_USEROPERATION_INVESTMENT } from "@api";
-import {
-  showSuccess,
-  showWarning,
-  PaperP,
-  driverParams,
-  Delayer,
-  fluidCSS,
-} from "@jeff-aporta/camaleon";
+
+import { PaperP, fluidCSS } from "@jeff-aporta/camaleon";
 import { TooltipGhost } from "@jeff-aporta/camaleon";
 
 import { driverPanelBalance } from "./PanelBalance.driver.js";
@@ -21,7 +14,7 @@ const MAX_VALUE_INVERSION = 1000000;
 const marks = [
   { value: 1, label: "10" },
   { value: 2, label: "100" },
-  { value: 3, label: "1.000" },
+  { value: 3, label: "1000" },
   { value: 4, label: "10k" },
   { value: 5, label: "100k" },
   { value: 6, label: "1M" },
@@ -36,7 +29,6 @@ export default class PanelOfInsertMoney extends React.Component {
     super(props);
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleSliderChange = this.handleSliderChange.bind(this);
-    this.handleInvest = this.handleInvest.bind(this);
   }
 
   componentDidMount() {
@@ -54,31 +46,6 @@ export default class PanelOfInsertMoney extends React.Component {
 
   handleSliderChange(e, expVal) {
     driverPanelBalance.setDefaultUSDTBuy(Math.round(10 ** expVal));
-  }
-
-  handleInvest(id = 0) {
-    if (driverPanelOfInsertMoney.getWaitInvestment()) {
-      return;
-    }
-    driverPanelOfInsertMoney.setWaitInvestment(true);
-    const delayer = driverPanelOfInsertMoney.getDelayerInvestment();
-    if (!delayer.isReady((newId) => this.handleInvest(newId), id)) {
-      return;
-    }
-    const coin_id = driverParams.getOne("id_coin");
-    HTTPPUT_USEROPERATION_INVESTMENT({
-      coin_id,
-      new_value: driverPanelBalance.getDefaultUSDTBuy(),
-      failure() {
-        showWarning("Error al invertir");
-      },
-      successful(data) {
-        showSuccess("Inversión exitosa");
-      },
-      willEnd() {
-        driverPanelOfInsertMoney.setWaitInvestment(false);
-      },
-    });
   }
 
   render() {
@@ -111,17 +78,7 @@ export default class PanelOfInsertMoney extends React.Component {
               sx={{ mt: 1, width: "100%" }}
             />
             <TooltipGhost title="Invertir">
-              <span>
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<AttachMoneyIcon fontSize="small" />}
-                  disabled={driverPanelOfInsertMoney.getWaitInvestment()}
-                  onClick={this.handleInvest}
-                >
-                  Asignar
-                </Button>
-              </span>
+              <span>{this.buttonAssign()}</span>
             </TooltipGhost>
           </div>
           <div
@@ -151,6 +108,31 @@ export default class PanelOfInsertMoney extends React.Component {
         </div>
       </PaperP>
     );
+  }
+
+  buttonAssign() {
+    const RETURN = class extends Component {
+      componentDidMount() {
+        driverPanelOfInsertMoney.addLinkWaitInvestment(this);
+      }
+      componentWillUnmount() {
+        driverPanelOfInsertMoney.removeLinkWaitInvestment(this);
+      }
+      render() {
+        return (
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<AttachMoneyIcon fontSize="small" />}
+            disabled={driverPanelOfInsertMoney.getWaitInvestment()}
+            onClick={() => driverPanelOfInsertMoney.handleInvest()}
+          >
+            Asignar
+          </Button>
+        );
+      }
+    }
+    return <RETURN />;
   }
 }
 

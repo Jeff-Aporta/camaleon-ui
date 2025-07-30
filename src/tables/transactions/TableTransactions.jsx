@@ -184,15 +184,18 @@ function PrefixUseOperation({ useOperation, columns_config }) {
       >
         <Tooltip title="Volver a operaciones" placement="left">
           <Button
+            className="text-hide-unhover-container"
             variant="contained"
-            color="error"
+            color="toRed50"
             size="small"
-            endIcon={<DisabledByDefaultIcon />}
             onClick={() =>
               driverTables.setViewTable(driverTables.TABLE_OPERATIONS)
             }
           >
-            Cerrar Transacciones
+            <DisabledByDefaultIcon fontSize="small" />
+            <div className="text-hide-unhover nowrap">
+              &nbsp;<small>Cerrar Transacciones</small>
+            </div>
           </Button>
         </Tooltip>
       </div>

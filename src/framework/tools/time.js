@@ -55,7 +55,7 @@ export function Delayer(timedelay) {
 
     isTheId(id_, reset = false) {
       const isTheId = id == id_;
-      if (reset) {
+      if (reset && isTheId) {
         this.resetId();
       }
       return isTheId;
@@ -69,15 +69,15 @@ export function Delayer(timedelay) {
       return timedelay;
     }
 
-    isReady(cbIncrement = false, id) {
+    isReady(cbIncrement = false, id_) {
       const ready = ellapsed(delay) >= timedelay;
+      console.log({ ready, id_, id }, this.getId());
       if (ready) {
-        if (id) {
-          if (!this.isTheId(id)) {
+        if (id_) {
+          if (!this.isTheId(id_, true)) {
             return false;
           }
         }
-        this.resetId();
         delay = Date.now();
       } else {
         if (cbIncrement) {
